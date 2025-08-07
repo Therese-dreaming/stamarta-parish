@@ -262,6 +262,17 @@ class BookingController extends Controller
             return false;
         }
 
+        // Check for parochial activities that block this time slot
+        $blockingActivities = \App\Models\ParochialActivity::active()
+            ->onDate($date)
+            ->get();
+
+        foreach ($blockingActivities as $activity) {
+            if ($activity->conflictsWithBooking($date, $time)) {
+                return false;
+            }
+        }
+
         // Check if there are existing bookings for this date/time
         $existingBookings = Booking::where('service_id', $service->id)
             ->where('service_date', $date)
@@ -312,9 +323,27 @@ class BookingController extends Controller
             return [];
         }
 
+        // Check for parochial activities that block bookings on this date
+        $blockingActivities = \App\Models\ParochialActivity::active()
+            ->onDate($date)
+            ->get();
+
         $availableSlots = [];
         
         foreach ($allTimeSlots as $timeSlot) {
+            // Check if this time slot conflicts with any parochial activity
+            $hasConflict = false;
+            foreach ($blockingActivities as $activity) {
+                if ($activity->conflictsWithBooking($date, $timeSlot)) {
+                    $hasConflict = true;
+                    break;
+                }
+            }
+
+            if ($hasConflict) {
+                continue; // Skip this time slot if it conflicts with an activity
+            }
+
             $bookedCount = Booking::where('service_id', $service->id)
                 ->where('service_date', $date)
                 ->where('service_time', $timeSlot)
@@ -358,19 +387,37 @@ class BookingController extends Controller
     /**
      * Submit payment proof for a booking
      */
+    public function showPayment(Booking $booking)
+    {
+        // Check if user owns this booking
+        if ($booking->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized access to booking.');
+        }
+
+        // Check if booking is in acknowledged status
+        if ($booking->status !== 'acknowledged') {
+            return redirect()->route('booking.my-bookings')->with('error', 'This booking is not ready for payment.');
+        }
+
+        $booking->load('service');
+        
+        return view('booking.payment', compact('booking'));
+    }
+
     public function submitPayment(Request $request, Booking $booking)
     {
         // Ensure user can only submit payment for their own bookings
         if ($booking->user_id !== Auth::id()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            return redirect()->route('booking.my-bookings')->with('error', 'Unauthorized action.');
         }
 
-        // Ensure booking is in payment_hold status
-        if ($booking->status !== 'payment_hold') {
-            return response()->json(['success' => false, 'message' => 'Booking is not in payment hold status'], 400);
+        // Ensure booking is in acknowledged status
+        if ($booking->status !== 'acknowledged') {
+            return redirect()->route('booking.my-bookings')->with('error', 'Booking must be acknowledged first.');
         }
 
         $request->validate([
+            'payment_method' => 'required|in:gcash,metrobank',
             'payment_reference' => 'required|string|max:255',
             'payment_proof' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'payment_notes' => 'nullable|string|max:500',
@@ -379,21 +426,43 @@ class BookingController extends Controller
         try {
             // Handle payment proof upload
             $paymentProof = $request->file('payment_proof');
+            if (!$paymentProof) {
+                throw new \Exception('Payment proof file is required');
+            }
+            
             $filename = time() . '_payment_' . $booking->id . '.' . $paymentProof->getClientOriginalExtension();
             $path = $paymentProof->storeAs('payments/' . Auth::id(), $filename, 'public');
+            
+            if (!$path) {
+                throw new \Exception('Failed to store payment proof file');
+            }
 
-            // Update booking with payment information
-            $booking->update([
-                'payment_status' => 'paid',
-                'payment_reference' => $request->payment_reference,
-                'payment_proof' => $path,
-                'payment_notes' => $request->payment_notes,
-                'payment_submitted_at' => now(),
-            ]);
+            // Get the appropriate fee for this booking
+            $feeInfo = $booking->service->getFeeForDate($booking->service_date);
+            $totalFee = $feeInfo['amount'] ?? 0;
 
-            return response()->json(['success' => true, 'message' => 'Payment proof submitted successfully']);
+            // Create or update payment record
+            $booking->payment()->updateOrCreate(
+                ['booking_id' => $booking->id],
+                [
+                    'total_fee' => $totalFee,
+                    'payment_method' => $request->payment_method,
+                    'payment_reference' => $request->payment_reference,
+                    'payment_proof' => $path,
+                    'payment_notes' => $request->payment_notes,
+                    'payment_status' => 'paid',
+                    'payment_submitted_at' => now(),
+                ]
+            );
+
+            // Update booking status to payment_hold
+            $booking->update(['status' => 'payment_hold']);
+
+            return redirect()->route('booking.my-bookings')->with('success', 'Payment proof submitted successfully! Your booking is now on payment hold and will be reviewed shortly.');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error submitting payment proof']);
+            \Log::error('Payment submission error: ' . $e->getMessage());
+            \Log::error('Payment submission error trace: ' . $e->getTraceAsString());
+            return redirect()->route('booking.payment', $booking)->with('error', 'Error submitting payment proof. Please try again. Error: ' . $e->getMessage());
         }
     }
 
@@ -404,19 +473,18 @@ class BookingController extends Controller
     {
         // Ensure user can only cancel their own bookings
         if ($booking->user_id !== Auth::id()) {
-            return redirect()->route('services.my-bookings')->with('error', 'Unauthorized action.');
+            return redirect()->route('booking.my-bookings')->with('error', 'Unauthorized action.');
         }
 
         // Ensure booking can be cancelled
-        if (!in_array($booking->status, ['pending', 'acknowledged', 'payment_hold'])) {
-            return redirect()->route('services.my-bookings')->with('error', 'This booking cannot be cancelled.');
+        if (!in_array($booking->status, ['pending', 'acknowledged'])) {
+            return redirect()->route('booking.my-bookings')->with('error', 'This booking cannot be cancelled.');
         }
 
         $booking->update([
             'status' => 'cancelled',
-            'cancelled_at' => now(),
         ]);
 
-        return redirect()->route('services.my-bookings')->with('success', 'Booking cancelled successfully.');
+        return redirect()->route('booking.my-bookings')->with('success', 'Booking cancelled successfully.');
     }
 } 

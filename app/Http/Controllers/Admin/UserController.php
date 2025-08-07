@@ -15,6 +15,29 @@ class UserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
+    public function create()
+    {
+        return view('admin.users.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => ['required', Rule::in(['user', 'staff', 'priest', 'admin'])],
+        ]);
+
+        $validated['password'] = bcrypt($validated['password']);
+        $validated['email_verified_at'] = now(); // Auto-verify admin-created users
+
+        User::create($validated);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User created successfully.');
+    }
+
     public function show(User $user)
     {
         return view('admin.users.show', compact('user'));

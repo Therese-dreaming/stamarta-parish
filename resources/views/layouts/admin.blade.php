@@ -20,6 +20,9 @@
     
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 font-['Poppins'] min-h-full flex flex-col">
     <div class="min-h-screen">
@@ -91,10 +94,34 @@
                 <div class="pt-4">
                     <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
                 </div>
+                <div class="relative group">
+                    <button class="w-full flex items-center justify-between px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.bookings.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <div class="flex items-center">
+                            <i class="fas fa-bookmark w-5 h-5 mr-3"></i>
+                            Bookings
+                        </div>
+                        <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
+                    </button>
+                    <div class="absolute left-0 right-0 top-full bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                        <a href="{{ route('admin.bookings.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-list mr-2"></i>
+                            View Bookings
+                        </a>
+                        <a href="{{ route('admin.bookings.calendar') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            Calendar
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Parochial Activities -->
+                <div class="pt-4">
+                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Parochial Activities</h3>
+                </div>
                 
-                <a href="{{ route('admin.bookings.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.bookings.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-bookmark w-5 h-5 mr-3"></i>
-                    Bookings
+                <a href="{{ route('admin.parochial-activities.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.parochial-activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-church w-5 h-5 mr-3"></i>
+                    Activities
                 </a>
             </nav>
         </div>
@@ -201,7 +228,7 @@
 
         // Auto-hide success/error messages after 5 seconds
         setTimeout(function() {
-            const messages = document.querySelectorAll('.bg-green-100, .bg-red-100');
+            const messages = document.querySelectorAll('.bg-green-100.border-green-400, .bg-red-100.border-red-400');
             messages.forEach(function(message) {
                 message.style.display = 'none';
             });

@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -23,56 +22,24 @@ class Booking extends Model
         'custom_data',
         'status',
         'priest_id',
-        'total_fee',
-        'payment_status',
-        'payment_reference',
-        'payment_proof',
-        'payment_notes',
-        'payment_submitted_at',
-        'acknowledged_at',
-        'acknowledged_by',
-
-        'verified_at',
-        'verified_by',
-        'approved_at',
-        'approved_by',
-        'rejected_at',
-        'rejected_by',
-        'completed_at',
-        'completed_by',
-        'cancelled_at',
-        'notes',
     ];
 
     protected $casts = [
         'service_date' => 'date',
         'requirements_submitted' => 'array',
         'custom_data' => 'array',
-        'total_fee' => 'decimal:2',
-        'payment_submitted_at' => 'datetime',
-        'acknowledged_at' => 'datetime',
-
-        'verified_at' => 'datetime',
-        'approved_at' => 'datetime',
-        'rejected_at' => 'datetime',
-        'completed_at' => 'datetime',
-        'cancelled_at' => 'datetime',
     ];
 
     // Status constants
     const STATUS_PENDING = 'pending';
     const STATUS_ACKNOWLEDGED = 'acknowledged';
+    const STATUS_PAYMENT_HOLD = 'payment_hold';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_COMPLETED = 'completed';
 
-    // Payment status constants
-    const PAYMENT_PENDING = 'pending';
-    const PAYMENT_PAID = 'paid';
-    const PAYMENT_PARTIAL = 'partial';
-    const PAYMENT_VERIFIED = 'verified';
-    const PAYMENT_REJECTED = 'rejected';
+
 
     public function user()
     {
@@ -89,6 +56,21 @@ class Booking extends Model
         return $this->belongsTo(Priest::class);
     }
 
+    public function payment()
+    {
+        return $this->hasOne(BookingPayment::class);
+    }
+
+    public function actions()
+    {
+        return $this->hasMany(BookingAction::class);
+    }
+
+    public function latestAction()
+    {
+        return $this->hasOne(BookingAction::class)->latest();
+    }
+
     // Scopes
     public function scopePending($query)
     {
@@ -100,7 +82,10 @@ class Booking extends Model
         return $query->where('status', self::STATUS_ACKNOWLEDGED);
     }
 
-
+    public function scopePaymentHold($query)
+    {
+        return $query->where('status', self::STATUS_PAYMENT_HOLD);
+    }
 
     public function scopeApproved($query)
     {
@@ -128,6 +113,7 @@ class Booking extends Model
         $badges = [
             self::STATUS_PENDING => 'bg-yellow-100 text-yellow-800',
             self::STATUS_ACKNOWLEDGED => 'bg-blue-100 text-blue-800',
+            self::STATUS_PAYMENT_HOLD => 'bg-orange-100 text-orange-800',
             self::STATUS_APPROVED => 'bg-green-100 text-green-800',
             self::STATUS_REJECTED => 'bg-red-100 text-red-800',
             self::STATUS_CANCELLED => 'bg-red-100 text-red-800',
@@ -139,29 +125,35 @@ class Booking extends Model
 
     public function getPaymentStatusBadgeAttribute()
     {
-        $badges = [
-            self::PAYMENT_PENDING => 'bg-yellow-100 text-yellow-800',
-            self::PAYMENT_PAID => 'bg-blue-100 text-blue-800',
-            self::PAYMENT_PARTIAL => 'bg-blue-100 text-blue-800',
-            self::PAYMENT_VERIFIED => 'bg-green-100 text-green-800',
-            self::PAYMENT_REJECTED => 'bg-red-100 text-red-800',
-        ];
-
-        return $badges[$this->payment_status] ?? 'bg-gray-100 text-gray-800';
+        if (!$this->payment) {
+            return 'bg-gray-100 text-gray-800';
+        }
+        return $this->payment->payment_status_badge;
     }
 
     public function getFormattedDateAttribute()
     {
-        return $this->service_date->format('F d, Y');
+        if (!$this->service_date) {
+            return 'No date set';
+        }
+        
+        try {
+            return $this->service_date->format('F d, Y');
+        } catch (\Exception $e) {
+            return 'Invalid date';
+        }
     }
 
     public function getFormattedTimeAttribute()
     {
-        return $this->service_time;
+        return $this->service_time ?? 'No time set';
     }
 
     public function getFormattedTotalFeeAttribute()
     {
-        return '₱' . number_format($this->total_fee, 2);
+        if (!$this->payment) {
+            return 'Contact office';
+        }
+        return $this->payment->formatted_total_fee;
     }
 } 

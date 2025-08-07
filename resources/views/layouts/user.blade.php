@@ -42,7 +42,7 @@
                                  x-transition:leave-end="transform opacity-0 scale-95"
                                  class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                                 <a href="{{ route('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                                <a href="{{ route('services.my-bookings') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Bookings</a>
+                                <a href="{{ route('booking.my-bookings') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Bookings</a>
                                 @if(Auth::user()->isAdmin())
                                     <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Admin Panel</a>
                                 @endif
@@ -84,7 +84,7 @@
             @auth
                 <a href="{{ route('userServices') }}" class="block px-3 py-2 text-[#0d5c2f] font-medium">Book Now</a>
                 <a href="{{ route('profile') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Profile</a>
-                <a href="{{ route('services.my-bookings') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">My Bookings</a>
+                <a href="{{ route('booking.my-bookings') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">My Bookings</a>
                 @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Admin Panel</a>
                 @endif

@@ -3,16 +3,22 @@
 @section('title', 'Edit User')
 
 @section('content')
+@include('components.toast')
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Edit User</h1>
-            <p class="text-gray-600 mt-1">Update user information and role</p>
+    <!-- Header with colored background -->
+    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Edit User</h1>
+                    <p class="text-white/80 mt-1">Update user information and role</p>
+                </div>
+                <a href="{{ route('admin.users.index') }}" 
+                   class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Back to Users">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+            </div>
         </div>
-        <a href="{{ route('admin.users.index') }}" class="text-[#0d5c2f] hover:underline">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Users
-        </a>
     </div>
 
     <!-- Form -->
@@ -99,13 +105,19 @@
             <div class="mt-6">
                 <h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">Account Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
-                        <p class="text-gray-900">{{ $user->created_at->format('F j, Y g:i A') }}</p>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-calendar-plus text-gray-600 mr-2"></i>
+                            <span class="font-medium text-gray-900">Member Since</span>
+                        </div>
+                        <p class="text-gray-700">{{ $user->created_at->format('F j, Y g:i A') }}</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Updated</label>
-                        <p class="text-gray-900">{{ $user->updated_at->format('F j, Y g:i A') }}</p>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-clock text-gray-600 mr-2"></i>
+                            <span class="font-medium text-gray-900">Last Updated</span>
+                        </div>
+                        <p class="text-gray-700">{{ $user->updated_at->format('F j, Y g:i A') }}</p>
                     </div>
                 </div>
             </div>
@@ -114,7 +126,7 @@
             <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
                 <a href="{{ route('admin.users.index') }}" 
                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                    Cancel
+                    <i class="fas fa-times mr-2"></i>Cancel
                 </a>
                 <button type="submit" 
                         class="px-6 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">

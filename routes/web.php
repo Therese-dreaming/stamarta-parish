@@ -69,13 +69,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/booking/step3/{service}', [App\Http\Controllers\BookingController::class, 'step3'])->name('booking.step3');
     Route::post('/booking/step3/{service}', [App\Http\Controllers\BookingController::class, 'step3Store'])->name('booking.step3.store');
     Route::get('/booking/confirmation/{booking}', [App\Http\Controllers\BookingController::class, 'confirmation'])->name('booking.confirmation');
-    Route::get('/my-bookings', [App\Http\Controllers\BookingController::class, 'myBookings'])->name('services.my-bookings');
+    Route::get('/my-bookings', [App\Http\Controllers\BookingController::class, 'myBookings'])->name('booking.my-bookings');
     
     // AJAX route for time slots
     Route::get('/booking/time-slots/{service}', [App\Http\Controllers\BookingController::class, 'getTimeSlots'])->name('booking.time-slots');
     
     // Payment and cancel routes
-    Route::post('/booking/submit-payment/{booking}', [App\Http\Controllers\BookingController::class, 'submitPayment'])->name('booking.submit-payment');
+    Route::get('/booking/payment/{booking}', [App\Http\Controllers\BookingController::class, 'showPayment'])->name('booking.payment');
+Route::post('/booking/submit-payment/{booking}', [App\Http\Controllers\BookingController::class, 'submitPayment'])->name('booking.submit-payment');
     Route::get('/booking/cancel/{booking}', [App\Http\Controllers\BookingController::class, 'cancelBooking'])->name('booking.cancel');
 });
 
@@ -131,7 +132,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('priests/{priest}/toggle-status', [PriestController::class, 'toggleStatus'])->name('priests.toggle-status');
 
     // User Management
-    Route::resource('users', UserController::class)->except(['create', 'store']);
+    Route::resource('users', UserController::class);
     Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 
     // Service Management
@@ -142,6 +143,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     
     // Booking Management
     Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+    Route::get('bookings/calendar', [App\Http\Controllers\Admin\BookingController::class, 'calendar'])->name('bookings.calendar');
     Route::get('bookings/{booking}', [App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
     Route::post('bookings/{booking}/acknowledge', [App\Http\Controllers\Admin\BookingController::class, 'acknowledge'])->name('bookings.acknowledge');
     Route::post('bookings/{booking}/verify-payment', [App\Http\Controllers\Admin\BookingController::class, 'verifyPayment'])->name('bookings.verify-payment');
@@ -149,7 +151,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('bookings/{booking}/reject', [App\Http\Controllers\Admin\BookingController::class, 'reject'])->name('bookings.reject');
     Route::get('bookings/{booking}/download-document/{documentType}', [App\Http\Controllers\Admin\BookingController::class, 'downloadDocument'])->name('bookings.download-document');
     Route::get('bookings/{booking}/download-payment-proof', [App\Http\Controllers\Admin\BookingController::class, 'downloadPaymentProof'])->name('bookings.download-payment-proof');
-    Route::post('bookings/{booking}/update-notes', [App\Http\Controllers\Admin\BookingController::class, 'updateNotes'])->name('bookings.update-notes');
+
+    // Parochial Activities Management
+    Route::resource('parochial-activities', App\Http\Controllers\Admin\ParochialActivityController::class);
+    Route::get('parochial-activities-calendar', [App\Http\Controllers\Admin\ParochialActivityController::class, 'calendar'])->name('parochial-activities.calendar');
+    Route::get('blocking-activities', [App\Http\Controllers\Admin\ParochialActivityController::class, 'getBlockingActivities'])->name('parochial-activities.blocking');
+
 });
 
 // Fallback route for admin pages

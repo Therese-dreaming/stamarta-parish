@@ -200,4 +200,12 @@ class Service extends Model
 
         return $message . ".";
     }
+
+    /**
+     * Get all bookings for this service
+     */
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 } 

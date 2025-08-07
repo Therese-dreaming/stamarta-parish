@@ -3,16 +3,22 @@
 @section('title', 'Edit Service')
 
 @section('content')
+@include('components.toast')
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Edit Service</h1>
-            <p class="text-gray-600 mt-1">Update service information and schedules</p>
+    <!-- Header with colored background -->
+    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Edit Service</h1>
+                    <p class="text-white/80 mt-1">Update service information and schedules</p>
+                </div>
+                <a href="{{ route('admin.services.index') }}" 
+                   class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Back to Services">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+            </div>
         </div>
-        <a href="{{ route('admin.services.index') }}" class="text-[#0d5c2f] hover:underline">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Services
-        </a>
     </div>
 
     <!-- Form -->
@@ -268,7 +274,7 @@
             <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
                 <a href="{{ route('admin.services.index') }}" 
                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                    Cancel
+                    <i class="fas fa-times mr-2"></i>Cancel
                 </a>
                 <button type="submit" 
                         class="px-6 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
