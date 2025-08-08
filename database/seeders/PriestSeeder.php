@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use App\Models\User;
 use App\Models\Priest;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class PriestSeeder extends Seeder
 {
@@ -21,7 +22,8 @@ class PriestSeeder extends Seeder
                 'bio' => 'Parish Priest of Sta. Marta Parish with over 15 years of service to the community.',
                 'is_active' => true,
                 'photo_path' => 'Rev. Fr. Jorge Jesus A. Bellosillo.JPG',
-                'specializations' => json_encode(['Baptism', 'Wedding', 'Funeral', 'Mass']),
+                'specializations' => ['Baptism', 'Wedding', 'Funeral', 'Mass'],
+                'password' => 'password',
             ],
             [
                 'name' => 'Rev. Fr. Loreto N. Sanchez, Jr.',
@@ -30,7 +32,8 @@ class PriestSeeder extends Seeder
                 'bio' => 'Assistant Parish Priest dedicated to serving the spiritual needs of the parishioners.',
                 'is_active' => true,
                 'photo_path' => 'Rev. Fr. Loreto N. Sanchez, Jr..png',
-                'specializations' => json_encode(['Baptism', 'Wedding', 'Confession', 'Mass']),
+                'specializations' => ['Baptism', 'Wedding', 'Confession', 'Mass'],
+                'password' => 'password',
             ],
             [
                 'name' => 'Rev. Fr. Orlando B. Cantillon',
@@ -39,12 +42,42 @@ class PriestSeeder extends Seeder
                 'bio' => 'Parochial Vicar committed to pastoral care and community outreach programs.',
                 'is_active' => true,
                 'photo_path' => 'Rev. Fr. Orlando B. Cantillon.JPG',
-                'specializations' => json_encode(['Baptism', 'Blessing', 'Mass', 'Community Outreach']),
+                'specializations' => ['Baptism', 'Blessing', 'Mass', 'Community Outreach'],
+                'password' => 'password',
             ],
         ];
 
-        foreach ($priests as $priest) {
-            Priest::create($priest);
+        foreach ($priests as $priestData) {
+            // Extract password for user creation
+            $password = $priestData['password'];
+            unset($priestData['password']);
+
+            // Check if user already exists
+            $user = User::where('email', $priestData['email'])->first();
+            
+            if (!$user) {
+                // Create user account
+                $user = User::create([
+                    'name' => $priestData['name'],
+                    'email' => $priestData['email'],
+                    'password' => Hash::make($password),
+                    'role' => 'priest',
+                    'email_verified_at' => now(),
+                ]);
+            }
+
+            // Find or create priest record
+            $priest = Priest::where('email', $priestData['email'])->first();
+            
+            if (!$priest) {
+                // Create priest record
+                $priest = Priest::create($priestData);
+            }
+            
+            // Link priest to user if not already linked
+            if (!$priest->user_id) {
+                $priest->update(['user_id' => $user->id]);
+            }
         }
     }
 }

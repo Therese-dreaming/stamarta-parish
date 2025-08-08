@@ -13,12 +13,18 @@ class PriestController extends Controller
     public function index()
     {
         $priests = Priest::orderBy('name')->paginate(10);
-        return view('admin.priests.index', compact('priests'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.priests.index', compact('priests', 'isStaff'));
     }
 
     public function create()
     {
-        return view('admin.priests.create');
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.priests.create', compact('isStaff'));
     }
 
     public function store(Request $request)
@@ -52,12 +58,18 @@ class PriestController extends Controller
 
     public function show(Priest $priest)
     {
-        return view('admin.priests.show', compact('priest'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.priests.show', compact('priest', 'isStaff'));
     }
 
     public function edit(Priest $priest)
     {
-        return view('admin.priests.edit', compact('priest'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.priests.edit', compact('priest', 'isStaff'));
     }
 
     public function update(Request $request, Priest $priest)

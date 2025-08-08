@@ -66,6 +66,11 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    public function priest()
+    {
+        return $this->hasOne(Priest::class);
+    }
+
     // Role methods
     public function hasRole($role)
     {

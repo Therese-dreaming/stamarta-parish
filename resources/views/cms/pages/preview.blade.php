@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Page Preview')
 
@@ -11,10 +11,12 @@
             <p class="text-gray-600">Previewing: {{ $page->title }}</p>
         </div>
         <div class="flex space-x-3">
-            <a href="{{ route('admin.cms.pages.edit', $page) }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-                <i class="fas fa-edit mr-2"></i>Edit Page
-            </a>
-            <a href="{{ route('admin.cms.pages.index') }}" class="text-[#0d5c2f] hover:underline">
+            @if(!isset($isStaff) || !$isStaff)
+                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.edit', $page) : route('admin.cms.pages.edit', $page) }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                    <i class="fas fa-edit mr-2"></i>Edit Page
+                </a>
+            @endif
+            <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.index') : route('admin.cms.pages.index') }}" class="text-[#0d5c2f] hover:underline">
                 <i class="fas fa-arrow-left mr-2"></i>Back to Pages
             </a>
         </div>

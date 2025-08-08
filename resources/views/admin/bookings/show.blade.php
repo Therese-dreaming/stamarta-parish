@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Admin - Booking Details')
 
@@ -13,7 +13,7 @@
                     <h1 class="text-3xl font-bold text-white">Booking #{{ $booking->id }}</h1>
                     <p class="text-white/80 mt-1">Detailed view of the booking</p>
                 </div>
-                <a href="{{ route('admin.bookings.index') }}" 
+                <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.index') : route('admin.bookings.index') }}" 
                    class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Back to Bookings">
                     <i class="fas fa-arrow-left text-lg"></i>
                 </a>
@@ -157,7 +157,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <form action="{{ route('admin.bookings.complete', $booking) }}" method="POST">
+                            <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.complete', $booking) : route('admin.bookings.complete', $booking) }}" method="POST">
                                 @csrf
                                 <button type="submit" 
                                         class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
@@ -207,7 +207,7 @@
                                                 </h4>
                                                 <p class="text-xs text-gray-500 mt-1">Document uploaded</p>
                                             </div>
-                                            <a href="{{ route('admin.bookings.download-document', [$booking, $field]) }}" 
+                                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.download-document', [$booking, $field]) : route('admin.bookings.download-document', [$booking, $field]) }}" 
                                                class="px-3 py-1 bg-[#0d5c2f] text-white rounded text-sm hover:bg-[#0d5c2f]/90 transition-colors">
                                                 <i class="fas fa-download mr-1"></i>Download
                                             </a>
@@ -280,7 +280,7 @@
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Proof</h3>
                                 @if($booking->payment->payment_proof)
-                                    <a href="{{ route('admin.bookings.download-payment-proof', $booking) }}" 
+                                    <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.download-payment-proof', $booking) : route('admin.bookings.download-payment-proof', $booking) }}" 
                                        class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
                                         <i class="fas fa-download mr-2"></i>Download Payment Proof
                                     </a>
@@ -369,7 +369,7 @@
                     </div>
                 </div>
                 
-                <form action="{{ route('admin.bookings.acknowledge', $booking) }}" method="POST">
+                                        <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.acknowledge', $booking) : route('admin.bookings.acknowledge', $booking) }}" method="POST">
                     @csrf
                     
                     <div class="space-y-4">
@@ -427,7 +427,7 @@
         <div class="bg-white rounded-xl shadow-lg max-w-md w-full">
             <div class="p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Reject Booking</h3>
-                <form action="{{ route('admin.bookings.reject', $booking) }}" method="POST">
+                                        <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.reject', $booking) : route('admin.bookings.reject', $booking) }}" method="POST">
                     @csrf
                     <div class="mb-4">
                         <label for="reject_notes" class="block text-sm font-medium text-gray-700 mb-2">
@@ -463,7 +463,7 @@
         <div class="bg-white rounded-xl shadow-lg max-w-lg w-full">
             <div class="p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Verification</h3>
-                <form action="{{ route('admin.bookings.verify-payment', $booking) }}" method="POST">
+                                        <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.verify-payment', $booking) : route('admin.bookings.verify-payment', $booking) }}" method="POST">
                     @csrf
                     <div class="space-y-4">
                         <div>

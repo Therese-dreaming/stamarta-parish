@@ -11,12 +11,26 @@ class ServiceController extends Controller
     public function index()
     {
         $services = Service::orderBy('name')->get();
-        return view('admin.services.index', compact('services'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.services.index', compact('services', 'isStaff'));
+    }
+
+    public function show(Service $service)
+    {
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.services.show', compact('service', 'isStaff'));
     }
 
     public function edit(Service $service)
     {
-        return view('admin.services.edit', compact('service'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.services.edit', compact('service', 'isStaff'));
     }
 
     public function update(Request $request, Service $service)

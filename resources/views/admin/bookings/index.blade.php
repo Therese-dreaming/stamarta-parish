@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Admin - Bookings')
 
@@ -244,7 +244,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex items-center space-x-2">
-                                        <a href="{{ route('admin.bookings.show', $booking) }}" 
+                                        <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}" 
                                            class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" title="View">
                                             <i class="fas fa-eye text-sm"></i>
                                         </a>
@@ -256,19 +256,16 @@
                                         @endif
 
                                         @if($booking->status === 'payment_hold')
-                                            <a href="{{ route('admin.bookings.show', $booking) }}#payment-verification" 
+                                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}#payment-verification" 
                                                class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Verify Payment">
                                                 <i class="fas fa-check-circle text-sm"></i>
                                             </a>
                                         @endif
 
                                         @if($booking->status === 'approved')
-                                            <form action="{{ route('admin.bookings.complete', $booking) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Mark Complete">
-                                                    <i class="fas fa-flag-checkered text-sm"></i>
-                                                </button>
-                                            </form>
+                                            <button onclick="openCompleteModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Mark Complete">
+                                                <i class="fas fa-flag-checkered text-sm"></i>
+                                            </button>
                                         @endif
 
                                         @if(in_array($booking->status, ['pending', 'acknowledged', 'payment_hold']))
@@ -338,7 +335,7 @@
                         
                         <div class="bg-gray-50 px-6 py-4 flex justify-between items-center">
                             <div class="flex space-x-2">
-                                <a href="{{ route('admin.bookings.show', $booking) }}" 
+                                <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}" 
                                    class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" title="View">
                                     <i class="fas fa-eye text-sm"></i>
                                 </a>
@@ -350,19 +347,16 @@
                                 @endif
 
                                 @if($booking->status === 'payment_hold')
-                                    <a href="{{ route('admin.bookings.show', $booking) }}#payment-verification" 
+                                    <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}#payment-verification" 
                                        class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Verify Payment">
                                         <i class="fas fa-check-circle text-sm"></i>
                                     </a>
                                 @endif
 
                                 @if($booking->status === 'approved')
-                                    <form action="{{ route('admin.bookings.complete', $booking) }}" method="POST" class="inline">
-                                        @csrf
-                                        <button type="submit" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Mark Complete">
-                                            <i class="fas fa-flag-checkered text-sm"></i>
-                                        </button>
-                                    </form>
+                                    <button onclick="openCompleteModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Mark Complete">
+                                        <i class="fas fa-flag-checkered text-sm"></i>
+                                    </button>
                                 @endif
 
                                 @if(in_array($booking->status, ['pending', 'acknowledged', 'payment_hold']))
@@ -504,6 +498,54 @@
     </div>
 </div>
 
+<!-- Complete Modal -->
+<div id="completeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full">
+            <div class="p-6">
+                <div class="flex items-center mb-6">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-flag-checkered text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Complete Booking</h3>
+                        <p class="text-sm text-gray-600">Mark this booking as completed</p>
+                    </div>
+                </div>
+                
+                <form id="completeForm" method="POST">
+                    @csrf
+                    
+                    <div class="mb-4">
+                        <label for="complete_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                            Completion Notes (Optional)
+                        </label>
+                        <textarea id="complete_notes" 
+                                  name="notes" 
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                  placeholder="Add any notes about the completion"></textarea>
+                    </div>
+                    
+                    <div class="flex items-center justify-end space-x-3">
+                        <button type="button" 
+                                onclick="closeModal('completeModal')"
+                                class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                            <i class="fas fa-flag-checkered mr-2"></i>Complete Booking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Tab filtering functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -618,7 +660,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function openAcknowledgeModal(bookingId) {
     const form = document.getElementById('acknowledgeForm');
-    form.action = `/admin/bookings/${bookingId}/acknowledge`;
+    @if(isset($isStaff) && $isStaff)
+        form.action = `/staff/bookings/${bookingId}/acknowledge`;
+    @else
+        form.action = `/admin/bookings/${bookingId}/acknowledge`;
+    @endif
     
     // Get the booking data to populate the total fee
     const bookingRow = document.querySelector(`tr[data-booking-id="${bookingId}"]`);
@@ -635,15 +681,33 @@ function openAcknowledgeModal(bookingId) {
 
 function openRejectModal(bookingId) {
     const form = document.getElementById('rejectForm');
-    form.action = `/admin/bookings/${bookingId}/reject`;
+    @if(isset($isStaff) && $isStaff)
+        form.action = `/staff/bookings/${bookingId}/reject`;
+    @else
+        form.action = `/admin/bookings/${bookingId}/reject`;
+    @endif
     document.getElementById('rejectModal').classList.remove('hidden');
+}
+
+function openCompleteModal(bookingId) {
+    const form = document.getElementById('completeForm');
+    @if(isset($isStaff) && $isStaff)
+        form.action = `/staff/bookings/${bookingId}/complete`;
+    @else
+        form.action = `/admin/bookings/${bookingId}/complete`;
+    @endif
+    document.getElementById('completeModal').classList.remove('hidden');
 }
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
     // Reset form
-    const form = document.getElementById(modalId === 'acknowledgeModal' ? 'acknowledgeForm' : 'rejectForm');
-    form.reset();
+    const form = document.getElementById(modalId === 'acknowledgeModal' ? 'acknowledgeForm' : 
+                                     modalId === 'rejectModal' ? 'rejectForm' : 
+                                     modalId === 'completeModal' ? 'completeForm' : null);
+    if (form) {
+        form.reset();
+    }
 }
 
 // Close modals when clicking outside

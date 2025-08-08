@@ -26,6 +26,7 @@ class Booking extends Model
 
     protected $casts = [
         'service_date' => 'date',
+        'service_time' => 'datetime',
         'requirements_submitted' => 'array',
         'custom_data' => 'array',
     ];

@@ -21,6 +21,7 @@ class Priest extends Model
         'specializations',
         'bio',
         'photo_path',
+        'user_id',
     ];
 
     protected $casts = [
@@ -59,5 +60,10 @@ class Priest extends Model
     public function scopeInactive($query)
     {
         return $query->where('is_active', false);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 } 

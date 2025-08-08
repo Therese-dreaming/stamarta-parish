@@ -3,6 +3,7 @@
 @section('title', 'User Management')
 
 @section('content')
+@include('components.toast')
 <div class="space-y-6">
     <!-- Header with colored background -->
     <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
@@ -97,13 +98,9 @@
                                             <i class="fas fa-edit text-sm"></i>
                                         </a>
                                         @if($user->id !== auth()->id())
-                                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-colors" title="Delete">
-                                                    <i class="fas fa-trash text-sm"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" onclick="openModal('delete-modal-{{ $user->id }}')" class="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-colors" title="Delete">
+                                                <i class="fas fa-trash text-sm"></i>
+                                            </button>
                                         @else
                                             <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400" title="Cannot modify your own account">
                                                 <i class="fas fa-lock text-sm"></i>
@@ -178,13 +175,9 @@
                                 <i class="fas fa-edit text-sm"></i>
                             </a>
                             @if($user->id !== auth()->id())
-                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-colors" title="Delete">
-                                        <i class="fas fa-trash text-sm"></i>
-                                    </button>
-                                </form>
+                                <button type="button" onclick="openModal('delete-modal-{{ $user->id }}')" class="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-colors" title="Delete">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
                             @else
                                 <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400" title="Cannot modify your own account">
                                     <i class="fas fa-lock text-sm"></i>
@@ -209,6 +202,24 @@
         </div>
     </div>
 </div>
+
+<!-- Modals for each user -->
+@foreach($users as $user)
+    @if($user->id !== auth()->id())
+        <!-- Delete Modal -->
+        <x-modal 
+            id="delete-modal-{{ $user->id }}"
+            title="Delete User"
+            message="Are you sure you want to delete {{ $user->name }}? This action cannot be undone and will permanently remove all associated data including bookings and account information."
+            confirmText="Delete User"
+            confirmClass="bg-red-600 hover:bg-red-700">
+            <form action="{{ route('admin.users.destroy', $user) }}" method="POST">
+                @csrf
+                @method('DELETE')
+            </form>
+        </x-modal>
+    @endif
+@endforeach
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -145,17 +145,17 @@
                             <i class="fas fa-edit mr-2"></i>Edit User
                         </a>
                         @if($user->id !== auth()->id())
-                            <form action="{{ route('admin.users.toggle-status', $user) }}" method="POST">
+                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
                                 @csrf
+                                @method('DELETE')
                                 <button type="submit" 
-                                        class="w-full flex items-center justify-center px-4 py-3 bg-{{ $user->is_active ? 'yellow' : 'green' }}-600 text-white rounded-lg hover:bg-{{ $user->is_active ? 'yellow' : 'green' }}-700 transition-colors">
-                                    <i class="fas fa-{{ $user->is_active ? 'pause' : 'play' }} mr-2"></i>
-                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }} User
+                                        class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-trash mr-2"></i>Delete User
                                 </button>
                             </form>
                         @else
                             <div class="w-full flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-500 rounded-lg">
-                                <i class="fas fa-lock mr-2"></i>Cannot modify own account
+                                <i class="fas fa-lock mr-2"></i>Cannot delete own account
                             </div>
                         @endif
                     </div>

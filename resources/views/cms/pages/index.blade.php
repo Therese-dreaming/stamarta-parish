@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Manage Pages')
 
@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Manage Pages</h1>
             <p class="text-gray-600">Create and manage your website content</p>
         </div>
-        <a href="{{ route('admin.cms.pages.create') }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.create') : route('admin.cms.pages.create') }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
             <i class="fas fa-plus mr-2"></i>Create Page
         </a>
     </div>
@@ -59,19 +59,19 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-2">
-                                <a href="{{ route('admin.cms.pages.preview', $page) }}" class="text-blue-600 hover:text-blue-900">
+                                <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.preview', $page) : route('admin.cms.pages.preview', $page) }}" class="text-blue-600 hover:text-blue-900">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('admin.cms.pages.edit', $page) }}" class="text-indigo-600 hover:text-indigo-900">
+                                <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.edit', $page) : route('admin.cms.pages.edit', $page) }}" class="text-indigo-600 hover:text-indigo-900">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('admin.cms.pages.toggle-publish', $page) }}" method="POST" class="inline">
+                                <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.toggle-publish', $page) : route('admin.cms.pages.toggle-publish', $page) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="text-{{ $page->is_published ? 'yellow' : 'green' }}-600 hover:text-{{ $page->is_published ? 'yellow' : 'green' }}-900">
                                         <i class="fas fa-{{ $page->is_published ? 'pause' : 'play' }}"></i>
                                     </button>
                                 </form>
-                                <form action="{{ route('admin.cms.pages.destroy', $page) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this page?')">
+                                <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.destroy', $page) : route('admin.cms.pages.destroy', $page) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this page?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900">
@@ -84,7 +84,7 @@
                     @empty
                     <tr>
                         <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                            No pages found. <a href="{{ route('admin.cms.pages.create') }}" class="text-[#0d5c2f] hover:underline">Create your first page</a>
+                            No pages found. <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.create') : route('admin.cms.pages.create') }}" class="text-[#0d5c2f] hover:underline">Create your first page</a>
                         </td>
                     </tr>
                     @endforelse

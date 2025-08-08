@@ -45,12 +45,18 @@ class MediaController extends Controller
 
         $folders = Media::distinct()->pluck('folder');
 
-        return view('cms.media.index', compact('media', 'types', 'folders'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('cms.media.index', compact('media', 'types', 'folders', 'isStaff'));
     }
 
     public function create()
     {
-        return view('cms.media.create');
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('cms.media.create', compact('isStaff'));
     }
 
     public function store(Request $request)

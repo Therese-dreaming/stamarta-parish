@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Create New Page')
 
@@ -10,14 +10,14 @@
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create New Page</h1>
             <p class="text-gray-600 dark:text-gray-400">Add new content to your website</p>
         </div>
-        <a href="{{ route('admin.cms.pages.index') }}" class="text-[#0d5c2f] hover:underline">
+        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.index') : route('admin.cms.pages.index') }}" class="text-[#0d5c2f] hover:underline">
             <i class="fas fa-arrow-left mr-2"></i>Back to Pages
         </a>
     </div>
 
     <!-- Page Form -->
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <form action="{{ route('admin.cms.pages.store') }}" method="POST">
+        <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.store') : route('admin.cms.pages.store') }}" method="POST">
             @csrf
             
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -102,7 +102,7 @@
 
             <!-- Form Actions -->
             <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
-                <a href="{{ route('admin.cms.pages.index') }}" class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors">
+                <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.index') : route('admin.cms.pages.index') }}" class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors">
                     Cancel
                 </a>
                 <button type="submit" class="px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">

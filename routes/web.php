@@ -137,6 +137,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Service Management
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
     Route::get('services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::put('services/{service}', [ServiceController::class, 'update'])->name('services.update');
     Route::post('services/{service}/toggle-status', [ServiceController::class, 'toggleStatus'])->name('services.toggle-status');
@@ -157,6 +158,62 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('parochial-activities-calendar', [App\Http\Controllers\Admin\ParochialActivityController::class, 'calendar'])->name('parochial-activities.calendar');
     Route::get('blocking-activities', [App\Http\Controllers\Admin\ParochialActivityController::class, 'getBlockingActivities'])->name('parochial-activities.blocking');
 
+});
+
+// Staff Routes
+Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(function () {
+    // Dashboard (only staff-specific controller)
+    Route::get('/', [App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Booking Management (using admin controller)
+    Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+    Route::get('bookings/calendar', [App\Http\Controllers\Admin\BookingController::class, 'calendar'])->name('bookings.calendar');
+    Route::get('bookings/{booking}', [App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
+    Route::post('bookings/{booking}/acknowledge', [App\Http\Controllers\Admin\BookingController::class, 'acknowledge'])->name('bookings.acknowledge');
+    Route::post('bookings/{booking}/verify-payment', [App\Http\Controllers\Admin\BookingController::class, 'verifyPayment'])->name('bookings.verify-payment');
+    Route::post('bookings/{booking}/complete', [App\Http\Controllers\Admin\BookingController::class, 'complete'])->name('bookings.complete');
+    Route::post('bookings/{booking}/reject', [App\Http\Controllers\Admin\BookingController::class, 'reject'])->name('bookings.reject');
+    Route::get('bookings/{booking}/download-document/{documentType}', [App\Http\Controllers\Admin\BookingController::class, 'downloadDocument'])->name('bookings.download-document');
+    Route::get('bookings/{booking}/download-payment-proof', [App\Http\Controllers\Admin\BookingController::class, 'downloadPaymentProof'])->name('bookings.download-payment-proof');
+
+    // Parochial Activities Management (using admin controller)
+    Route::resource('parochial-activities', App\Http\Controllers\Admin\ParochialActivityController::class);
+    Route::get('parochial-activities-calendar', [App\Http\Controllers\Admin\ParochialActivityController::class, 'calendar'])->name('parochial-activities.calendar');
+    Route::get('blocking-activities', [App\Http\Controllers\Admin\ParochialActivityController::class, 'getBlockingActivities'])->name('parochial-activities.blocking');
+
+    // CMS Routes (using admin controllers)
+    Route::prefix('cms')->name('cms.')->group(function () {
+        // Pages
+        Route::resource('pages', AdminPageController::class);
+        Route::post('pages/{page}/toggle-publish', [AdminPageController::class, 'togglePublish'])->name('pages.toggle-publish');
+        Route::get('pages/{page}/preview', [AdminPageController::class, 'preview'])->name('pages.preview');
+        
+        // Media
+        Route::resource('media', MediaController::class);
+        Route::get('media/{media}/edit', [MediaController::class, 'edit'])->name('media.edit');
+        Route::put('media/{media}', [MediaController::class, 'update'])->name('media.update');
+        Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    });
+
+    // View Only Routes (using admin controllers)
+    Route::get('priests', [PriestController::class, 'index'])->name('priests.index');
+    Route::get('priests/{priest}', [PriestController::class, 'show'])->name('priests.show');
+    
+    Route::get('services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
+});
+
+// Priest Routes
+Route::prefix('priest')->name('priest.')->middleware(['auth', 'priest'])->group(function () {
+    // Dashboard
+    Route::get('/', [App\Http\Controllers\Priest\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Booking Management (view-only for assigned bookings)
+    Route::get('bookings', [App\Http\Controllers\Priest\BookingController::class, 'index'])->name('bookings.index');
+    Route::get('bookings/calendar', [App\Http\Controllers\Priest\BookingController::class, 'calendar'])->name('bookings.calendar');
+    Route::get('bookings/{booking}', [App\Http\Controllers\Priest\BookingController::class, 'show'])->name('bookings.show');
+    Route::get('bookings/{booking}/download-document/{documentType}', [App\Http\Controllers\Priest\BookingController::class, 'downloadDocument'])->name('bookings.download-document');
+    Route::get('bookings/{booking}/download-payment-proof', [App\Http\Controllers\Priest\BookingController::class, 'downloadPaymentProof'])->name('bookings.download-payment-proof');
 });
 
 // Fallback route for admin pages

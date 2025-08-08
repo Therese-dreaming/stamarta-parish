@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Media Library')
 
@@ -10,7 +10,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Media Library</h1>
             <p class="text-gray-600">Manage images, documents, and other media files</p>
         </div>
-        <a href="{{ route('admin.cms.media.create') }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.create') : route('admin.cms.media.create') }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
             <i class="fas fa-plus mr-2"></i>Upload Media
         </a>
     </div>
@@ -78,7 +78,7 @@
                                         class="text-white hover:text-[#0d5c2f] transition-colors">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form action="{{ route('admin.cms.media.destroy', $file) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this file?')">
+                                <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.destroy', $file) : route('admin.cms.media.destroy', $file) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this file?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-white hover:text-red-400 transition-colors">
@@ -106,9 +106,11 @@
                     <i class="fas fa-images text-6xl text-gray-300 mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">No media files found</h3>
                     <p class="text-gray-500 mb-4">Upload your first media file to get started</p>
-                    <a href="{{ route('admin.cms.media.create') }}" class="bg-[#0d5c2f] text-white px-6 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-                        <i class="fas fa-plus mr-2"></i>Upload First File
-                    </a>
+                                         @if(!isset($isStaff) || !$isStaff)
+                     <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.create') : route('admin.cms.media.create') }}" class="bg-[#0d5c2f] text-white px-6 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                          <i class="fas fa-plus mr-2"></i>Upload First File
+                      </a>
+                      @endif
                 </div>
             @endif
         </div>
@@ -156,7 +158,9 @@
 
 <script>
 function editMedia(id, name, altText, description, folder) {
-    document.getElementById('editForm').action = `/admin/cms/media/${id}`;
+    const isStaff = {{ isset($isStaff) && $isStaff ? 'true' : 'false' }};
+    const baseUrl = isStaff ? '/staff/cms/media' : '/admin/cms/media';
+    document.getElementById('editForm').action = `${baseUrl}/${id}`;
     document.getElementById('alt_text').value = altText || '';
     document.getElementById('description').value = description || '';
     document.getElementById('folder').value = folder || '';

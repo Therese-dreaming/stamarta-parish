@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Admin - Bookings Calendar')
 
@@ -13,7 +13,7 @@
                     <h1 class="text-3xl font-bold text-white">Bookings Calendar</h1>
                     <p class="text-white/80 mt-1">View all bookings and events in calendar format</p>
                 </div>
-                <a href="{{ route('admin.bookings.index') }}" 
+                <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.index') : route('admin.bookings.index') }}" 
                    class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Back to Bookings">
                     <i class="fas fa-arrow-left text-lg"></i>
                 </a>
@@ -29,35 +29,35 @@
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Legend</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-yellow-400 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(251, 191, 36, 0.25); border-color: rgba(251, 191, 36, 0.6);"></div>
                         <span class="text-sm text-gray-600">Pending</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.6);"></div>
                         <span class="text-sm text-gray-600">Acknowledged</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-orange-500 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(249, 115, 22, 0.25); border-color: rgba(249, 115, 22, 0.6);"></div>
                         <span class="text-sm text-gray-600">Payment Hold</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.6);"></div>
                         <span class="text-sm text-gray-600">Approved</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.6);"></div>
                         <span class="text-sm text-gray-600">Rejected</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-green-700 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(5, 150, 105, 0.25); border-color: rgba(5, 150, 105, 0.6);"></div>
                         <span class="text-sm text-gray-600">Completed</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-yellow-400 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(251, 191, 36, 0.25); border-color: rgba(251, 191, 36, 0.6);"></div>
                         <span class="text-sm text-gray-600">Activities</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 bg-purple-500 rounded mr-2"></div>
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(139, 92, 246, 0.25); border-color: rgba(139, 92, 246, 0.6);"></div>
                         <span class="text-sm text-gray-600">Multiple Events</span>
                     </div>
                 </div>
@@ -94,33 +94,38 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Event Details Modal -->
-<div id="eventModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-xl shadow-lg max-w-lg w-full">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">Event Details</h3>
-                    <button onclick="closeEventModal()" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <!-- Events Display Section -->
+    <div id="eventsSection" class="bg-white rounded-xl shadow-sm border border-gray-200 hidden">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="selectedDateTitle" class="text-xl font-semibold text-gray-900">Events for Selected Date</h3>
+                <button onclick="hideEventsSection()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Bookings Section -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-calendar-check mr-2 text-[#0d5c2f]"></i>
+                        Bookings
+                    </h4>
+                    <div id="bookingsList" class="space-y-3">
+                        <!-- Bookings will be populated by JavaScript -->
+                    </div>
                 </div>
-                
-                <div id="modalContent">
-                    <!-- Content will be populated by JavaScript -->
-                </div>
-                
-                <div class="flex items-center justify-end space-x-3 mt-6">
-                    <button onclick="closeEventModal()" 
-                            class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        Close
-                    </button>
-                    <a id="viewBookingBtn" href="#" 
-                       class="px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors hidden">
-                        <i class="fas fa-eye mr-2"></i>View Booking
-                    </a>
+
+                <!-- Activities Section -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-church mr-2 text-yellow-500"></i>
+                        Parochial Activities
+                    </h4>
+                    <div id="activitiesList" class="space-y-3">
+                        <!-- Activities will be populated by JavaScript -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -199,38 +204,13 @@ class AdminCalendar {
                 // Determine the color based on events
                 const eventColor = this.getEventColor(dayEvents);
                 
-                // Add event indicators
-                if (dayEvents.length === 1) {
-                    // Single event - use its color
-                    const indicator = document.createElement('div');
-                    indicator.className = 'absolute w-3 h-3 rounded-full';
-                    indicator.style.backgroundColor = eventColor;
-                    indicator.style.top = '8px';
-                    indicator.style.right = '8px';
-                    dayDiv.appendChild(indicator);
-                } else {
-                    // Multiple events - show multiple indicators or use purple for mixed
-                    const uniqueTypes = [...new Set(dayEvents.map(e => e.type))];
-                    const uniqueStatuses = [...new Set(dayEvents.filter(e => e.type === 'booking').map(e => e.status))];
-                    
-                    if (uniqueTypes.length > 1 || uniqueStatuses.length > 1) {
-                        // Mixed events - use purple
-                        const indicator = document.createElement('div');
-                        indicator.className = 'absolute w-3 h-3 rounded-full';
-                        indicator.style.backgroundColor = '#8b5cf6'; // Purple
-                        indicator.style.top = '8px';
-                        indicator.style.right = '8px';
-                        dayDiv.appendChild(indicator);
-                    } else {
-                        // Same type/status - use the color
-                        const indicator = document.createElement('div');
-                        indicator.className = 'absolute w-3 h-3 rounded-full';
-                        indicator.style.backgroundColor = eventColor;
-                        indicator.style.top = '8px';
-                        indicator.style.right = '8px';
-                        dayDiv.appendChild(indicator);
-                    }
-                }
+                // Color the entire day background
+                dayDiv.style.backgroundColor = eventColor;
+                dayDiv.style.color = '#374151'; // Dark gray text for contrast
+                dayDiv.style.fontWeight = 'bold';
+                dayDiv.style.borderColor = eventColor.replace('0.25)', '0.6)'); // Darker border
+                dayDiv.style.borderWidth = '2px';
+                dayDiv.style.borderStyle = 'solid';
                 
                 // Add click handler
                 dayDiv.addEventListener('click', () => this.showDayEvents(dateString, dayEvents));
@@ -251,11 +231,20 @@ class AdminCalendar {
     }
 
     getEventsForDate(dateString) {
-        return this.events.filter(event => {
+        const events = this.events.filter(event => {
             // Extract date part from the start time (handle timezone issues)
-            const eventDate = event.start.split('T')[0];
-            return eventDate === dateString;
+            let eventDate = event.start.split('T')[0];
+            
+            // If the event date still contains time (like "2025-08-25 00:00:00"), extract just the date
+            if (eventDate.includes(' ')) {
+                eventDate = eventDate.split(' ')[0];
+            }
+            
+            const matches = eventDate === dateString;
+            return matches;
         });
+        
+        return events;
     }
 
     getEventColor(events) {
@@ -264,7 +253,8 @@ class AdminCalendar {
         if (events.length === 1) {
             const event = events[0];
             // Use the backgroundColor from the server data
-            return event.backgroundColor || this.getStatusColor(event.status);
+            const color = event.backgroundColor || this.getStatusColor(event.status);
+            return color;
         }
         
         // Multiple events - check if they're all the same type/status
@@ -282,82 +272,100 @@ class AdminCalendar {
 
     getStatusColor(status) {
         const colors = {
-            'pending': '#fbbf24', // Yellow
-            'acknowledged': '#3b82f6', // Blue
-            'payment_hold': '#f97316', // Orange
-            'approved': '#10b981', // Green
-            'rejected': '#ef4444', // Red
-            'completed': '#059669', // Dark Green
-            'cancelled': '#6b7280', // Gray
+            'pending': 'rgba(251, 191, 36, 0.25)', // Yellow with 25% opacity
+            'acknowledged': 'rgba(59, 130, 246, 0.25)', // Blue with 25% opacity
+            'payment_hold': 'rgba(249, 115, 22, 0.25)', // Orange with 25% opacity
+            'approved': 'rgba(16, 185, 129, 0.25)', // Green with 25% opacity
+            'rejected': 'rgba(239, 68, 68, 0.25)', // Red with 25% opacity
+            'completed': 'rgba(5, 150, 105, 0.25)', // Dark Green with 25% opacity
+            'cancelled': 'rgba(107, 114, 128, 0.25)', // Gray with 25% opacity
         };
-        return colors[status] || '#6b7280'; // Default gray
+        return colors[status] || 'rgba(107, 114, 128, 0.25)'; // Default gray with 25% opacity
     }
 
     showDayEvents(dateString, events) {
-        const modal = document.getElementById('eventModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
-        const viewBookingBtn = document.getElementById('viewBookingBtn');
+        const eventsSection = document.getElementById('eventsSection');
+        const selectedDateTitle = document.getElementById('selectedDateTitle');
+        const bookingsList = document.getElementById('bookingsList');
+        const activitiesList = document.getElementById('activitiesList');
         
         // Fix timezone issue by creating date properly
         const displayDate = new Date(dateString + 'T00:00:00');
-        modalTitle.textContent = `Events for ${displayDate.toLocaleDateString('en-US', { 
+        selectedDateTitle.textContent = `Events for ${displayDate.toLocaleDateString('en-US', { 
             weekday: 'long', 
             year: 'numeric', 
             month: 'long', 
             day: 'numeric' 
         })}`;
         
-        let contentHTML = '';
+        // Separate bookings and activities
+        const bookings = events.filter(event => event.type === 'booking');
+        const activities = events.filter(event => event.type === 'activity');
         
-        if (events.length === 0) {
-            contentHTML = '<p class="text-gray-500">No events scheduled for this date.</p>';
+        // Populate bookings section
+        if (bookings.length === 0) {
+            bookingsList.innerHTML = '<p class="text-gray-500 italic">No bookings scheduled for this date.</p>';
         } else {
-            contentHTML = '<div class="space-y-4">';
-            events.forEach(event => {
-                if (event.type === 'booking') {
-                    contentHTML += `
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <h4 class="font-semibold text-gray-900">${event.title}</h4>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    ${this.getStatusBadgeClass(event.status)}">
-                                    ${event.status.charAt(0).toUpperCase() + event.status.slice(1).replace('_', ' ')}
-                                </span>
-                            </div>
-                            <div class="text-sm text-gray-600 space-y-1">
-                                <p><strong>Customer:</strong> ${event.extendedProps.user_name}</p>
-                                <p><strong>Service:</strong> ${event.extendedProps.service_name}</p>
-                                <p><strong>Phone:</strong> ${event.extendedProps.contact_phone}</p>
-                                <p><strong>Time:</strong> ${this.formatTime(event.start)}</p>
-                            </div>
+            let bookingsHTML = '';
+            bookings.forEach(booking => {
+                bookingsHTML += `
+                    <div class="bg-gray-50 rounded-lg p-4 border-l-4" style="border-left-color: ${booking.backgroundColor}">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-semibold text-gray-900">${booking.title}</h5>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                ${this.getStatusBadgeClass(booking.status)}">
+                                ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
+                            </span>
                         </div>
-                    `;
-                } else {
-                    contentHTML += `
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <h4 class="font-semibold text-gray-900">${event.title}</h4>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    Activity
-                                </span>
-                            </div>
-                            <div class="text-sm text-gray-600 space-y-1">
-                                ${event.extendedProps.description ? `<p><strong>Description:</strong> ${event.extendedProps.description}</p>` : ''}
-                                ${event.extendedProps.location ? `<p><strong>Location:</strong> ${event.extendedProps.location}</p>` : ''}
-                                ${event.extendedProps.organizer ? `<p><strong>Organizer:</strong> ${event.extendedProps.organizer}</p>` : ''}
-                                <p><strong>Time:</strong> ${this.formatTime(event.start)} - ${this.formatTime(event.end)}</p>
-                            </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><strong>Customer:</strong> ${booking.extendedProps.user_name}</p>
+                            <p><strong>Service:</strong> ${booking.extendedProps.service_name}</p>
+                            <p><strong>Phone:</strong> ${booking.extendedProps.contact_phone}</p>
+                            <p><strong>Time:</strong> ${this.formatTime(booking.start)}</p>
                         </div>
-                    `;
-                }
+                        <div class="mt-3">
+                            <a href="/admin/bookings/${booking.booking_id}" 
+                               class="inline-flex items-center px-3 py-1 bg-[#0d5c2f] text-white text-xs rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                                <i class="fas fa-eye mr-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                `;
             });
-            contentHTML += '</div>';
+            bookingsList.innerHTML = bookingsHTML;
         }
         
-        modalContent.innerHTML = contentHTML;
-        viewBookingBtn.classList.add('hidden');
-        modal.classList.remove('hidden');
+        // Populate activities section
+        if (activities.length === 0) {
+            activitiesList.innerHTML = '<p class="text-gray-500 italic">No parochial activities scheduled for this date.</p>';
+        } else {
+            let activitiesHTML = '';
+            activities.forEach(activity => {
+                activitiesHTML += `
+                    <div class="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-semibold text-gray-900">${activity.title}</h5>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Activity
+                            </span>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            ${activity.extendedProps.description ? `<p><strong>Description:</strong> ${activity.extendedProps.description}</p>` : ''}
+                            ${activity.extendedProps.location ? `<p><strong>Location:</strong> ${activity.extendedProps.location}</p>` : ''}
+                            ${activity.extendedProps.organizer ? `<p><strong>Organizer:</strong> ${activity.extendedProps.organizer}</p>` : ''}
+                            <p><strong>Time:</strong> ${this.formatTime(activity.start)} - ${this.formatTime(activity.end)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            activitiesList.innerHTML = activitiesHTML;
+        }
+        
+        // Show the events section
+        eventsSection.classList.remove('hidden');
+        
+        // Scroll to events section
+        eventsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     getStatusBadgeClass(status) {
@@ -416,15 +424,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function closeEventModal() {
-    document.getElementById('eventModal').classList.add('hidden');
+function hideEventsSection() {
+    document.getElementById('eventsSection').classList.add('hidden');
 }
-
-// Close modal when clicking outside
-document.getElementById('eventModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeEventModal();
-    }
-});
 </script>
 @endsection 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Service;
 use App\Models\Booking;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -47,9 +48,9 @@ class BookingController extends Controller
         $step1Data = $request->session()->get('booking.step1');
         $selectedDate = $request->query('selected_date');
 
-        // Get all bookings for this service to check availability (both pending and approved)
-        $approvedBookings = Booking::where('service_id', $service->id)
-            ->whereIn('status', ['pending', 'approved'])
+        // Get all active bookings for this service to check availability
+        $activeBookings = Booking::where('service_id', $service->id)
+            ->whereIn('status', ['pending', 'acknowledged', 'payment_hold', 'approved'])
             ->select('service_date', 'service_time', 'status')
             ->get();
 
@@ -57,12 +58,12 @@ class BookingController extends Controller
         \Log::info('Step2 Debug Info', [
             'service_id' => $service->id,
             'service_schedules' => $service->schedules,
-            'approved_bookings_count' => $approvedBookings->count(),
-            'approved_bookings' => $approvedBookings->toArray(),
+            'active_bookings_count' => $activeBookings->count(),
+            'active_bookings' => $activeBookings->toArray(),
             'selected_date' => $selectedDate
         ]);
 
-        return view('booking.step2', compact('service', 'step1Data', 'approvedBookings', 'selectedDate'));
+        return view('booking.step2', compact('service', 'step1Data', 'activeBookings', 'selectedDate'));
     }
 
     public function step2Store(Request $request, Service $service)
@@ -196,6 +197,9 @@ class BookingController extends Controller
             'status' => 'pending',
         ]);
 
+        // Send confirmation email
+        EmailService::sendBookingConfirmation($booking);
+
         // Clear session data
         $request->session()->forget(['booking.step1', 'booking.step2', 'booking.service_id']);
 
@@ -277,7 +281,7 @@ class BookingController extends Controller
         $existingBookings = Booking::where('service_id', $service->id)
             ->where('service_date', $date)
             ->where('service_time', $time)
-            ->whereIn('status', ['pending', 'approved'])
+            ->whereIn('status', ['pending', 'acknowledged', 'payment_hold', 'approved'])
             ->count();
 
         // Check if we've reached the max slots
@@ -347,7 +351,7 @@ class BookingController extends Controller
             $bookedCount = Booking::where('service_id', $service->id)
                 ->where('service_date', $date)
                 ->where('service_time', $timeSlot)
-                ->whereIn('status', ['pending', 'approved'])
+                ->whereIn('status', ['pending', 'acknowledged', 'payment_hold', 'approved'])
                 ->count();
 
             $availableCount = $service->max_slots - $bookedCount;
@@ -457,6 +461,9 @@ class BookingController extends Controller
 
             // Update booking status to payment_hold
             $booking->update(['status' => 'payment_hold']);
+
+            // Send payment received email
+            EmailService::sendPaymentReceived($booking);
 
             return redirect()->route('booking.my-bookings')->with('success', 'Payment proof submitted successfully! Your booking is now on payment hold and will be reviewed shortly.');
         } catch (\Exception $e) {

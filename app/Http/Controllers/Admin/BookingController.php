@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Priest;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,7 +13,7 @@ class BookingController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'admin']);
+        $this->middleware(['auth']);
     }
 
     public function index()
@@ -31,7 +32,10 @@ class BookingController extends Controller
             'completed' => Booking::where('status', 'completed')->count(),
         ];
 
-        return view('admin.bookings.index', compact('bookings', 'stats'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.bookings.index', compact('bookings', 'stats', 'isStaff'));
     }
 
     public function calendar()
@@ -47,8 +51,8 @@ class BookingController extends Controller
         // Add bookings to calendar events
         foreach ($bookings as $booking) {
             // Use service_date if available, otherwise use created_at
-            $eventDate = $booking->service_date ?? $booking->created_at->format('Y-m-d');
-            $eventTime = $booking->service_time ?? '09:00:00';
+            $eventDate = $booking->service_date ? $booking->service_date->format('Y-m-d') : $booking->created_at->format('Y-m-d');
+            $eventTime = $booking->service_time ? $booking->service_time->format('H:i:s') : '09:00:00';
             
             $calendarEvents[] = [
                 'id' => 'booking-' . $booking->id,
@@ -66,8 +70,8 @@ class BookingController extends Controller
                     'service_name' => $booking->service->name ?? 'Unknown Service',
                     'contact_phone' => $booking->contact_phone ?? 'No phone',
                     'status' => $booking->status,
-                    'service_date' => $booking->service_date,
-                    'service_time' => $booking->service_time,
+                    'service_date' => $booking->service_date ? $booking->service_date->format('Y-m-d') : null,
+                    'service_time' => $booking->service_time ? $booking->service_time->format('H:i:s') : null,
                     'created_at' => $booking->created_at->format('Y-m-d H:i:s'),
                 ]
             ];
@@ -86,8 +90,8 @@ class BookingController extends Controller
                         'end' => $date->format('Y-m-d') . 'T' . $activity->end_time->format('H:i:s'),
                         'type' => 'activity',
                         'activity_id' => $activity->id,
-                        'backgroundColor' => '#fbbf24', // Yellow for activities
-                        'borderColor' => '#f59e0b',
+                        'backgroundColor' => 'rgba(251, 191, 36, 0.25)', // Yellow with 25% opacity for activities
+                        'borderColor' => 'rgba(251, 191, 36, 0.6)',
                         'textColor' => '#ffffff',
                         'extendedProps' => [
                             'description' => $activity->description,
@@ -107,8 +111,8 @@ class BookingController extends Controller
                     'end' => $activity->event_date->format('Y-m-d') . 'T' . $activity->end_time->format('H:i:s'),
                     'type' => 'activity',
                     'activity_id' => $activity->id,
-                    'backgroundColor' => '#fbbf24', // Yellow for activities
-                    'borderColor' => '#f59e0b',
+                    'backgroundColor' => 'rgba(251, 191, 36, 0.25)', // Yellow with 25% opacity for activities
+                    'borderColor' => 'rgba(251, 191, 36, 0.6)',
                     'textColor' => '#ffffff',
                     'extendedProps' => [
                         'description' => $activity->description,
@@ -121,19 +125,22 @@ class BookingController extends Controller
             }
         }
 
-        return view('admin.bookings.calendar', compact('calendarEvents'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.bookings.calendar', compact('calendarEvents', 'isStaff'));
     }
 
     private function getStatusColor($status)
     {
         return match($status) {
-            'pending' => '#fbbf24', // Yellow
-            'acknowledged' => '#3b82f6', // Blue
-            'payment_hold' => '#f97316', // Orange
-            'approved' => '#10b981', // Green
-            'rejected' => '#ef4444', // Red
-            'completed' => '#059669', // Dark Green
-            default => '#6b7280', // Gray
+            'pending' => 'rgba(251, 191, 36, 0.25)', // Yellow with 25% opacity
+            'acknowledged' => 'rgba(59, 130, 246, 0.25)', // Blue with 25% opacity
+            'payment_hold' => 'rgba(249, 115, 22, 0.25)', // Orange with 25% opacity
+            'approved' => 'rgba(16, 185, 129, 0.25)', // Green with 25% opacity
+            'rejected' => 'rgba(239, 68, 68, 0.25)', // Red with 25% opacity
+            'completed' => 'rgba(5, 150, 105, 0.25)', // Dark Green with 25% opacity
+            default => 'rgba(107, 114, 128, 0.25)', // Gray with 25% opacity
         };
     }
 
@@ -142,7 +149,10 @@ class BookingController extends Controller
         $booking->load(['user', 'service', 'priest', 'payment', 'actions.performedBy', 'actions.priest']);
         $priests = Priest::where('is_active', true)->get();
         
-        return view('admin.bookings.show', compact('booking', 'priests'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.bookings.show', compact('booking', 'priests', 'isStaff'));
     }
 
     public function acknowledge(Request $request, Booking $booking)
@@ -173,6 +183,9 @@ class BookingController extends Controller
             'notes' => $request->notes,
             'performed_by' => auth()->id(),
         ]);
+
+        // Send payment instructions email
+        EmailService::sendPaymentInstructions($booking);
 
         return back()->with('success', 'Booking acknowledged successfully. Payment fee set to ₱' . number_format($request->total_fee, 2));
     }
@@ -212,6 +225,13 @@ class BookingController extends Controller
             'performed_by' => auth()->id(),
             'priest_id' => $request->verification_status === 'approved' ? $request->priest_id : null,
         ]);
+
+        // Send appropriate email based on verification status
+        if ($request->verification_status === 'approved') {
+            EmailService::sendBookingApproved($booking);
+        } else {
+            EmailService::sendBookingRejected($booking);
+        }
 
         $message = $request->verification_status === 'approved' 
             ? 'Payment verified and booking approved successfully.' 
@@ -260,6 +280,9 @@ class BookingController extends Controller
             'notes' => $request->notes,
             'performed_by' => auth()->id(),
         ]);
+
+        // Send rejection email
+        EmailService::sendBookingRejected($booking);
 
         return back()->with('success', 'Booking rejected successfully.');
     }

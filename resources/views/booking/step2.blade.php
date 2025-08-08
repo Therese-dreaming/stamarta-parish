@@ -89,7 +89,7 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Select Date</h3>
                     
                     <div class="max-w-4xl mx-auto">
-                        <x-calendar :approvedBookings="$approvedBookings" :selectedDate="$selectedDate" :service="$service" />
+                        <x-calendar :activeBookings="$activeBookings" :selectedDate="$selectedDate" :service="$service" />
                     </div>
                     
                     <!-- Hidden date input for form submission -->

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(isset($isStaff) && $isStaff ? 'layouts.staff' : 'layouts.admin')
 
 @section('title', 'Service Management')
 
@@ -87,17 +87,19 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">
+                                        <a href="{{ isset($isStaff) && $isStaff ? route('staff.services.show', $service) : route('admin.services.show', $service) }}" class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" title="View">
+                                            <i class="fas fa-eye text-sm"></i>
+                                        </a>
+                                        @if(!isset($isStaff) || !$isStaff)
                                         <a href="{{ route('admin.services.edit', $service) }}" class="w-8 h-8 rounded-full bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 hover:text-indigo-800 transition-colors" title="Edit">
                                             <i class="fas fa-edit text-sm"></i>
                                         </a>
-                                        <form action="{{ route('admin.services.toggle-status', $service) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit" 
-                                                    class="w-8 h-8 rounded-full bg-{{ $service->is_active ? 'yellow' : 'green' }}-100 hover:bg-{{ $service->is_active ? 'yellow' : 'green' }}-200 flex items-center justify-center text-{{ $service->is_active ? 'yellow' : 'green' }}-600 hover:text-{{ $service->is_active ? 'yellow' : 'green' }}-800 transition-colors" 
-                                                    title="{{ $service->is_active ? 'Deactivate' : 'Activate' }}">
-                                                <i class="fas fa-{{ $service->is_active ? 'pause' : 'play' }} text-sm"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" onclick="openModal('toggle-status-modal-{{ $service->id }}')"
+                                                class="w-8 h-8 rounded-full bg-{{ $service->is_active ? 'yellow' : 'green' }}-100 hover:bg-{{ $service->is_active ? 'yellow' : 'green' }}-200 flex items-center justify-center text-{{ $service->is_active ? 'yellow' : 'green' }}-600 hover:text-{{ $service->is_active ? 'yellow' : 'green' }}-800 transition-colors" 
+                                                title="{{ $service->is_active ? 'Deactivate' : 'Activate' }}">
+                                            <i class="fas fa-{{ $service->is_active ? 'pause' : 'play' }} text-sm"></i>
+                                        </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -185,18 +187,21 @@
                         <!-- Actions -->
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 mt-auto">
                             <div class="flex items-center justify-between">
+                                <a href="{{ isset($isStaff) && $isStaff ? route('staff.services.show', $service) : route('admin.services.show', $service) }}" 
+                                   class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" title="View">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </a>
+                                @if(!isset($isStaff) || !$isStaff)
                                 <a href="{{ route('admin.services.edit', $service) }}" 
                                    class="w-8 h-8 rounded-full bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 hover:text-indigo-800 transition-colors" title="Edit">
                                     <i class="fas fa-edit text-sm"></i>
                                 </a>
-                                <form action="{{ route('admin.services.toggle-status', $service) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" 
-                                            class="w-8 h-8 rounded-full bg-{{ $service->is_active ? 'yellow' : 'green' }}-100 hover:bg-{{ $service->is_active ? 'yellow' : 'green' }}-200 flex items-center justify-center text-{{ $service->is_active ? 'yellow' : 'green' }}-600 hover:text-{{ $service->is_active ? 'yellow' : 'green' }}-800 transition-colors" 
-                                            title="{{ $service->is_active ? 'Deactivate' : 'Activate' }}">
-                                        <i class="fas fa-{{ $service->is_active ? 'pause' : 'play' }} text-sm"></i>
-                                    </button>
-                                </form>
+                                <button type="button" onclick="openModal('toggle-status-modal-{{ $service->id }}')"
+                                        class="w-8 h-8 rounded-full bg-{{ $service->is_active ? 'yellow' : 'green' }}-100 hover:bg-{{ $service->is_active ? 'yellow' : 'green' }}-200 flex items-center justify-center text-{{ $service->is_active ? 'yellow' : 'green' }}-600 hover:text-{{ $service->is_active ? 'yellow' : 'green' }}-800 transition-colors" 
+                                        title="{{ $service->is_active ? 'Deactivate' : 'Activate' }}">
+                                    <i class="fas fa-{{ $service->is_active ? 'pause' : 'play' }} text-sm"></i>
+                                </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -212,6 +217,23 @@
         </div>
     </div>
 </div>
+
+<!-- Modals for each service -->
+@foreach($services as $service)
+    <!-- Toggle Status Modal -->
+    <x-modal 
+        id="toggle-status-modal-{{ $service->id }}"
+        title="{{ $service->is_active ? 'Deactivate' : 'Activate' }} Service"
+        message="Are you sure you want to {{ $service->is_active ? 'deactivate' : 'activate' }} the service '{{ $service->name }}'? {{ $service->is_active ? 'This will make the service unavailable for bookings.' : 'This will make the service available for bookings.' }}"
+        confirmText="{{ $service->is_active ? 'Deactivate' : 'Activate' }}"
+        confirmClass="{{ $service->is_active ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700' }}">
+                                    @if(!isset($isStaff) || !$isStaff)
+                                    <form action="{{ route('admin.services.toggle-status', $service) }}" method="POST">
+            @csrf
+        </form>
+        @endif
+    </x-modal>
+@endforeach
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

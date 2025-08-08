@@ -17,12 +17,18 @@ class PageController extends Controller
             ->orderBy('updated_at', 'desc')
             ->paginate(15);
 
-        return view('cms.pages.index', compact('pages'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('cms.pages.index', compact('pages', 'isStaff'));
     }
 
     public function create()
     {
-        return view('cms.pages.create');
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('cms.pages.create', compact('isStaff'));
     }
 
     public function store(Request $request)
@@ -51,7 +57,10 @@ class PageController extends Controller
 
     public function edit(Page $page)
     {
-        return view('cms.pages.edit', compact('page'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('cms.pages.edit', compact('page', 'isStaff'));
     }
 
     public function update(Request $request, Page $page)

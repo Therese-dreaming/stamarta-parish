@@ -14,7 +14,8 @@ class ParochialActivityController extends Controller
      */
     public function index()
     {
-        $activities = ParochialActivity::orderBy('event_date', 'desc')
+        $activities = ParochialActivity::with(['creator', 'updater'])
+            ->orderBy('event_date', 'desc')
             ->orderBy('start_time', 'asc')
             ->paginate(15);
 
@@ -31,7 +32,10 @@ class ParochialActivityController extends Controller
             'past_activities' => ParochialActivity::past()->count(),
         ];
 
-        return view('admin.parochial-activities.index', compact('activities', 'upcomingActivities', 'stats'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.parochial-activities.index', compact('activities', 'upcomingActivities', 'stats', 'isStaff'));
     }
 
     /**
@@ -39,7 +43,10 @@ class ParochialActivityController extends Controller
      */
     public function create()
     {
-        return view('admin.parochial-activities.create');
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.parochial-activities.create', compact('isStaff'));
     }
 
     /**
@@ -76,6 +83,10 @@ class ParochialActivityController extends Controller
             $validated['recurring_end_date'] = null;
         }
 
+        // Add user information
+        $validated['created_by'] = auth()->id();
+        $validated['updated_by'] = auth()->id();
+
         ParochialActivity::create($validated);
 
         return redirect()->route('admin.parochial-activities.index')
@@ -87,10 +98,16 @@ class ParochialActivityController extends Controller
      */
     public function show(ParochialActivity $parochialActivity)
     {
+        // Load relationships
+        $parochialActivity->load(['creator', 'updater']);
+        
         // Get affected dates for recurring activities
         $affectedDates = $parochialActivity->getAffectedDates();
         
-        return view('admin.parochial-activities.show', compact('parochialActivity', 'affectedDates'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.parochial-activities.show', compact('parochialActivity', 'affectedDates', 'isStaff'));
     }
 
     /**
@@ -98,7 +115,10 @@ class ParochialActivityController extends Controller
      */
     public function edit(ParochialActivity $parochialActivity)
     {
-        return view('admin.parochial-activities.edit', compact('parochialActivity'));
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('admin.parochial-activities.edit', compact('parochialActivity', 'isStaff'));
     }
 
     /**
@@ -135,6 +155,9 @@ class ParochialActivityController extends Controller
             $validated['recurring_pattern'] = null;
             $validated['recurring_end_date'] = null;
         }
+
+        // Add updated_by information
+        $validated['updated_by'] = auth()->id();
 
         $parochialActivity->update($validated);
 

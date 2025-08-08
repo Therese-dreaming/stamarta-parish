@@ -28,6 +28,8 @@ class ParochialActivity extends Model
         'recurring_pattern',
         'recurring_end_date',
         'notes',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
@@ -242,5 +244,21 @@ class ParochialActivity extends Model
     public function getCalendarColorAttribute()
     {
         return '#fbbf24'; // Yellow color
+    }
+
+    /**
+     * Get the user who created this activity
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the user who last updated this activity
+     */
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

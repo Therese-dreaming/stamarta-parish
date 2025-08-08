@@ -1,4 +1,4 @@
-@props(['approvedBookings', 'selectedDate', 'service'])
+@props(['activeBookings', 'selectedDate', 'service'])
 
 <div class="calendar-container bg-white rounded-lg shadow-sm border border-gray-200 p-8">
     <div class="calendar-header flex items-center justify-between mb-8">
@@ -51,15 +51,15 @@
 
 <script>
 class Calendar {
-    constructor(container, approvedBookings, selectedDate, service) {
+    constructor(container, activeBookings, selectedDate, service) {
         console.log('Calendar constructor called');
         console.log('Container:', container);
-        console.log('Approved bookings:', approvedBookings);
+        console.log('Active bookings:', activeBookings);
         console.log('Selected date:', selectedDate);
         console.log('Service:', service);
         
         this.container = container;
-        this.approvedBookings = approvedBookings;
+        this.activeBookings = activeBookings;
         this.selectedDate = selectedDate;
         this.service = service;
         this.currentDate = new Date();
@@ -70,6 +70,17 @@ class Calendar {
 
     init() {
         console.log('Calendar init called');
+        
+        // Ensure selected date is in local timezone format
+        if (this.selectedDate) {
+            const [year, month, day] = this.selectedDate.split('-').map(Number);
+            const selectedDate = new Date(year, month - 1, day);
+            const localYear = selectedDate.getFullYear();
+            const localMonth = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const localDay = String(selectedDate.getDate()).padStart(2, '0');
+            this.selectedDate = `${localYear}-${localMonth}-${localDay}`;
+        }
+        
         this.renderCalendar();
         this.attachEventListeners();
     }
@@ -124,7 +135,12 @@ class Calendar {
         
         const dayNumber = date.getDate();
         const isCurrentMonth = date.getMonth() === targetMonth;
-        const dateString = date.toISOString().split('T')[0];
+        
+        // Create date string in local timezone to avoid timezone issues
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
         
         // Set initial classes based on basic availability
         if (!isCurrentMonth) {
@@ -133,7 +149,7 @@ class Calendar {
             // Check if date is in the past
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const selectedDate = new Date(dateString);
+            const selectedDate = new Date(year, date.getMonth(), date.getDate());
             if (selectedDate < today) {
                 dayDiv.className += ' text-gray-400 cursor-not-allowed bg-gray-100';
             } else {
@@ -174,8 +190,11 @@ class Calendar {
     }
 
     getDateAvailability(dateString) {
+        // Parse date string properly in local timezone
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day); // month is 0-indexed in JavaScript
+        
         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-        const date = new Date(dateString);
         const dayOfWeek = dayNames[date.getDay()];
         const serviceSchedules = this.service.schedules || {};
         const allTimeSlots = serviceSchedules[dayOfWeek] ?? [];
@@ -191,9 +210,9 @@ class Calendar {
         const totalSlots = allTimeSlots.length * this.service.max_slots;
         
         // Get booked slots for the day (count per time slot)
-        const bookedSlots = this.approvedBookings.filter(booking => 
+        const bookedSlots = this.activeBookings.filter(booking => 
             booking.service_date === dateString && 
-            ['pending', 'confirmed'].includes(booking.status)
+            ['pending', 'acknowledged', 'payment_hold', 'approved'].includes(booking.status)
         ).length;
 
         const availableSlots = totalSlots - bookedSlots;
@@ -378,13 +397,13 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Calendar container:', calendarContainer);
     
     if (calendarContainer) {
-        console.log('Approved bookings:', @json($approvedBookings));
+        console.log('Active bookings:', @json($activeBookings));
         console.log('Selected date:', @json($selectedDate));
         console.log('Service:', @json($service));
         
         const calendar = new Calendar(
             calendarContainer,
-            @json($approvedBookings),
+            @json($activeBookings),
             @json($selectedDate),
             @json($service)
         );
