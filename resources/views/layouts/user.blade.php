@@ -24,6 +24,7 @@
                 <!-- In the main navigation -->
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Home</a>
+                    <a href="{{ route('pages.index') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Pages</a>
                     <a href="{{ route('contact') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Contact</a>
                     
                     @auth
@@ -80,6 +81,7 @@
          x-transition:leave-end="transform opacity-0 scale-95">
         <div class="px-2 pt-2 pb-3 space-y-1 bg-white shadow-lg">
             <a href="{{ route('home') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Home</a>
+            <a href="{{ route('pages.index') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Pages</a>
             <a href="{{ route('contact') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Contact</a>
             @auth
                 <a href="{{ route('userServices') }}" class="block px-3 py-2 text-[#0d5c2f] font-medium">Book Now</a>

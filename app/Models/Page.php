@@ -15,6 +15,8 @@ class Page extends Model
         'title',
         'slug',
         'content',
+        'layout',
+        'image_media_id',
         'meta_title',
         'meta_description',
         'is_published',
@@ -27,6 +29,11 @@ class Page extends Model
         'is_published' => 'boolean',
         'published_at' => 'datetime',
     ];
+
+    public function image()
+    {
+        return $this->belongsTo(\App\Models\Media::class, 'image_media_id');
+    }
 
     protected static function boot()
     {

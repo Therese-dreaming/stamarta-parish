@@ -3,16 +3,24 @@
 @section('title', 'Upload Media')
 
 @section('content')
-<div class="font-[Poppins]">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Upload Media</h1>
-            <p class="text-gray-600 dark:text-gray-400">Upload images, documents, and other files</p>
+@include('components.toast')
+<div class="space-y-6">
+    <!-- Header with colored background -->
+    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Upload Media</h1>
+                    <p class="text-white/80 mt-1 flex items-center">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>Upload images, documents, and other files
+                    </p>
+                </div>
+                <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.index') : route('admin.cms.media.index') }}" 
+                   class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Back to Media Library">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+            </div>
         </div>
-        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.index') : route('admin.cms.media.index') }}" class="text-[#0d5c2f] hover:underline">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Media Library
-        </a>
     </div>
 
     <!-- Upload Form -->
@@ -20,8 +28,11 @@
         <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.store') : route('admin.cms.media.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
-            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Upload Files</h2>
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <i class="fas fa-upload mr-2 text-[#0d5c2f]"></i>
+                    Upload Files
+                </h2>
             </div>
             
             <div class="p-6 space-y-6">
@@ -51,10 +62,14 @@
                 <!-- Folder -->
                 <div>
                     <label for="folder" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Folder</label>
-                    <input type="text" id="folder" name="folder" value="{{ old('folder', 'general') }}"
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] dark:bg-gray-700 dark:text-white"
-                           placeholder="Enter folder name (optional)">
-                    <p class="mt-1 text-sm text-gray-500">Files will be organized in this folder</p>
+                    <select id="folder" name="folder" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] dark:bg-gray-700 dark:text-white">
+                        <option value="images" {{ old('folder', 'images') == 'images' ? 'selected' : '' }}>Images</option>
+                        <option value="documents" {{ old('folder') == 'documents' ? 'selected' : '' }}>Documents</option>
+                        <option value="media" {{ old('folder') == 'media' ? 'selected' : '' }}>Media</option>
+                        <option value="uploads" {{ old('folder') == 'uploads' ? 'selected' : '' }}>Uploads</option>
+                        <option value="general" {{ old('folder') == 'general' ? 'selected' : '' }}>General</option>
+                    </select>
+                    <p class="mt-1 text-sm text-gray-500">Choose a folder to organize your files</p>
                 </div>
 
                 <!-- Selected Files Preview -->
@@ -67,7 +82,7 @@
             <!-- Form Actions -->
             <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
                 <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.index') : route('admin.cms.media.index') }}" class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors">
-                    Cancel
+                    <i class="fas fa-times mr-2"></i>Cancel
                 </a>
                 <button type="submit" class="px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
                     <i class="fas fa-upload mr-2"></i>Upload Files

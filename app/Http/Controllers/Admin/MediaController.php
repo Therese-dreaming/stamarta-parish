@@ -70,7 +70,7 @@ class MediaController extends Controller
 
         foreach ($request->file('files') as $file) {
             $fileName = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-            $folder = $request->input('folder', 'general');
+            $folder = $request->input('folder', 'images');
             $filePath = $file->storeAs("media/{$folder}", $fileName, 'public');
 
             $media = Media::create([

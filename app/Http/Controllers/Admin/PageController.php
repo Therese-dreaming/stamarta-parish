@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Models\Media;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -27,8 +28,8 @@ class PageController extends Controller
     {
         // Check if user is staff
         $isStaff = auth()->user()->role === 'staff';
-        
-        return view('cms.pages.create', compact('isStaff'));
+        $mediaImages = Media::images()->orderBy('created_at', 'desc')->limit(48)->get();
+        return view('cms.pages.create', compact('isStaff', 'mediaImages'));
     }
 
     public function store(Request $request)
@@ -37,6 +38,8 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:pages,slug',
             'content' => 'required|string',
+            'layout' => 'nullable|in:one_column,image_left_text_right,image_right_text_left,image_top_text_bottom,text_top_image_bottom',
+            'image_media_id' => 'nullable|exists:media,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'is_published' => 'boolean',
@@ -59,8 +62,8 @@ class PageController extends Controller
     {
         // Check if user is staff
         $isStaff = auth()->user()->role === 'staff';
-        
-        return view('cms.pages.edit', compact('page', 'isStaff'));
+        $mediaImages = Media::images()->orderBy('created_at', 'desc')->limit(48)->get();
+        return view('cms.pages.edit', compact('page', 'isStaff', 'mediaImages'));
     }
 
     public function update(Request $request, Page $page)
@@ -69,6 +72,8 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('pages')->ignore($page)],
             'content' => 'required|string',
+            'layout' => 'nullable|in:one_column,image_left_text_right,image_right_text_left,image_top_text_bottom,text_top_image_bottom',
+            'image_media_id' => 'nullable|exists:media,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'is_published' => 'boolean',

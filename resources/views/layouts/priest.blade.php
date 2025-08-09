@@ -1,136 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>@yield('title') - Priest Dashboard</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0d5c2f',
-                    }
-                }
-            }
-        }
-    </script>
-    
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.4.2/css/all.css">
+
+    <!-- Scripts -->
+    @vite('resources/css/app.css')
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
-    <style>
-        body { font-family: 'Poppins', sans-serif; }
-    </style>
-    
-    @stack('styles')
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-50">
-    <div class="flex h-screen">
+<body class="bg-gray-50 font-['Poppins'] min-h-full flex flex-col">
+    <div class="min-h-screen">
         <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-lg">
-            <!-- Logo -->
-            <div class="p-6 border-b border-gray-200">
+        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" id="sidebar">
+            <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
                 <div class="flex items-center">
-                    <div class="w-10 h-10 bg-[#0d5c2f] rounded-lg flex items-center justify-center">
-                        <i class="fas fa-cross text-white text-lg"></i>
-                    </div>
-                    <div class="ml-3">
-                        <h1 class="text-lg font-semibold text-gray-900">Priest Panel</h1>
-                        <p class="text-xs text-gray-500">{{ auth()->user()->name }}</p>
-                    </div>
+                    <img src="{{ asset('images/church-logo.png') }}" alt="Logo" class="h-8 w-8">
+                    <h1 class="ml-3 text-lg font-bold text-[#0d5c2f]">Priest Dashboard</h1>
                 </div>
+                <button id="closeSidebar" class="lg:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-
-            <!-- Navigation -->
-            <nav class="p-4 space-y-2">
-                <a href="{{ route('priest.dashboard') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-tachometer-alt mr-3"></i>
-                    Dashboard
-                </a>
-                
-                <a href="{{ route('priest.bookings.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.bookings.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-calendar-check mr-3"></i>
-                    My Bookings
-                </a>
-                
-                <a href="{{ route('priest.bookings.calendar') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.bookings.calendar') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-calendar-alt mr-3"></i>
-                    Calendar View
-                </a>
+            
+            <nav class="mt-6 px-4">
+                <div class="space-y-2">
+                    <a href="{{ route('priest.dashboard') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
+                        Dashboard
+                    </a>
+                    
+                    <div class="pt-4">
+                        <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
+                    </div>
+                    
+                    <a href="{{ route('priest.bookings.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.bookings.index') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-calendar-check w-5 h-5 mr-3"></i>
+                        My Bookings
+                    </a>
+                    
+                    <a href="{{ route('priest.bookings.calendar') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.bookings.calendar') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-calendar-alt w-5 h-5 mr-3"></i>
+                        Calendar View
+                    </a>
+                </div>
             </nav>
-
-            <!-- User Menu -->
-            <div class="absolute bottom-0 w-64 p-4 border-t border-gray-200">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 bg-[#0d5c2f] rounded-full flex items-center justify-center">
-                            <i class="fas fa-user text-white text-sm"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
-                            <p class="text-xs text-gray-500">Priest</p>
-                        </div>
-                    </div>
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <div x-show="open" @click.away="open = false" class="absolute right-0 bottom-8 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                <i class="fas fa-user-edit mr-2"></i>Profile
-                            </a>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 overflow-auto">
-            <!-- Top Bar -->
-            <div class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-900">@yield('title')</h2>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <!-- Notifications -->
-                        <button class="relative p-2 text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-bell text-lg"></i>
-                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+        <div class="lg:ml-64">
+            <!-- Top Navigation -->
+            <div class="bg-white shadow-sm border-b border-gray-200">
+                <div class="flex items-center justify-between h-16 px-6">
+                    <div class="flex items-center">
+                        <button id="openSidebar" class="lg:hidden text-gray-500 hover:text-gray-700 mr-4">
+                            <i class="fas fa-bars"></i>
                         </button>
-                        
-                        <!-- Current Time -->
-                        <div class="text-sm text-gray-500">
-                            {{ now()->format('M d, Y g:i A') }}
+                        <h2 class="text-lg font-semibold text-gray-900">@yield('title')</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                            <i class="fas fa-home mr-2"></i>View Site
+                        </a>
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                                <i class="fas fa-user-circle text-xl mr-2"></i>
+                                <span>{{ Auth::user()->name ?? 'User' }}</span>
+                                <i class="fas fa-chevron-down ml-2 text-sm"></i>
+                            </button>
+                            
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" @click.away="open = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                                
+                                <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                                    <div class="font-medium truncate">{{ Auth::user()->name }}</div>
+                                    <div class="text-gray-500 text-xs truncate" title="{{ Auth::user()->email }}">{{ Auth::user()->email }}</div>
+                                    <div class="text-xs text-[#0d5c2f] font-medium">Priest</div>
+                                </div>
+                                
+                                <a href="{{ route('home') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-home mr-2"></i>View Site
+                                </a>
+                                
+                                <form method="POST" action="{{ route('logout') }}" class="block">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Page Content -->
-            <div class="p-6">
+            <main class="p-6">
+                @if(session('success'))
+                    <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 @yield('content')
-            </div>
+            </main>
         </div>
     </div>
 
-    <!-- Alpine.js -->
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+
     @stack('scripts')
+    
+    <!-- Toast Notifications -->
+    <x-toast />
+    
+    <script>
+        // Sidebar toggle for mobile
+        document.getElementById('openSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.remove('hidden');
+        });
+
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
+        });
+
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.bg-green-100.border-green-400, .bg-red-100.border-red-400');
+            messages.forEach(function(message) {
+                message.style.display = 'none';
+            });
+        }, 5000);
+    </script>
 </body>
 </html> 

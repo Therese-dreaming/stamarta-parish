@@ -16,6 +16,7 @@ Route::get('/', function () {
 })->name('home');
 
 // CMS Pages - Dynamic pages from the CMS
+Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 
 // Keep your existing routes - you'll need to add these back

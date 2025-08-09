@@ -3,25 +3,44 @@
 @section('title', 'Manage Pages')
 
 @section('content')
+@include('components.toast')
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Manage Pages</h1>
-            <p class="text-gray-600">Create and manage your website content</p>
+    <!-- Header with colored background -->
+    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Page Management</h1>
+                    <p class="text-white/80 mt-1 flex items-center">
+                        <i class="fas fa-file-alt mr-2"></i>Create and manage your website content
+                    </p>
+                </div>
+                @if(!isset($isStaff) || !$isStaff)
+                <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.create') : route('admin.cms.pages.create') }}" 
+                   class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Create Page">
+                    <i class="fas fa-plus text-lg"></i>
+                </a>
+                @endif
+            </div>
         </div>
-        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.create') : route('admin.cms.pages.create') }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-            <i class="fas fa-plus mr-2"></i>Create Page
-        </a>
     </div>
 
     <!-- Pages List -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">All Pages</h2>
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-file-text mr-2 text-[#0d5c2f]"></i>
+                        Website Pages
+                    </h2>
+                    <span class="text-sm text-gray-500">{{ $pages->total() }} page{{ $pages->total() != 1 ? 's' : '' }}</span>
+                </div>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Page</th>
@@ -89,7 +108,8 @@
                     </tr>
                     @endforelse
                 </tbody>
-            </table>
+                </table>
+            </div>
         </div>
     </div>
 

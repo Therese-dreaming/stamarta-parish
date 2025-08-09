@@ -107,8 +107,8 @@
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Bookings Section -->
-                <div>
-                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-900 flex items-center">
                         <i class="fas fa-calendar-check mr-2 text-[#0d5c2f]"></i>
                         My Bookings
                     </h4>
@@ -118,10 +118,10 @@
                 </div>
 
                 <!-- Activities Section -->
-                <div>
-                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-calendar-day mr-2 text-[#0d5c2f]"></i>
-                        Parish Activities
+                <div class="space-y-4">
+                    <h4 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-church mr-2 text-yellow-500"></i>
+                        Parochial Activities
                     </h4>
                     <div id="activitiesList" class="space-y-3">
                         <!-- Activities will be populated by JavaScript -->
@@ -133,217 +133,332 @@
 </div>
 
 <script>
-let currentDate = new Date();
-let bookings = @json($bookings);
-let activities = @json($activities);
+class PriestCalendar {
+    constructor(container, bookings, activities) {
+        this.container = container;
+        this.bookings = bookings;
+        this.activities = activities;
+        this.currentDate = new Date();
+        this.displayedMonth = new Date();
+        this.selectedDate = null;
+        
+        this.init();
+    }
 
-function renderCalendar() {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Update header
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                       'July', 'August', 'September', 'October', 'November', 'December'];
-    document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
-    
-    // Get first day of month and number of days
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
-    const calendarDays = document.getElementById('calendarDays');
-    calendarDays.innerHTML = '';
-    
-    // Generate calendar days
-    for (let i = 0; i < 42; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
+    init() {
+        this.renderCalendar();
+        this.attachEventListeners();
+    }
+
+    renderCalendar() {
+        const year = this.displayedMonth.getFullYear();
+        const month = this.displayedMonth.getMonth();
         
-        const dayElement = document.createElement('div');
-        dayElement.className = 'min-h-[100px] p-2 border border-gray-200 bg-white hover:bg-gray-50 transition-colors cursor-pointer';
-        
-        // Check if date is in current month
-        if (date.getMonth() !== month) {
-            dayElement.classList.add('bg-gray-50', 'text-gray-400');
+        // Update header
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        const currentMonthElement = document.getElementById('currentMonth');
+        if (currentMonthElement) {
+            currentMonthElement.textContent = `${monthNames[month]} ${year}`;
         }
+
+        // Get first day of month and number of days
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+        const daysContainer = document.getElementById('calendarDays');
+        if (!daysContainer) return;
         
-        // Check if date is today
-        const today = new Date();
-        if (date.toDateString() === today.toDateString()) {
-            dayElement.classList.add('bg-blue-50', 'border-blue-300');
+        daysContainer.innerHTML = '';
+
+        // Generate calendar days
+        for (let i = 0; i < 42; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            
+            const dayElement = this.createDayElement(currentDate, year, month);
+            daysContainer.appendChild(dayElement);
         }
+    }
+
+    createDayElement(date, targetYear, targetMonth) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day text-center py-4 px-2 cursor-pointer transition-colors text-lg font-medium';
         
-        const dayNumber = document.createElement('div');
-        dayNumber.className = 'text-sm font-medium mb-1';
-        dayNumber.textContent = date.getDate();
-        dayElement.appendChild(dayNumber);
+        const dayNumber = date.getDate();
+        const isCurrentMonth = date.getMonth() === targetMonth;
+        const dateString = this.formatDateForComparison(date);
         
-        // Add events for this date
-        const eventsContainer = document.createElement('div');
-        eventsContainer.className = 'space-y-1';
+        // Set initial classes
+        if (!isCurrentMonth) {
+            dayDiv.className += ' text-gray-300 cursor-not-allowed';
+        } else {
+            dayDiv.className += ' text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-[#0d5c2f]';
+            
+            // Check if date is today
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                dayDiv.className += ' bg-blue-50 border-blue-300';
+            }
+            
+            // Check for events on this date
+            const dayEvents = this.getEventsForDate(dateString);
+            if (dayEvents.length > 0) {
+                dayDiv.className += ' relative';
+                
+                // Determine the color based on events
+                const eventColor = this.getEventColor(dayEvents);
+                
+                // Color the entire day background
+                dayDiv.style.backgroundColor = eventColor;
+                dayDiv.style.color = '#374151'; // Dark gray text for contrast
+                dayDiv.style.fontWeight = 'bold';
+                dayDiv.style.borderColor = eventColor.replace('0.25)', '0.6)'); // Darker border
+                dayDiv.style.borderWidth = '2px';
+                dayDiv.style.borderStyle = 'solid';
+                
+                // Add click handler
+                dayDiv.addEventListener('click', () => this.showDayEvents(dateString, dayEvents));
+            }
+        }
+
+        dayDiv.textContent = dayNumber;
+        dayDiv.dataset.date = dateString;
+        
+        return dayDiv;
+    }
+
+    formatDateForComparison(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    getEventsForDate(dateString) {
+        const events = [];
         
         // Add bookings
-        const dateBookings = bookings.filter(booking => {
+        const dateBookings = this.bookings.filter(booking => {
             const bookingDate = new Date(booking.service_date);
-            return bookingDate.toDateString() === date.toDateString();
+            return this.formatDateForComparison(bookingDate) === dateString;
         });
         
         dateBookings.forEach(booking => {
-            const eventElement = document.createElement('div');
-            eventElement.className = 'text-xs p-1 rounded cursor-pointer';
-            
-            let bgColor, borderColor;
-            switch(booking.status) {
-                case 'pending':
-                    bgColor = 'rgba(251, 191, 36, 0.25)';
-                    borderColor = 'rgba(251, 191, 36, 0.6)';
-                    break;
-                case 'acknowledged':
-                    bgColor = 'rgba(59, 130, 246, 0.25)';
-                    borderColor = 'rgba(59, 130, 246, 0.6)';
-                    break;
-                case 'payment_hold':
-                    bgColor = 'rgba(249, 115, 22, 0.25)';
-                    borderColor = 'rgba(249, 115, 22, 0.6)';
-                    break;
-                case 'approved':
-                    bgColor = 'rgba(16, 185, 129, 0.25)';
-                    borderColor = 'rgba(16, 185, 129, 0.6)';
-                    break;
-                case 'rejected':
-                    bgColor = 'rgba(239, 68, 68, 0.25)';
-                    borderColor = 'rgba(239, 68, 68, 0.6)';
-                    break;
-                case 'completed':
-                    bgColor = 'rgba(5, 150, 105, 0.25)';
-                    borderColor = 'rgba(5, 150, 105, 0.6)';
-                    break;
-                default:
-                    bgColor = 'rgba(156, 163, 175, 0.25)';
-                    borderColor = 'rgba(156, 163, 175, 0.6)';
-            }
-            
-            eventElement.style.backgroundColor = bgColor;
-            eventElement.style.border = `1px solid ${borderColor}`;
-            eventElement.textContent = `#${booking.id} - ${booking.service.name}`;
-            eventElement.onclick = () => showEventsForDate(date);
-            
-            eventsContainer.appendChild(eventElement);
+            events.push({
+                type: 'booking',
+                id: booking.id,
+                title: `#${booking.id} - ${booking.service.name}`,
+                status: booking.status,
+                backgroundColor: this.getStatusColor(booking.status),
+                booking: booking
+            });
         });
         
         // Add activities
-        const dateActivities = activities.filter(activity => {
+        const dateActivities = this.activities.filter(activity => {
             const activityStart = new Date(activity.start_date);
             const activityEnd = new Date(activity.end_date);
-            return date >= activityStart && date <= activityEnd;
+            const checkDate = new Date(dateString);
+            return checkDate >= activityStart && checkDate <= activityEnd;
         });
         
         dateActivities.forEach(activity => {
-            const eventElement = document.createElement('div');
-            eventElement.className = 'text-xs p-1 rounded cursor-pointer';
-            eventElement.style.backgroundColor = 'rgba(251, 191, 36, 0.25)';
-            eventElement.style.border = '1px solid rgba(251, 191, 36, 0.6)';
-            eventElement.textContent = activity.title;
-            eventElement.onclick = () => showEventsForDate(date);
-            
-            eventsContainer.appendChild(eventElement);
+            events.push({
+                type: 'activity',
+                id: activity.id,
+                title: activity.title,
+                backgroundColor: 'rgba(251, 191, 36, 0.25)',
+                activity: activity
+            });
         });
         
-        dayElement.appendChild(eventsContainer);
-        dayElement.onclick = () => showEventsForDate(date);
+        return events;
+    }
+
+    getEventColor(events) {
+        if (events.length === 0) return '#6b7280'; // Gray
         
-        calendarDays.appendChild(dayElement);
+        if (events.length === 1) {
+            const event = events[0];
+            return event.backgroundColor || this.getStatusColor(event.status);
+        }
+        
+        // Multiple events - check if they're all the same type/status
+        const uniqueTypes = [...new Set(events.map(e => e.type))];
+        const uniqueStatuses = [...new Set(events.filter(e => e.type === 'booking').map(e => e.status))];
+        
+        if (uniqueTypes.length === 1 && uniqueTypes[0] === 'activity') {
+            return 'rgba(251, 191, 36, 0.25)'; // All activities
+        } else if (uniqueTypes.length === 1 && uniqueTypes[0] === 'booking' && uniqueStatuses.length === 1) {
+            return this.getStatusColor(uniqueStatuses[0]); // All same status bookings
+        } else {
+            return 'rgba(139, 92, 246, 0.25)'; // Purple for mixed
+        }
+    }
+
+    getStatusColor(status) {
+        const colors = {
+            'pending': 'rgba(251, 191, 36, 0.25)', // Yellow with 25% opacity
+            'acknowledged': 'rgba(59, 130, 246, 0.25)', // Blue with 25% opacity
+            'payment_hold': 'rgba(249, 115, 22, 0.25)', // Orange with 25% opacity
+            'approved': 'rgba(16, 185, 129, 0.25)', // Green with 25% opacity
+            'rejected': 'rgba(239, 68, 68, 0.25)', // Red with 25% opacity
+            'completed': 'rgba(5, 150, 105, 0.25)', // Dark Green with 25% opacity
+            'cancelled': 'rgba(107, 114, 128, 0.25)', // Gray with 25% opacity
+        };
+        return colors[status] || 'rgba(107, 114, 128, 0.25)'; // Default gray with 25% opacity
+    }
+
+    showDayEvents(dateString, events) {
+        const eventsSection = document.getElementById('eventsSection');
+        const selectedDateTitle = document.getElementById('selectedDateTitle');
+        const bookingsList = document.getElementById('bookingsList');
+        const activitiesList = document.getElementById('activitiesList');
+        
+        // Fix timezone issue by creating date properly
+        const displayDate = new Date(dateString + 'T00:00:00');
+        selectedDateTitle.textContent = `Events for ${displayDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        })}`;
+        
+        // Separate bookings and activities
+        const bookings = events.filter(event => event.type === 'booking');
+        const activities = events.filter(event => event.type === 'activity');
+        
+        // Populate bookings section
+        if (bookings.length === 0) {
+            bookingsList.innerHTML = '<p class="text-gray-500 italic">No bookings scheduled for this date.</p>';
+        } else {
+            let bookingsHTML = '';
+            bookings.forEach(bookingEvent => {
+                const booking = bookingEvent.booking;
+                bookingsHTML += `
+                    <div class="bg-gray-50 rounded-lg p-4 border-l-4" style="border-left-color: ${bookingEvent.backgroundColor}">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-semibold text-gray-900">#${booking.id} - ${booking.service.name}</h5>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                ${this.getStatusBadgeClass(booking.status)}">
+                                ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
+                            </span>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><strong>Customer:</strong> ${booking.user.name}</p>
+                            <p><strong>Service:</strong> ${booking.service.name}</p>
+                            <p><strong>Phone:</strong> ${booking.contact_phone || 'N/A'}</p>
+                            <p><strong>Time:</strong> ${booking.formatted_time || 'N/A'}</p>
+                        </div>
+                        <div class="mt-3">
+                            <a href="/priest/bookings/${booking.id}" 
+                               class="inline-flex items-center px-3 py-1 bg-[#0d5c2f] text-white text-xs rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                                <i class="fas fa-eye mr-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            bookingsList.innerHTML = bookingsHTML;
+        }
+        
+        // Populate activities section
+        if (activities.length === 0) {
+            activitiesList.innerHTML = '<p class="text-gray-500 italic">No parochial activities scheduled for this date.</p>';
+        } else {
+            let activitiesHTML = '';
+            activities.forEach(activityEvent => {
+                const activity = activityEvent.activity;
+                activitiesHTML += `
+                    <div class="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-semibold text-gray-900">${activity.title}</h5>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Activity
+                            </span>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            ${activity.description ? `<p><strong>Description:</strong> ${activity.description}</p>` : ''}
+                            ${activity.location ? `<p><strong>Location:</strong> ${activity.location}</p>` : ''}
+                            ${activity.organizer ? `<p><strong>Organizer:</strong> ${activity.organizer}</p>` : ''}
+                            <p><strong>Duration:</strong> ${this.formatDate(activity.start_date)} - ${this.formatDate(activity.end_date)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            activitiesList.innerHTML = activitiesHTML;
+        }
+        
+        // Show the events section
+        eventsSection.classList.remove('hidden');
+        
+        // Scroll to events section
+        eventsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    getStatusBadgeClass(status) {
+        const classes = {
+            'pending': 'bg-yellow-100 text-yellow-800',
+            'acknowledged': 'bg-blue-100 text-blue-800',
+            'payment_hold': 'bg-orange-100 text-orange-800',
+            'approved': 'bg-green-100 text-green-800',
+            'rejected': 'bg-red-100 text-red-800',
+            'completed': 'bg-green-100 text-green-800',
+            'cancelled': 'bg-gray-100 text-gray-800'
+        };
+        return classes[status] || 'bg-gray-100 text-gray-800';
+    }
+
+    formatDate(dateString) {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    attachEventListeners() {
+        const prevButton = document.getElementById('prevMonth');
+        const nextButton = document.getElementById('nextMonth');
+        
+        if (prevButton) {
+            prevButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.displayedMonth.setMonth(this.displayedMonth.getMonth() - 1);
+                this.renderCalendar();
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.displayedMonth.setMonth(this.displayedMonth.getMonth() + 1);
+                this.renderCalendar();
+            });
+        }
     }
 }
 
-function showEventsForDate(date) {
-    const dateString = date.toDateString();
-    const dateTitle = date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    });
+// Initialize calendar when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarContainer = document.querySelector('.calendar-grid');
     
-    document.getElementById('selectedDateTitle').textContent = `Events for ${dateTitle}`;
-    
-    // Populate bookings
-    const dateBookings = bookings.filter(booking => {
-        const bookingDate = new Date(booking.service_date);
-        return bookingDate.toDateString() === dateString;
-    });
-    
-    const bookingsList = document.getElementById('bookingsList');
-    if (dateBookings.length > 0) {
-        bookingsList.innerHTML = dateBookings.map(booking => `
-            <div class="bg-gray-50 rounded-lg p-3">
-                <div class="flex items-center justify-between mb-2">
-                    <h5 class="font-medium text-gray-900">#${booking.id} - ${booking.service.name}</h5>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                        ${booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                          booking.status === 'acknowledged' ? 'bg-blue-100 text-blue-800' :
-                          booking.status === 'payment_hold' ? 'bg-orange-100 text-orange-800' :
-                          booking.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          booking.status === 'completed' ? 'bg-purple-100 text-purple-800' :
-                          'bg-red-100 text-red-800'}">
-                        ${booking.status.replace('_', ' ')}
-                    </span>
-                </div>
-                <p class="text-sm text-gray-600">${booking.user.name}</p>
-                <p class="text-sm text-gray-500">${booking.formatted_time}</p>
-                <a href="/priest/bookings/${booking.id}" class="text-[#0d5c2f] hover:text-[#0d5c2f]/80 text-sm font-medium">
-                    View Details →
-                </a>
-            </div>
-        `).join('');
-    } else {
-        bookingsList.innerHTML = '<p class="text-gray-500 text-sm">No bookings for this date</p>';
+    if (calendarContainer) {
+        const calendar = new PriestCalendar(
+            calendarContainer,
+            @json($bookings),
+            @json($activities)
+        );
     }
-    
-    // Populate activities
-    const dateActivities = activities.filter(activity => {
-        const activityStart = new Date(activity.start_date);
-        const activityEnd = new Date(activity.end_date);
-        return date >= activityStart && date <= activityEnd;
-    });
-    
-    const activitiesList = document.getElementById('activitiesList');
-    if (dateActivities.length > 0) {
-        activitiesList.innerHTML = dateActivities.map(activity => `
-            <div class="bg-yellow-50 rounded-lg p-3">
-                <h5 class="font-medium text-gray-900">${activity.title}</h5>
-                <p class="text-sm text-gray-600">${activity.description || 'No description'}</p>
-                <p class="text-sm text-gray-500">${activity.location || 'No location'}</p>
-            </div>
-        `).join('');
-    } else {
-        activitiesList.innerHTML = '<p class="text-gray-500 text-sm">No activities for this date</p>';
-    }
-    
-    document.getElementById('eventsSection').classList.remove('hidden');
-}
+});
 
 function hideEventsSection() {
     document.getElementById('eventsSection').classList.add('hidden');
 }
-
-function changeMonth(direction) {
-    if (direction === 'prev') {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-    } else {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-    }
-    renderCalendar();
-}
-
-// Event listeners
-document.getElementById('prevMonth').addEventListener('click', () => changeMonth('prev'));
-document.getElementById('nextMonth').addEventListener('click', () => changeMonth('next'));
-
-// Initialize calendar
-document.addEventListener('DOMContentLoaded', function() {
-    renderCalendar();
-});
 </script>
 @endsection 

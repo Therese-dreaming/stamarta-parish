@@ -3,38 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
-use Illuminate\Http\Request;
 
 class PageController extends Controller
 {
-    public function show($slug)
+    public function show(Page $page)
     {
-        $page = Page::where('slug', $slug)
-                    ->where('is_published', true)
-                    ->first();
-
-        if (!$page) {
-            // Check if page exists but is unpublished
-            $unpublishedPage = Page::where('slug', $slug)->first();
-            
-            if ($unpublishedPage) {
-                // Page exists but is unpublished - show deactivated page
-                return view('pages.deactivated', compact('unpublishedPage'));
-            }
-            
-            // Page doesn't exist at all - show 404
+        // Only show published pages to public users
+        if (!$page->is_published) {
             abort(404);
         }
 
         return view('pages.show', compact('page'));
     }
 
-    public function home()
+    public function index()
     {
-        $page = Page::where('slug', 'home')
-                    ->where('is_published', true)
-                    ->first();
+        // Public pages directory - show all published pages
+        $pages = Page::published()
+            ->with('creator')
+            ->orderBy('title')
+            ->paginate(12);
 
-        return view('pages.show', compact('page'));
+        return view('pages.index', compact('pages'));
     }
-} 
+}

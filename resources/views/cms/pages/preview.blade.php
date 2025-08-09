@@ -22,37 +22,92 @@
         </div>
     </div>
 
-    <!-- Page Content -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-gray-900">Page Preview</h2>
-                <div class="flex items-center space-x-2">
-                    @if($page->is_published)
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <i class="fas fa-check-circle mr-1"></i>Published
-                        </span>
-                    @else
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <i class="fas fa-clock mr-1"></i>Draft
-                        </span>
-                    @endif
-                </div>
-            </div>
-        </div>
-        
-        <div class="p-6">
-            <!-- Page Title -->
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $page->title }}</h1>
-            
-            <!-- Meta Information -->
+    <!-- Public-like Preview (matches user page rendering) -->
+    <!-- Hero Section -->
+    <div class="relative h-[40vh] -mt-[20px] rounded-xl overflow-hidden border border-gray-200">
+        <img src="{{ asset('images/church-bg.jpg') }}" alt="Church Background" class="absolute inset-0 w-full h-full object-cover brightness-50" />
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+            <h1 class="text-4xl md:text-5xl font-bold mb-3">{{ $page->title }}</h1>
             @if($page->meta_description)
-                <p class="text-gray-600 italic">{{ $page->meta_description }}</p>
+                <p class="text-lg md:text-xl max-w-3xl">{{ $page->meta_description }}</p>
             @endif
-            
-            <!-- Page Content -->
-            <div class="prose prose-lg max-w-none mt-6">
-                {!! $page->content !!}
+        </div>
+    </div>
+
+    <!-- Page Content Section (mirrors resources/views/pages/show.blade.php) -->
+    <div class="bg-white py-10 rounded-xl border border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="max-w-5xl mx-auto">
+                <!-- Page Meta Information -->
+                <div class="mb-8 text-center">
+                    <div class="flex items-center justify-center text-sm text-gray-500 mb-4">
+                        <i class="fas fa-calendar mr-2"></i>
+                        <span>Published {{ optional($page->published_at)->format('M d, Y') }}</span>
+                        @if($page->creator)
+                            <span class="mx-2">•</span>
+                            <i class="fas fa-user mr-2"></i>
+                            <span>By {{ $page->creator->name }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                @php($layout = $page->layout ?? 'one_column')
+                @if(in_array($layout, ['image_top_text_bottom','text_top_image_bottom','image_left_text_right','image_right_text_left']) && $page->image)
+                    @php($imageUrl = $page->image->url)
+                @endif
+
+                @switch($layout)
+                    @case('image_top_text_bottom')
+                        @isset($imageUrl)
+                        <img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg mb-6 object-cover">
+                        @endisset
+                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">{!! nl2br(e($page->content)) !!}</div>
+                        @break
+
+                    @case('text_top_image_bottom')
+                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed mb-6">{!! nl2br(e($page->content)) !!}</div>
+                        @isset($imageUrl)
+                        <img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg object-cover">
+                        @endisset
+                        @break
+
+                    @case('image_left_text_right')
+                        <div class="grid md:grid-cols-2 gap-8 items-start">
+                            <div>@isset($imageUrl)<img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg object-cover">@endisset</div>
+                            <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">{!! nl2br(e($page->content)) !!}</div>
+                        </div>
+                        @break
+
+                    @case('image_right_text_left')
+                        <div class="grid md:grid-cols-2 gap-8 items-start">
+                            <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed md:order-1">{!! nl2br(e($page->content)) !!}</div>
+                            <div class="md:order-2">@isset($imageUrl)<img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg object-cover">@endisset</div>
+                        </div>
+                        @break
+
+                    @default
+                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">{!! nl2br(e($page->content)) !!}</div>
+                @endswitch
+
+                <!-- Page Footer -->
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <div class="flex items-center justify-between text-sm text-gray-500">
+                        <div>
+                            <span>Last updated: {{ $page->updated_at->format('M d, Y \\a\\t g:i A') }}</span>
+                        </div>
+                        <div class="flex space-x-4">
+                            <a href="#" class="hover:text-[#0d5c2f] transition-colors">
+                                <i class="fab fa-facebook"></i>
+                            </a>
+                            <a href="#" class="hover:text-[#0d5c2f] transition-colors">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="hover:text-[#0d5c2f] transition-colors">
+                                <i class="fas fa-share"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

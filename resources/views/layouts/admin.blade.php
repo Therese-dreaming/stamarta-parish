@@ -160,8 +160,8 @@
                                  class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                                 
                                 <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                                    <div class="font-medium">{{ Auth::user()->name }}</div>
-                                    <div class="text-gray-500">{{ Auth::user()->email }}</div>
+                                    <div class="font-medium truncate">{{ Auth::user()->name }}</div>
+                                    <div class="text-gray-500 text-xs truncate" title="{{ Auth::user()->email }}">{{ Auth::user()->email }}</div>
                                 </div>
                                 
                                 <a href="{{ route('home') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">

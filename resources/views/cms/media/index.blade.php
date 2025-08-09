@@ -3,20 +3,36 @@
 @section('title', 'Media Library')
 
 @section('content')
+@include('components.toast')
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900">Media Library</h1>
-            <p class="text-gray-600">Manage images, documents, and other media files</p>
+    <!-- Header with colored background -->
+    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
+        <div class="px-6 py-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Media Library</h1>
+                    <p class="text-white/80 mt-1 flex items-center">
+                        <i class="fas fa-images mr-2"></i>Manage images, documents, and other media files
+                    </p>
+                </div>
+                @if(!isset($isStaff) || !$isStaff)
+                <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.create') : route('admin.cms.media.create') }}" 
+                   class="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Upload Media">
+                    <i class="fas fa-plus text-lg"></i>
+                </a>
+                @endif
+            </div>
         </div>
-        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.create') : route('admin.cms.media.create') }}" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-            <i class="fas fa-plus mr-2"></i>Upload Media
-        </a>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-filter mr-2 text-[#0d5c2f]"></i>
+                Filter Media Files
+            </h2>
+        </div>
         <div class="p-6">
             <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
@@ -54,8 +70,16 @@
 
     <!-- Media Grid -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">All Media Files</h2>
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-folder-open mr-2 text-[#0d5c2f]"></i>
+                        Media Library
+                    </h2>
+                    <span class="text-sm text-gray-500">{{ $media->total() }} file{{ $media->total() != 1 ? 's' : '' }}</span>
+                </div>
+            </div>
         </div>
         <div class="p-6">
             @if($media->count() > 0)
@@ -106,11 +130,11 @@
                     <i class="fas fa-images text-6xl text-gray-300 mb-4"></i>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">No media files found</h3>
                     <p class="text-gray-500 mb-4">Upload your first media file to get started</p>
-                                         @if(!isset($isStaff) || !$isStaff)
-                     <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.create') : route('admin.cms.media.create') }}" class="bg-[#0d5c2f] text-white px-6 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-                          <i class="fas fa-plus mr-2"></i>Upload First File
-                      </a>
-                      @endif
+                    @if(!isset($isStaff) || !$isStaff)
+                    <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.create') : route('admin.cms.media.create') }}" class="bg-[#0d5c2f] text-white px-6 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Upload First File
+                    </a>
+                    @endif
                 </div>
             @endif
         </div>
