@@ -90,50 +90,60 @@
                         </div>
                         <div class="bg-gray-50 rounded-lg p-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                            <p class="text-lg text-gray-900">{{ $booking->user->phone ?? 'Not provided' }}</p>
+                            <p class="text-lg text-gray-900">{{ $booking->contact_phone ?? 'Not provided' }}</p>
                         </div>
                         <div class="bg-gray-50 rounded-lg p-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                            <p class="text-lg text-gray-900">{{ $booking->user->address ?? 'Not provided' }}</p>
+                            <p class="text-lg text-gray-900">{{ $booking->contact_address ?? 'Not provided' }}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Required Documents -->
-            @if($booking->service->requirements && count($booking->service->requirements) > 0)
+            @if($booking->requirements_submitted && count($booking->requirements_submitted) > 0)
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div class="p-6 border-b border-gray-200">
                     <h2 class="text-lg font-semibold text-gray-900 flex items-center">
                         <i class="fas fa-file-alt mr-2 text-[#0d5c2f]"></i>
-                        Required Documents
+                        Submitted Documents
                     </h2>
                 </div>
                 <div class="p-6">
                     <div class="space-y-4">
-                        @foreach($booking->service->requirements as $requirement)
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div class="flex items-center">
-                                <i class="fas fa-file mr-3 text-[#0d5c2f]"></i>
-                                <span class="font-medium text-gray-900">{{ $requirement }}</span>
+                        @foreach($booking->requirements_submitted as $documentType => $documentPath)
+                            @if($documentType !== 'conditional_answers')
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file mr-3 text-[#0d5c2f]"></i>
+                                    <span class="font-medium text-gray-900">{{ ucwords(str_replace('_', ' ', $documentType)) }}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-green-600 flex items-center">
+                                        <i class="fas fa-check-circle mr-1"></i>Uploaded
+                                    </span>
+                                    <a href="{{ route('priest.bookings.download-document', [$booking, $documentType]) }}" 
+                                       class="px-3 py-1 bg-[#0d5c2f] text-white rounded text-sm hover:bg-[#0d5c2f]/90 transition-colors">
+                                        <i class="fas fa-download mr-1"></i>Download
+                                    </a>
+                                </div>
                             </div>
-                            @if(isset($booking->custom_data[$requirement]))
-                            <div class="flex items-center space-x-2">
-                                <span class="text-sm text-green-600 flex items-center">
-                                    <i class="fas fa-check-circle mr-1"></i>Uploaded
-                                </span>
-                                <a href="{{ route('priest.bookings.download-document', [$booking, $requirement]) }}" 
-                                   class="px-3 py-1 bg-[#0d5c2f] text-white rounded text-sm hover:bg-[#0d5c2f]/90 transition-colors">
-                                    <i class="fas fa-download mr-1"></i>Download
-                                </a>
-                            </div>
-                            @else
-                            <span class="text-sm text-red-600 flex items-center">
-                                <i class="fas fa-times-circle mr-1"></i>Not uploaded
-                            </span>
                             @endif
-                        </div>
                         @endforeach
+                        
+                        @if(isset($booking->requirements_submitted['conditional_answers']))
+                        <div class="mt-6">
+                            <h4 class="text-md font-semibold text-gray-900 mb-3">Conditional Answers</h4>
+                            <div class="space-y-2">
+                                @foreach($booking->requirements_submitted['conditional_answers'] as $question => $answer)
+                                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-900">{{ ucwords(str_replace('_', ' ', $question)) }}</span>
+                                    <span class="text-sm text-blue-600 font-medium">{{ ucfirst($answer) }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>

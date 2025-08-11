@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Priest;
 use App\Services\EmailService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -187,6 +188,9 @@ class BookingController extends Controller
         // Send payment instructions email
         EmailService::sendPaymentInstructions($booking);
 
+        // Create notification
+        NotificationService::bookingAcknowledged($booking);
+
         return back()->with('success', 'Booking acknowledged successfully. Payment fee set to ₱' . number_format($request->total_fee, 2));
     }
 
@@ -229,8 +233,12 @@ class BookingController extends Controller
         // Send appropriate email based on verification status
         if ($request->verification_status === 'approved') {
             EmailService::sendBookingApproved($booking);
+            NotificationService::bookingApproved($booking);
+            NotificationService::paymentVerified($booking);
         } else {
             EmailService::sendBookingRejected($booking);
+            NotificationService::bookingRejected($booking, $request->notes);
+            NotificationService::paymentRejected($booking, $request->notes);
         }
 
         $message = $request->verification_status === 'approved' 
@@ -259,6 +267,9 @@ class BookingController extends Controller
             'performed_by' => auth()->id(),
         ]);
 
+        // Create notification
+        NotificationService::bookingCompleted($booking);
+
         return back()->with('success', 'Booking marked as completed successfully.');
     }
 
@@ -283,6 +294,9 @@ class BookingController extends Controller
 
         // Send rejection email
         EmailService::sendBookingRejected($booking);
+
+        // Create notification
+        NotificationService::bookingRejected($booking, $request->notes);
 
         return back()->with('success', 'Booking rejected successfully.');
     }

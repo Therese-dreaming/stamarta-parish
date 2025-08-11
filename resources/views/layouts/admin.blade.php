@@ -123,6 +123,17 @@
                     <i class="fas fa-church w-5 h-5 mr-3"></i>
                     Activities
                 </a>
+
+                <!-- Notifications -->
+                <div class="pt-4">
+                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
+                </div>
+                
+                <a href="{{ route('admin.notifications.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.notifications.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-bell w-5 h-5 mr-3"></i>
+                    Notifications
+                    <span id="notification-count" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                </a>
             </nav>
         </div>
 
@@ -139,6 +150,46 @@
                     </div>
                     
                     <div class="flex items-center space-x-4">
+                        <!-- Notification Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="relative flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                                <i class="fas fa-bell text-xl mr-2"></i>
+                                <span id="header-notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                            </button>
+                            
+                            <!-- Notification Dropdown Menu -->
+                            <div x-show="open" @click.away="open = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 max-h-96 overflow-y-auto">
+                                
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                                        <a href="{{ route('admin.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">View All</a>
+                                    </div>
+                                </div>
+                                
+                                <div id="header-notifications-list" class="divide-y divide-gray-100">
+                                    <!-- Notifications will be loaded here -->
+                                    <div class="px-4 py-3 text-center text-gray-500 text-sm">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                                        Loading notifications...
+                                    </div>
+                                </div>
+                                
+                                <div class="px-4 py-2 border-t border-gray-100">
+                                    <button id="mark-all-read-header" class="w-full text-left text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">
+                                        Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">
                             <i class="fas fa-home mr-2"></i>View Site
                         </a>
@@ -233,6 +284,132 @@
                 message.style.display = 'none';
             });
         }, 5000);
+
+        // Update notification count
+        function updateNotificationCount() {
+            fetch('{{ route("admin.notifications.unread-count") }}')
+            .then(response => response.json())
+            .then(data => {
+                const countElement = document.getElementById('notification-count');
+                if (countElement) {
+                    countElement.textContent = data.count;
+                    if (data.count > 0) {
+                        countElement.classList.remove('hidden');
+                    } else {
+                        countElement.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching notification count:', error));
+        }
+
+        // Update count on page load
+        updateNotificationCount();
+
+        // Update count every 30 seconds
+        setInterval(updateNotificationCount, 30000);
+
+        // Load header notifications
+        function loadHeaderNotifications() {
+            fetch('{{ route("admin.notifications.unread-count") }}?limit=5')
+            .then(response => response.json())
+            .then(data => {
+                const notificationsList = document.getElementById('header-notifications-list');
+                const headerCount = document.getElementById('header-notification-count');
+                
+                // Update header count
+                if (data.count > 0) {
+                    headerCount.textContent = data.count;
+                    headerCount.classList.remove('hidden');
+                } else {
+                    headerCount.classList.add('hidden');
+                }
+                
+                // Load recent notifications
+                if (data.notifications && data.notifications.length > 0) {
+                    let html = '';
+                    data.notifications.forEach(notification => {
+                        const isRead = notification.is_read ? 'border-gray-300' : 'border-[#0d5c2f]';
+                        const badge = notification.is_read ? '' : '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full mr-2"></span>';
+                        
+                        html += `
+                            <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header" data-id="${notification.id}" data-read="${notification.is_read}">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        ${badge}
+                                        <p class="text-sm text-gray-900 font-medium">${notification.message}</p>
+                                        <p class="text-xs text-gray-500 mt-1">${notification.created_at}</p>
+                                    </div>
+                                    ${!notification.is_read ? '<button class="mark-read-header-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 ml-2">Mark read</button>' : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    notificationsList.innerHTML = html;
+                    
+                    // Add event listeners for mark as read buttons
+                    document.querySelectorAll('.mark-read-header-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const notificationItem = this.closest('.notification-item-header');
+                            const notificationId = notificationItem.dataset.id;
+                            
+                            fetch('{{ route("admin.notifications.mark-as-read") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({
+                                    notification_ids: [notificationId]
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    notificationItem.classList.remove('border-[#0d5c2f]');
+                                    notificationItem.classList.add('border-gray-300');
+                                    notificationItem.dataset.read = 'true';
+                                    this.remove();
+                                    updateNotificationCount();
+                                    loadHeaderNotifications();
+                                }
+                            });
+                        });
+                    });
+                } else {
+                    notificationsList.innerHTML = '<div class="px-4 py-3 text-center text-gray-500 text-sm">No new notifications</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading header notifications:', error);
+                document.getElementById('header-notifications-list').innerHTML = '<div class="px-4 py-3 text-center text-red-500 text-sm">Error loading notifications</div>';
+            });
+        }
+
+        // Mark all as read from header
+        document.getElementById('mark-all-read-header').addEventListener('click', function() {
+            fetch('{{ route("admin.notifications.mark-all-as-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    type: 'all'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateNotificationCount();
+                    loadHeaderNotifications();
+                }
+            });
+        });
+
+        // Load header notifications on page load
+        loadHeaderNotifications();
     </script>
 </body>
 </html> 

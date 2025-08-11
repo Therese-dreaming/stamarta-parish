@@ -45,6 +45,7 @@
                         Dashboard
                     </a>
                     
+                    <!-- Booking Management -->
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
                     </div>
@@ -57,6 +58,17 @@
                     <a href="{{ route('priest.bookings.calendar') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.bookings.calendar') ? 'bg-[#0d5c2f] text-white' : '' }}">
                         <i class="fas fa-calendar-alt w-5 h-5 mr-3"></i>
                         Calendar View
+                    </a>
+
+                    <!-- Notifications -->
+                    <div class="pt-4">
+                        <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
+                    </div>
+                    
+                    <a href="{{ route('priest.notifications.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.notifications.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-bell w-5 h-5 mr-3"></i>
+                        Notifications
+                        <span id="notification-count" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
                     </a>
                 </div>
             </nav>
@@ -75,6 +87,46 @@
                     </div>
                     
                     <div class="flex items-center space-x-4">
+                        <!-- Notification Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="relative flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                                <i class="fas fa-bell text-xl mr-2"></i>
+                                <span id="header-notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                            </button>
+                            
+                            <!-- Notification Dropdown Menu -->
+                            <div x-show="open" @click.away="open = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 max-h-96 overflow-y-auto">
+                                
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                                        <a href="{{ route('priest.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">View All</a>
+                                    </div>
+                                </div>
+                                
+                                <div id="header-notifications-list" class="divide-y divide-gray-100">
+                                    <!-- Notifications will be loaded here -->
+                                    <div class="px-4 py-3 text-center text-gray-500 text-sm">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                                        Loading notifications...
+                                    </div>
+                                </div>
+                                
+                                <div class="px-4 py-2 border-t border-gray-100">
+                                    <button id="mark-all-read-header" class="w-full text-left text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">
+                                        Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">
                             <i class="fas fa-home mr-2"></i>View Site
                         </a>
@@ -170,6 +222,124 @@
                 message.style.display = 'none';
             });
         }, 5000);
+
+        // Update notification count
+        function updateNotificationCount() {
+            fetch('{{ route("priest.notifications.unread-count") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const countElement = document.getElementById('notification-count');
+                    const headerCountElement = document.getElementById('header-notification-count');
+                    
+                    if (data.count > 0) {
+                        if (countElement) {
+                            countElement.textContent = data.count;
+                            countElement.classList.remove('hidden');
+                        }
+                        if (headerCountElement) {
+                            headerCountElement.textContent = data.count;
+                            headerCountElement.classList.remove('hidden');
+                        }
+                    } else {
+                        if (countElement) {
+                            countElement.classList.add('hidden');
+                        }
+                        if (headerCountElement) {
+                            headerCountElement.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching notification count:', error));
+        }
+
+        // Load header notifications
+        function loadHeaderNotifications() {
+            fetch('{{ route("priest.notifications.unread-count") }}?limit=5')
+                .then(response => response.json())
+                .then(data => {
+                    const notificationsList = document.getElementById('header-notifications-list');
+                    
+                    if (data.notifications && data.notifications.length > 0) {
+                        let html = '';
+                        data.notifications.forEach(notification => {
+                            const isRead = notification.is_read ? 'border-gray-300' : 'border-[#0d5c2f]';
+                            const badge = notification.is_read ? '' : '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full mr-2"></span>';
+                            
+                            html += `
+                                <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header" data-id="${notification.id}" data-read="${notification.is_read}">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            ${badge}
+                                            <p class="text-sm text-gray-900 font-medium">${notification.message}</p>
+                                            <p class="text-xs text-gray-500 mt-1">${notification.created_at}</p>
+                                        </div>
+                                        ${!notification.is_read ? '<button class="mark-read-header-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 ml-2">Mark read</button>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        notificationsList.innerHTML = html;
+                    } else {
+                        notificationsList.innerHTML = '<div class="px-4 py-3 text-center text-gray-500 text-sm">No notifications</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                    document.getElementById('header-notifications-list').innerHTML = '<div class="px-4 py-3 text-center text-red-500 text-sm">Error loading notifications</div>';
+                });
+        }
+
+        // Mark all as read functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'mark-all-read-header') {
+                fetch('{{ route("priest.notifications.mark-all-as-read") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateNotificationCount();
+                        loadHeaderNotifications();
+                    }
+                })
+                .catch(error => console.error('Error marking notifications as read:', error));
+            }
+        });
+
+        // Mark individual notification as read
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('mark-read-header-btn')) {
+                const notificationItem = e.target.closest('.notification-item-header');
+                const notificationId = notificationItem.dataset.id;
+                
+                fetch(`{{ route("priest.notifications.mark-as-read") }}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ notification_id: notificationId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateNotificationCount();
+                        loadHeaderNotifications();
+                    }
+                })
+                .catch(error => console.error('Error marking notification as read:', error));
+            }
+        });
+
+        // Update count on page load and every 30 seconds
+        updateNotificationCount();
+        loadHeaderNotifications();
+        setInterval(updateNotificationCount, 30000);
+        setInterval(loadHeaderNotifications, 30000);
     </script>
 </body>
 </html> 

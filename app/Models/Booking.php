@@ -26,7 +26,6 @@ class Booking extends Model
 
     protected $casts = [
         'service_date' => 'date',
-        'service_time' => 'datetime',
         'requirements_submitted' => 'array',
         'custom_data' => 'array',
     ];
@@ -147,7 +146,22 @@ class Booking extends Model
 
     public function getFormattedTimeAttribute()
     {
-        return $this->service_time ?? 'No time set';
+        if (!$this->service_time) {
+            return 'No time set';
+        }
+        
+        // If service_time is already in the correct format (e.g., "2:00 PM"), return it
+        if (preg_match('/^\d{1,2}:\d{2}\s?(AM|PM)$/i', $this->service_time)) {
+            return $this->service_time;
+        }
+        
+        // If it's a datetime string, format it
+        try {
+            $time = \Carbon\Carbon::parse($this->service_time);
+            return $time->format('g:i A');
+        } catch (\Exception $e) {
+            return $this->service_time;
+        }
     }
 
     public function getFormattedTotalFeeAttribute()

@@ -7,8 +7,8 @@ class ServiceConfigService
     public static function getServiceConfigs()
     {
         return [
-            'baptism' => [
-                'name' => 'Baptism',
+            'solo_baptism' => [
+                'name' => 'Solo Baptism',
                 'custom_fields' => [
                     'child_name' => [
                         'label' => "Child's Name",
@@ -36,13 +36,37 @@ class ServiceConfigService
                 ],
                 'requirements' => [
                     'Birth Certificate',
-                    'Baptismal Certificate',
                     "Parents' IDs",
-                    "Godparents' IDs"
+                    'Marriage Contract (if parents are married)',
+                    'Baptismal Permit (if from another parish)'
+                ]
+            ],
+            'group_baptism' => [
+                'name' => 'Group Baptism',
+                'custom_fields' => [
+                    'children_count' => [
+                        'label' => 'Number of Children',
+                        'type' => 'number',
+                        'required' => true,
+                        'min' => 2,
+                        'placeholder' => 'Enter the number of children to be baptized'
+                    ],
+                    'children_details' => [
+                        'label' => 'Children Details',
+                        'type' => 'textarea',
+                        'required' => true,
+                        'placeholder' => 'List all children names, birth dates, and their parents'
+                    ]
+                ],
+                'requirements' => [
+                    'Birth Certificates',
+                    "Parents' IDs",
+                    'Marriage Contract (if parents are married)',
+                    'Baptismal Permit (if from another parish)'
                 ]
             ],
             'wedding' => [
-                'name' => 'Wedding',
+                'name' => 'Wedding Service',
                 'custom_fields' => [
                     'groom_name' => [
                         'label' => "Groom's Name",
@@ -84,7 +108,9 @@ class ServiceConfigService
                     'Confirmation Certificates',
                     'Birth Certificates',
                     'Witnesses IDs',
-                    'Pre-Cana Certificate'
+                    'Pre-Cana Certificate',
+                    'Civil Marriage Contract (if already civilly married)',
+                    'Affidavit of Cohabitation (if currently cohabiting)'
                 ]
             ],
             'blessing' => [
@@ -118,39 +144,6 @@ class ServiceConfigService
                     'Valid ID',
                     'Proof of Ownership (if applicable)',
                     'Special Requests (if any)'
-                ]
-            ],
-            'funeral' => [
-                'name' => 'Funeral Service',
-                'custom_fields' => [
-                    'deceased_name' => [
-                        'label' => "Deceased Person's Name",
-                        'type' => 'text',
-                        'required' => true,
-                        'placeholder' => "Enter the deceased person's full name"
-                    ],
-                    'date_of_death' => [
-                        'label' => 'Date of Death',
-                        'type' => 'date',
-                        'required' => true
-                    ],
-                    'funeral_date' => [
-                        'label' => 'Funeral Date',
-                        'type' => 'date',
-                        'required' => true
-                    ],
-                    'family_contact' => [
-                        'label' => 'Family Contact Person',
-                        'type' => 'text',
-                        'required' => true,
-                        'placeholder' => 'Name of family contact person'
-                    ]
-                ],
-                'requirements' => [
-                    'Death Certificate',
-                    'Burial Permit',
-                    'Family Contact Information',
-                    'Funeral Home Details'
                 ]
             ]
         ];

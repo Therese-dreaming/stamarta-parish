@@ -42,11 +42,11 @@
                     @isset($imageUrl)
                     <img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg mb-6 object-cover">
                     @endisset
-                    <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">{!! $page->content !!}</div>
+                    <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed whitespace-pre-line">{!! $page->content !!}</div>
                     @break
 
                 @case('text_top_image_bottom')
-                    <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed mb-6">{!! $page->content !!}</div>
+                    <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed mb-6 whitespace-pre-line">{!! $page->content !!}</div>
                     @isset($imageUrl)
                     <img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg object-cover">
                     @endisset
@@ -55,19 +55,19 @@
                 @case('image_left_text_right')
                     <div class="grid md:grid-cols-2 gap-8 items-start">
                         <div>@isset($imageUrl)<img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg object-cover">@endisset</div>
-                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">{!! nl2br(e($page->content)) !!}</div>
+                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed whitespace-pre-line">{!! $page->content !!}</div>
                     </div>
                     @break
 
                 @case('image_right_text_left')
                     <div class="grid md:grid-cols-2 gap-8 items-start">
-                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed md:order-1">{!! $page->content !!}</div>
+                        <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed md:order-1 whitespace-pre-line">{!! $page->content !!}</div>
                         <div class="md:order-2">@isset($imageUrl)<img src="{{ $imageUrl }}" alt="{{ $page->title }}" class="w-full rounded-lg object-cover">@endisset</div>
                     </div>
                     @break
 
                 @default
-                    <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed">{!! $page->content !!}</div>
+                    <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed whitespace-pre-line">{!! $page->content !!}</div>
             @endswitch
 
             <!-- Page Footer -->

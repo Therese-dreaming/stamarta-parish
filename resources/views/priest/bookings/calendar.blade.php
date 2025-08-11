@@ -351,7 +351,7 @@ class PriestCalendar {
                             <p><strong>Customer:</strong> ${booking.user.name}</p>
                             <p><strong>Service:</strong> ${booking.service.name}</p>
                             <p><strong>Phone:</strong> ${booking.contact_phone || 'N/A'}</p>
-                            <p><strong>Time:</strong> ${booking.formatted_time || 'N/A'}</p>
+                            <p><strong>Time:</strong> ${booking.service_time || 'N/A'}</p>
                         </div>
                         <div class="mt-3">
                             <a href="/priest/bookings/${booking.id}" 
@@ -449,10 +449,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarContainer = document.querySelector('.calendar-grid');
     
     if (calendarContainer) {
+        const bookings = @json($bookingsData);
+        const activities = @json($activities->toArray());
+        
         const calendar = new PriestCalendar(
             calendarContainer,
-            @json($bookings),
-            @json($activities)
+            bookings,
+            activities
         );
     }
 });

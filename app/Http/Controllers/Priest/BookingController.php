@@ -102,13 +102,30 @@ class BookingController extends Controller
             ->with(['user', 'service'])
             ->get();
 
+        // Prepare bookings data for JavaScript
+        $bookingsData = $bookings->map(function($booking) {
+            return [
+                'id' => $booking->id,
+                'service_date' => $booking->service_date->format('Y-m-d'),
+                'service_time' => $booking->formatted_time,
+                'contact_phone' => $booking->contact_phone,
+                'status' => $booking->status,
+                'user' => [
+                    'name' => $booking->user->name
+                ],
+                'service' => [
+                    'name' => $booking->service->name
+                ]
+            ];
+        })->toArray();
+
         // Get parochial activities that might conflict
         $activities = ParochialActivity::where('status', 'active')
             ->where('event_date', '>=', Carbon::now()->subDays(30))
             ->where('event_date', '<=', Carbon::now()->addDays(90))
             ->get();
 
-        return view('priest.bookings.calendar', compact('bookings', 'activities'));
+        return view('priest.bookings.calendar', compact('bookingsData', 'activities'));
     }
 
     public function acknowledge(Booking $booking)

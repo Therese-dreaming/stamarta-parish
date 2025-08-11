@@ -153,6 +153,18 @@
                                                     </option>
                                                 @endforeach
                                             </select>
+                                        @elseif($fieldConfig['type'] === 'number')
+                                            <input 
+                                                type="number" 
+                                                id="custom_fields_{{ $fieldKey }}" 
+                                                name="custom_fields[{{ $fieldKey }}]"
+                                                @if($fieldConfig['required']) required @endif
+                                                @if(isset($fieldConfig['min'])) min="{{ $fieldConfig['min'] }}" @endif
+                                                @if(isset($fieldConfig['max'])) max="{{ $fieldConfig['max'] }}" @endif
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                                placeholder="{{ $fieldConfig['placeholder'] ?? '' }}"
+                                                value="{{ old("custom_fields.{$fieldKey}") }}"
+                                            >
                                         @else
                                             <input 
                                                 type="{{ $fieldConfig['type'] }}" 

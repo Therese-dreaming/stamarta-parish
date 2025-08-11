@@ -95,6 +95,17 @@
                         Media Library
                     </a>
 
+                    <!-- Notifications -->
+                    <div class="pt-4">
+                        <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
+                    </div>
+                    
+                    <a href="{{ route('staff.notifications.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('staff.notifications.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-bell w-5 h-5 mr-3"></i>
+                        Notifications
+                        <span id="notification-count" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                    </a>
+
                     <!-- View Only Section -->
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">View Only</h3>
@@ -126,6 +137,46 @@
                     </div>
                     
                     <div class="flex items-center space-x-4">
+                        <!-- Notification Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="relative flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                                <i class="fas fa-bell text-xl mr-2"></i>
+                                <span id="header-notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                            </button>
+                            
+                            <!-- Notification Dropdown Menu -->
+                            <div x-show="open" @click.away="open = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 max-h-96 overflow-y-auto">
+                                
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                                        <a href="{{ route('staff.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">View All</a>
+                                    </div>
+                                </div>
+                                
+                                <div id="header-notifications-list" class="divide-y divide-gray-100">
+                                    <!-- Notifications will be loaded here -->
+                                    <div class="px-4 py-3 text-center text-gray-500 text-sm">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                                        Loading notifications...
+                                    </div>
+                                </div>
+                                
+                                <div class="px-4 py-2 border-t border-gray-100">
+                                    <button id="mark-all-read-header" class="w-full text-left text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">
+                                        Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">
                             <i class="fas fa-home mr-2"></i>View Site
                         </a>
@@ -232,6 +283,26 @@
                 message.style.display = 'none';
             });
         }, 5000);
+
+        // Update notification count
+        function updateNotificationCount() {
+            fetch('{{ route("staff.notifications.unread-count") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const countElement = document.getElementById('notification-count');
+                    if (data.count > 0) {
+                        countElement.textContent = data.count;
+                        countElement.classList.remove('hidden');
+                    } else {
+                        countElement.classList.add('hidden');
+                    }
+                })
+                .catch(error => console.error('Error fetching notification count:', error));
+        }
+
+        // Update count on page load and every 30 seconds
+        updateNotificationCount();
+        setInterval(updateNotificationCount, 30000);
     </script>
 </body>
 </html> 

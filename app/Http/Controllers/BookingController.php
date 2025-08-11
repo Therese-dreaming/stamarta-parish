@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use App\Models\Booking;
 use App\Services\EmailService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -30,10 +31,13 @@ class BookingController extends Controller
         // Get service-specific validation rules
         $validationRules = $this->getServiceValidationRules($service);
         
-        $request->validate($validationRules);
-
+        // Validate the request
+        $validated = $request->validate($validationRules);
+        
         // Store step 1 data
-        $request->session()->put('booking.step1', $request->all());
+        $step1Data = $request->all();
+        
+        $request->session()->put('booking.step1', $step1Data);
         $request->session()->put('booking.service_id', $service->id);
 
         return redirect()->route('booking.step2', $service);
@@ -107,24 +111,32 @@ class BookingController extends Controller
             'terms_accepted' => 'required|accepted',
         ];
 
-        // Get service-specific requirements
+        // Get service-specific requirements from the configuration
         $serviceType = $service->service_type ?? 'general';
         $requiredDocuments = [];
         $conditionalDocuments = [];
 
         switch($serviceType) {
-            case 'baptism':
-                $requiredDocuments = ['birth_certificate'];
+            case 'solo_baptism':
+            case 'group_baptism':
+                $requiredDocuments = ['birth_certificate', 'parents_ids'];
                 $conditionalDocuments = [
-                    'parents_marriage_contract' => 'parents_married',
-                    'baptismal_permit' => 'from_other_parish'
+                    'marriage_contract' => 'parents_married',
+                    'baptismal_permit' => 'from_another_parish'
                 ];
                 break;
             case 'wedding':
-                $requiredDocuments = ['baptismal_certificate', 'confirmation_certificate', 'cenomar', 'marriage_license', 'id_pictures'];
+                $requiredDocuments = [
+                    'marriage_license', 
+                    'baptismal_certificates', 
+                    'confirmation_certificates', 
+                    'birth_certificates', 
+                    'witnesses_ids', 
+                    'pre_cana_certificate'
+                ];
                 $conditionalDocuments = [
-                    'civil_marriage_contract' => 'civilly_married',
-                    'affidavit_cohabitation' => 'cohabiting'
+                    'civil_marriage_contract' => 'already_civilly_married',
+                    'affidavit_of_cohabitation' => 'currently_cohabiting'
                 ];
                 break;
             case 'blessing':
@@ -142,21 +154,21 @@ class BookingController extends Controller
 
         // Add validation rules for required documents
         foreach ($requiredDocuments as $doc) {
-            $validationRules["documents.{$doc}"] = 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120';
+            $validationRules["documents.{$doc}"] = 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240';
         }
 
-        // Add validation rules for conditional documents based on answers
+        // Add validation rules for conditional documents based on answers from step 3
         $conditionalAnswers = $request->input('conditional_answers', []);
+        
         foreach ($conditionalDocuments as $doc => $questionKey) {
             if (isset($conditionalAnswers[$questionKey]) && $conditionalAnswers[$questionKey] === 'yes') {
-                $validationRules["documents.{$doc}"] = 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120';
+                $validationRules["documents.{$doc}"] = 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240';
             }
         }
 
         $request->validate($validationRules);
 
         // Get all booking data from session
-        $step1Data = $request->session()->get('booking.step1');
         $step2Data = $request->session()->get('booking.step2');
 
         // Double-check slot availability before creating booking
@@ -178,10 +190,6 @@ class BookingController extends Controller
             }
         }
 
-        // Store conditional answers for reference
-        $conditionalAnswers = $request->input('conditional_answers', []);
-        $uploadedDocuments['conditional_answers'] = $conditionalAnswers;
-
         // Create the booking
         $booking = Booking::create([
             'user_id' => Auth::id(),
@@ -199,6 +207,9 @@ class BookingController extends Controller
 
         // Send confirmation email
         EmailService::sendBookingConfirmation($booking);
+
+        // Create notifications
+        NotificationService::bookingCreated($booking);
 
         // Clear session data
         $request->session()->forget(['booking.step1', 'booking.step2', 'booking.service_id']);
@@ -235,14 +246,36 @@ class BookingController extends Controller
             'additional_notes' => 'nullable|string|max:500',
         ];
 
-        // Add custom fields based on service type
-        $customFields = $service->custom_fields ?? [];
-        foreach ($customFields as $field) {
-            $rules = 'required|string|max:255';
-            if (isset($field['validation'])) {
-                $rules = $field['validation'];
+        // Add custom fields based on service configuration
+        $customFields = \App\Services\ServiceConfigService::getCustomFields($service->service_type);
+        
+        foreach ($customFields as $fieldKey => $fieldConfig) {
+            $rules = [];
+            
+            // Set base validation rules based on field type
+            if ($fieldConfig['type'] === 'number') {
+                $rules[] = 'required';
+                $rules[] = 'numeric';
+                if (isset($fieldConfig['min'])) {
+                    $rules[] = 'min:' . $fieldConfig['min'];
+                }
+                if (isset($fieldConfig['max'])) {
+                    $rules[] = 'max:' . $fieldConfig['max'];
+                }
+            } elseif ($fieldConfig['type'] === 'select') {
+                $rules[] = 'required';
+                $rules[] = 'in:' . implode(',', array_keys($fieldConfig['options']));
+            } elseif ($fieldConfig['type'] === 'textarea') {
+                $rules[] = 'required';
+                $rules[] = 'string';
+                $rules[] = 'max:1000';
+            } else {
+                $rules[] = 'required';
+                $rules[] = 'string';
+                $rules[] = 'max:255';
             }
-            $baseRules[$field['name']] = $rules;
+            
+            $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
         }
 
         return $baseRules;

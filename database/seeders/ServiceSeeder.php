@@ -16,12 +16,12 @@ class ServiceSeeder extends Seeder
                 'duration_minutes' => 60,
                 'max_slots' => 1,
                 'is_active' => true,
-                'service_type' => 'baptism',
+                'service_type' => 'solo_baptism',
                 'requirements' => [
                     'Birth Certificate',
-                    'Baptismal Certificate',
                     "Parents' IDs",
-                    "Godparents' IDs"
+                    'Marriage Contract (if parents are married)',
+                    'Baptismal Permit (if from another parish)'
                 ],
                 'fees' => [
                     [
@@ -60,12 +60,12 @@ class ServiceSeeder extends Seeder
                 'duration_minutes' => 120,
                 'max_slots' => 5,
                 'is_active' => true,
-                'service_type' => 'baptism',
+                'service_type' => 'group_baptism',
                 'requirements' => [
                     'Birth Certificates',
-                    'Baptismal Certificates',
                     "Parents' IDs",
-                    "Godparents' IDs"
+                    'Marriage Contract (if parents are married)',
+                    'Baptismal Permit (if from another parish)'
                 ],
                 'fees' => [
                     [
@@ -97,7 +97,7 @@ class ServiceSeeder extends Seeder
                 'notes' => 'Group baptisms are scheduled on Saturdays only. Maximum 5 children per group.'
             ],
             [
-                'name' => 'Wedding',
+                'name' => 'Wedding Service',
                 'description' => 'Sacramental wedding ceremony.',
                 'duration_minutes' => 90,
                 'max_slots' => 1,
@@ -109,7 +109,9 @@ class ServiceSeeder extends Seeder
                     'Confirmation Certificates',
                     'Birth Certificates',
                     'Witnesses IDs',
-                    'Pre-Cana Certificate'
+                    'Pre-Cana Certificate',
+                    'Civil Marriage Contract (if already civilly married)',
+                    'Affidavit of Cohabitation (if currently cohabiting)'
                 ],
                 'fees' => [
                     [

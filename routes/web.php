@@ -17,7 +17,7 @@ Route::get('/', function () {
 
 // CMS Pages - Dynamic pages from the CMS
 Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
-Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
+Route::get('/page/{page:slug}', [PageController::class, 'show'])->name('page.show');
 
 // Keep your existing routes - you'll need to add these back
 Route::get('/contact', function () {
@@ -79,6 +79,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/booking/payment/{booking}', [App\Http\Controllers\BookingController::class, 'showPayment'])->name('booking.payment');
 Route::post('/booking/submit-payment/{booking}', [App\Http\Controllers\BookingController::class, 'submitPayment'])->name('booking.submit-payment');
     Route::get('/booking/cancel/{booking}', [App\Http\Controllers\BookingController::class, 'cancelBooking'])->name('booking.cancel');
+    
+    // User Notification Routes
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('user.notifications.index');
+    Route::post('/notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('user.notifications.mark-as-read');
+    Route::post('/notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('user.notifications.mark-all-as-read');
+    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('user.notifications.unread-count');
+    Route::post('/notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('user.notifications.delete');
 });
 
 // Add register route for welcome page
@@ -159,6 +166,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('parochial-activities-calendar', [App\Http\Controllers\Admin\ParochialActivityController::class, 'calendar'])->name('parochial-activities.calendar');
     Route::get('blocking-activities', [App\Http\Controllers\Admin\ParochialActivityController::class, 'getBlockingActivities'])->name('parochial-activities.blocking');
 
+    // Notification Routes
+    Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
+
 });
 
 // Staff Routes
@@ -202,6 +216,13 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
     
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
+
+    // Notification Routes
+    Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
 });
 
 // Priest Routes
@@ -215,6 +236,13 @@ Route::prefix('priest')->name('priest.')->middleware(['auth', 'priest'])->group(
     Route::get('bookings/{booking}', [App\Http\Controllers\Priest\BookingController::class, 'show'])->name('bookings.show');
     Route::get('bookings/{booking}/download-document/{documentType}', [App\Http\Controllers\Priest\BookingController::class, 'downloadDocument'])->name('bookings.download-document');
     Route::get('bookings/{booking}/download-payment-proof', [App\Http\Controllers\Priest\BookingController::class, 'downloadPaymentProof'])->name('bookings.download-payment-proof');
+    
+    // Notification Routes
+    Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
 });
 
 // Fallback route for admin pages

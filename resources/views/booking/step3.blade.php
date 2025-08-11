@@ -106,18 +106,37 @@
                     $conditionalQuestions = [];
                     
                     switch($serviceType) {
-                        case 'baptism':
+                        case 'solo_baptism':
                             $requirements = [
-                                'birth_certificate' => 'Birth Certificate (Certified True Copy)'
+                                'birth_certificate' => 'Birth Certificate',
+                                'parents_ids' => "Parents' IDs"
                             ];
                             $conditionalQuestions = [
                                 'parents_married' => [
                                     'question' => 'Are the parents married?',
-                                    'field' => 'parents_marriage_contract',
+                                    'field' => 'marriage_contract',
                                     'label' => "Parents' Marriage Contract"
                                 ],
-                                'from_other_parish' => [
-                                    'question' => 'Are you coming from another parish?',
+                                'from_another_parish' => [
+                                    'question' => 'Is the child from another parish?',
+                                    'field' => 'baptismal_permit',
+                                    'label' => 'Baptismal Permit'
+                                ]
+                            ];
+                            break;
+                        case 'group_baptism':
+                            $requirements = [
+                                'birth_certificates' => 'Birth Certificates',
+                                'parents_ids' => "Parents' IDs"
+                            ];
+                            $conditionalQuestions = [
+                                'parents_married' => [
+                                    'question' => 'Are the parents married?',
+                                    'field' => 'marriage_contract',
+                                    'label' => "Parents' Marriage Contract"
+                                ],
+                                'from_another_parish' => [
+                                    'question' => 'Are any children from another parish?',
                                     'field' => 'baptismal_permit',
                                     'label' => 'Baptismal Permit'
                                 ]
@@ -125,21 +144,22 @@
                             break;
                         case 'wedding':
                             $requirements = [
-                                'baptismal_certificate' => 'Baptismal Certificate',
-                                'confirmation_certificate' => 'Confirmation Certificate',
-                                'cenomar' => 'CENOMAR',
                                 'marriage_license' => 'Marriage License',
-                                'id_pictures' => 'ID Pictures (2x2)'
+                                'baptismal_certificates' => 'Baptismal Certificates',
+                                'confirmation_certificates' => 'Confirmation Certificates',
+                                'birth_certificates' => 'Birth Certificates',
+                                'witnesses_ids' => 'Witnesses IDs',
+                                'pre_cana_certificate' => 'Pre-Cana Certificate'
                             ];
                             $conditionalQuestions = [
-                                'civilly_married' => [
+                                'already_civilly_married' => [
                                     'question' => 'Are you already civilly married?',
                                     'field' => 'civil_marriage_contract',
                                     'label' => 'Civil Marriage Contract'
                                 ],
-                                'cohabiting' => [
+                                'currently_cohabiting' => [
                                     'question' => 'Are you currently cohabiting?',
-                                    'field' => 'affidavit_cohabitation',
+                                    'field' => 'affidavit_of_cohabitation',
                                     'label' => 'Affidavit of Cohabitation'
                                 ]
                             ];
@@ -149,10 +169,15 @@
                                 'valid_id' => 'Valid ID'
                             ];
                             $conditionalQuestions = [
-                                'has_ownership' => [
+                                'proof_of_ownership' => [
                                     'question' => 'Do you need to prove ownership?',
-                                    'field' => 'proof_ownership',
+                                    'field' => 'proof_of_ownership',
                                     'label' => 'Proof of Ownership'
+                                ],
+                                'special_requests' => [
+                                    'question' => 'Do you have special requests?',
+                                    'field' => 'special_requests',
+                                    'label' => 'Special Requests'
                                 ]
                             ];
                             break;
@@ -160,13 +185,7 @@
                             $requirements = [
                                 'valid_id' => 'Valid ID'
                             ];
-                            $conditionalQuestions = [
-                                'additional_docs' => [
-                                    'question' => 'Do you have additional documents to submit?',
-                                    'field' => 'additional_documents',
-                                    'label' => 'Additional Documents'
-                                ]
-                            ];
+                            $conditionalQuestions = [];
                     }
                 @endphp
 
@@ -187,8 +206,8 @@
                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0d5c2f] file:text-white hover:file:bg-[#0d5c2f]/90"
                                            required>
                                     <div class="text-xs text-gray-500">
-                                        <p>Accepted: PDF, JPG, PNG, DOC</p>
-                                        <p>Max: 5MB per file</p>
+                                        <p>Accepted: PDF, JPG, PNG, DOC, DOCX</p>
+                                        <p>Max: 10MB per file</p>
                                     </div>
                                 </div>
                                 @error("documents.{$field}")
@@ -235,16 +254,18 @@
                                     <div id="upload-{{ $questionData['field'] }}" class="hidden">
                                         <label for="{{ $questionData['field'] }}" class="block text-sm font-medium text-gray-700 mb-2">
                                             {{ $questionData['label'] }}
+                                            <span class="text-red-500">*</span>
                                         </label>
                                         <div class="flex items-center space-x-4">
                                             <input type="file" 
                                                    id="{{ $questionData['field'] }}" 
                                                    name="documents[{{ $questionData['field'] }}]" 
                                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0d5c2f] file:text-white hover:file:bg-[#0d5c2f]/90">
+                                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0d5c2f] file:text-white hover:file:bg-[#0d5c2f]/90"
+                                                   required>
                                             <div class="text-xs text-gray-500">
-                                                <p>Accepted: PDF, JPG, PNG, DOC</p>
-                                                <p>Max: 5MB per file</p>
+                                                <p>Accepted: PDF, JPG, PNG, DOC, DOCX</p>
+                                                <p>Max: 10MB per file</p>
                                             </div>
                                         </div>
                                         @error("documents.{$questionData['field']}")

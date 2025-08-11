@@ -28,6 +28,46 @@
                     <a href="{{ route('contact') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Contact</a>
                     
                     @auth
+                        <!-- Notification Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="relative flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span id="header-notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                            </button>
+                            
+                            <!-- Notification Dropdown Menu -->
+                            <div x-show="open" @click.away="open = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 max-h-96 overflow-y-auto">
+                                
+                                <div class="px-4 py-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                                        <a href="{{ route('user.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">View All</a>
+                                    </div>
+                                </div>
+                                
+                                <div id="header-notifications-list" class="divide-y divide-gray-100">
+                                    <!-- Notifications will be loaded here -->
+                                    <div class="px-4 py-3 text-center text-gray-500 text-sm">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                                        Loading notifications...
+                                    </div>
+                                </div>
+                                
+                                <div class="px-4 py-2 border-t border-gray-100">
+                                    <button id="mark-all-read-header" class="w-full text-left text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">
+                                        Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <a href="{{ route('userServices') }}" class="bg-[#0d5c2f] text-white px-6 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">Book Now</a>
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 hover:text-[#0d5c2f]">
@@ -84,6 +124,14 @@
             <a href="{{ route('pages.index') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Pages</a>
             <a href="{{ route('contact') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Contact</a>
             @auth
+                <!-- Mobile Notification Bell -->
+                <div class="px-3 py-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Notifications</span>
+                        <span id="mobile-notification-count" class="bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                    </div>
+                </div>
+                
                 <a href="{{ route('userServices') }}" class="block px-3 py-2 text-[#0d5c2f] font-medium">Book Now</a>
                 <a href="{{ route('profile') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Profile</a>
                 <a href="{{ route('booking.my-bookings') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">My Bookings</a>
@@ -148,5 +196,120 @@
     
     <!-- Toast Notifications -->
     <x-toast />
+    
+    <script>
+        @auth
+        // Load header notifications for authenticated users
+        function loadHeaderNotifications() {
+            fetch('{{ route("user.notifications.unread-count") }}?limit=5')
+            .then(response => response.json())
+            .then(data => {
+                const notificationsList = document.getElementById('header-notifications-list');
+                const headerCount = document.getElementById('header-notification-count');
+                
+                // Update header count
+                if (data.count > 0) {
+                    headerCount.textContent = data.count;
+                    headerCount.classList.remove('hidden');
+                } else {
+                    headerCount.classList.add('hidden');
+                }
+                
+                // Update mobile notification count
+                const mobileCount = document.getElementById('mobile-notification-count');
+                if (mobileCount) {
+                    if (data.count > 0) {
+                        mobileCount.textContent = data.count;
+                        mobileCount.classList.remove('hidden');
+                    } else {
+                        mobileCount.classList.add('hidden');
+                    }
+                }
+                
+                // Load recent notifications
+                if (data.notifications && data.notifications.length > 0) {
+                    let html = '';
+                    data.notifications.forEach(notification => {
+                        const isRead = notification.is_read ? 'border-gray-300' : 'border-[#0d5c2f]';
+                        const badge = notification.is_read ? '' : '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full mr-2"></span>';
+                        
+                        html += `
+                            <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header" data-id="${notification.id}" data-read="${notification.is_read}">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        ${badge}
+                                        <p class="text-sm text-gray-900 font-medium">${notification.message}</p>
+                                        <p class="text-xs text-gray-500 mt-1">${notification.created_at}</p>
+                                    </div>
+                                    ${!notification.is_read ? '<button class="mark-read-header-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 ml-2">Mark read</button>' : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    notificationsList.innerHTML = html;
+                    
+                    // Add event listeners for mark as read buttons
+                    document.querySelectorAll('.mark-read-header-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const notificationItem = this.closest('.notification-item-header');
+                            const notificationId = notificationItem.dataset.id;
+                            
+                            fetch('{{ route("user.notifications.mark-as-read") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({
+                                    notification_ids: [notificationId]
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    notificationItem.classList.remove('border-[#0d5c2f]');
+                                    notificationItem.classList.add('border-gray-300');
+                                    notificationItem.dataset.read = 'true';
+                                    this.remove();
+                                    loadHeaderNotifications();
+                                }
+                            });
+                        });
+                    });
+                } else {
+                    notificationsList.innerHTML = '<div class="px-4 py-3 text-center text-gray-500 text-sm">No new notifications</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading header notifications:', error);
+                document.getElementById('header-notifications-list').innerHTML = '<div class="px-4 py-3 text-center text-red-500 text-sm">Error loading notifications</div>';
+            });
+        }
+
+        // Mark all as read from header
+        document.getElementById('mark-all-read-header').addEventListener('click', function() {
+            fetch('{{ route("user.notifications.mark-all-as-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    type: 'all'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadHeaderNotifications();
+                }
+            });
+        });
+
+        // Load header notifications on page load
+        loadHeaderNotifications();
+        @endauth
+    </script>
 </body>
 </html>
