@@ -169,6 +169,7 @@ class BookingController extends Controller
         $request->validate($validationRules);
 
         // Get all booking data from session
+        $step1Data = $request->session()->get('booking.step1');
         $step2Data = $request->session()->get('booking.step2');
 
         // Double-check slot availability before creating booking
@@ -262,20 +263,35 @@ class BookingController extends Controller
                 if (isset($fieldConfig['max'])) {
                     $rules[] = 'max:' . $fieldConfig['max'];
                 }
+                $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
             } elseif ($fieldConfig['type'] === 'select') {
                 $rules[] = 'required';
                 $rules[] = 'in:' . implode(',', array_keys($fieldConfig['options']));
+                $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
             } elseif ($fieldConfig['type'] === 'textarea') {
                 $rules[] = 'required';
                 $rules[] = 'string';
                 $rules[] = 'max:1000';
+                $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
+            } elseif ($fieldConfig['type'] === 'array') {
+                // Array fields like godparents
+                $arrayRules = [];
+                if (!empty($fieldConfig['required'])) {
+                    $arrayRules[] = 'required';
+                } else {
+                    $arrayRules[] = 'nullable';
+                }
+                $arrayRules[] = 'array';
+                $arrayRules[] = 'min:1';
+                $baseRules["custom_fields.{$fieldKey}"] = implode('|', $arrayRules);
+                // Each item must be a non-empty string
+                $baseRules["custom_fields.{$fieldKey}.*"] = 'required|string|max:255';
             } else {
                 $rules[] = 'required';
                 $rules[] = 'string';
                 $rules[] = 'max:255';
+                $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
             }
-            
-            $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
         }
 
         return $baseRules;

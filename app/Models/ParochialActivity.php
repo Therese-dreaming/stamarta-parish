@@ -145,7 +145,8 @@ class ParochialActivity extends Model
     public function getAffectedDates()
     {
         if (!$this->is_recurring) {
-            return [$this->event_date];
+            // Ensure event_date is a Carbon instance
+            return [$this->event_date instanceof Carbon ? $this->event_date : Carbon::parse($this->event_date)];
         }
 
         $dates = [];

@@ -10,29 +10,86 @@ class ServiceConfigService
             'solo_baptism' => [
                 'name' => 'Solo Baptism',
                 'custom_fields' => [
-                    'child_name' => [
-                        'label' => "Child's Name",
+                    // Child details
+                    'child_last_name' => [
+                        'label' => "Child's Last Name",
                         'type' => 'text',
                         'required' => true,
-                        'placeholder' => "Enter the child's full name"
+                        'placeholder' => "Last name"
+                    ],
+                    'child_first_name' => [
+                        'label' => "Child's First Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "First name"
+                    ],
+                    'child_middle_initial' => [
+                        'label' => "Child's Middle Initial",
+                        'type' => 'text',
+                        'required' => false,
+                        'placeholder' => "M.I."
                     ],
                     'child_birth_date' => [
                         'label' => "Child's Birth Date",
                         'type' => 'date',
                         'required' => true
                     ],
-                    'parents_names' => [
-                        'label' => "Parents' Names",
+                    'place_of_birth' => [
+                        'label' => 'Place of Birth',
                         'type' => 'text',
                         'required' => true,
-                        'placeholder' => "Father's Name and Mother's Name"
+                        'placeholder' => 'City/Municipality, Province'
                     ],
+                    'nationality' => [
+                        'label' => 'Nationality',
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => 'e.g., Filipino'
+                    ],
+                    // Parents details
+                    'father_last_name' => [
+                        'label' => "Father's Last Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "Last name"
+                    ],
+                    'father_first_name' => [
+                        'label' => "Father's First Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "First name"
+                    ],
+                    'father_middle_initial' => [
+                        'label' => "Father's Middle Initial",
+                        'type' => 'text',
+                        'required' => false,
+                        'placeholder' => "M.I."
+                    ],
+                    'mother_last_name' => [
+                        'label' => "Mother's Last Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "Last name"
+                    ],
+                    'mother_first_name' => [
+                        'label' => "Mother's First Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "First name"
+                    ],
+                    'mother_middle_initial' => [
+                        'label' => "Mother's Middle Initial",
+                        'type' => 'text',
+                        'required' => false,
+                        'placeholder' => "M.I."
+                    ],
+                    // Godparents as repeatable list
                     'godparents' => [
                         'label' => 'Godparents',
-                        'type' => 'textarea',
+                        'type' => 'array',
                         'required' => true,
-                        'placeholder' => 'List the godparents names'
-                    ]
+                        'placeholder' => 'Add godparent name(s) one at a time'
+                    ],
                 ],
                 'requirements' => [
                     'Birth Certificate',
@@ -44,19 +101,86 @@ class ServiceConfigService
             'group_baptism' => [
                 'name' => 'Group Baptism',
                 'custom_fields' => [
-                    'children_count' => [
-                        'label' => 'Number of Children',
-                        'type' => 'number',
+                    // Child details
+                    'child_last_name' => [
+                        'label' => "Child's Last Name",
+                        'type' => 'text',
                         'required' => true,
-                        'min' => 2,
-                        'placeholder' => 'Enter the number of children to be baptized'
+                        'placeholder' => "Last name"
                     ],
-                    'children_details' => [
-                        'label' => 'Children Details',
-                        'type' => 'textarea',
+                    'child_first_name' => [
+                        'label' => "Child's First Name",
+                        'type' => 'text',
                         'required' => true,
-                        'placeholder' => 'List all children names, birth dates, and their parents'
-                    ]
+                        'placeholder' => "First name"
+                    ],
+                    'child_middle_initial' => [
+                        'label' => "Child's Middle Initial",
+                        'type' => 'text',
+                        'required' => false,
+                        'placeholder' => "M.I."
+                    ],
+                    'child_birth_date' => [
+                        'label' => "Child's Birth Date",
+                        'type' => 'date',
+                        'required' => true
+                    ],
+                    'place_of_birth' => [
+                        'label' => 'Place of Birth',
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => 'City/Municipality, Province'
+                    ],
+                    'nationality' => [
+                        'label' => 'Nationality',
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => 'e.g., Filipino'
+                    ],
+                    // Parents details
+                    'father_last_name' => [
+                        'label' => "Father's Last Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "Last name"
+                    ],
+                    'father_first_name' => [
+                        'label' => "Father's First Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "First name"
+                    ],
+                    'father_middle_initial' => [
+                        'label' => "Father's Middle Initial",
+                        'type' => 'text',
+                        'required' => false,
+                        'placeholder' => "M.I."
+                    ],
+                    'mother_last_name' => [
+                        'label' => "Mother's Last Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "Last name"
+                    ],
+                    'mother_first_name' => [
+                        'label' => "Mother's First Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => "First name"
+                    ],
+                    'mother_middle_initial' => [
+                        'label' => "Mother's Middle Initial",
+                        'type' => 'text',
+                        'required' => false,
+                        'placeholder' => "M.I."
+                    ],
+                    // Godparents as repeatable list
+                    'godparents' => [
+                        'label' => 'Godparents',
+                        'type' => 'array',
+                        'required' => true,
+                        'placeholder' => 'Add godparent name(s) one at a time'
+                    ],
                 ],
                 'requirements' => [
                     'Birth Certificates',
@@ -74,11 +198,23 @@ class ServiceConfigService
                         'required' => true,
                         'placeholder' => "Enter the groom's full name"
                     ],
+                    'groom_religion' => [
+                        'label' => "Groom's Religion",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => 'e.g., Roman Catholic'
+                    ],
                     'bride_name' => [
                         'label' => "Bride's Name",
                         'type' => 'text',
                         'required' => true,
                         'placeholder' => "Enter the bride's full name"
+                    ],
+                    'bride_religion' => [
+                        'label' => "Bride's Religion",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => 'e.g., Roman Catholic'
                     ],
                     'groom_birth_date' => [
                         'label' => "Groom's Birth Date",
@@ -90,16 +226,11 @@ class ServiceConfigService
                         'type' => 'date',
                         'required' => true
                     ],
-                    'wedding_date' => [
-                        'label' => 'Preferred Wedding Date',
-                        'type' => 'date',
-                        'required' => true
-                    ],
                     'witnesses' => [
                         'label' => 'Witnesses',
-                        'type' => 'textarea',
+                        'type' => 'array',
                         'required' => true,
-                        'placeholder' => 'List the witnesses names'
+                        'placeholder' => 'Add witness name(s) one at a time'
                     ]
                 ],
                 'requirements' => [
@@ -116,11 +247,23 @@ class ServiceConfigService
             'blessing' => [
                 'name' => 'Blessing',
                 'custom_fields' => [
-                    'person_name' => [
-                        'label' => "Person's Name",
+                    'person_last_name' => [
+                        'label' => "Person's Last Name",
                         'type' => 'text',
                         'required' => true,
-                        'placeholder' => "Enter the person's full name"
+                        'placeholder' => 'Last name'
+                    ],
+                    'person_first_name' => [
+                        'label' => "Person's First Name",
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => 'First name'
+                    ],
+                    'person_middle_initial' => [
+                        'label' => "Person's Middle Initial",
+                        'type' => 'text',
+                        'required' => false,
+                        'placeholder' => 'M.I.'
                     ],
                     'blessing_type' => [
                         'label' => 'Type of Blessing',

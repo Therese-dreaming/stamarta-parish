@@ -3,28 +3,41 @@
 @section('title', 'Book Service - Step 3')
 
 @section('content')
-<!-- Progress Bar -->
-<div class="bg-white border-b border-gray-200">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div class="flex items-center justify-center">
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center">
-                    <div class="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">
+<!-- Modern Progress Indicator -->
+<div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-0">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2 sm:mb-0">Book {{ $service->name }}</h1>
+            <div class="text-sm text-gray-500">Step 3 of 3</div>
+        </div>
+        
+        <div class="relative mt-4">
+            <!-- Progress Bar Background -->
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-[#0d5c2f] rounded-full" style="width: 100%"></div>
+            </div>
+            
+            <!-- Step Indicators -->
+            <div class="flex justify-between items-center mt-2">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-medium shadow-md">
                         <i class="fas fa-check"></i>
                     </div>
-                    <span class="ml-2 text-sm font-medium text-green-600">Service & Personal Info</span>
+                    <span class="text-xs font-medium text-green-600 mt-2">Personal Info</span>
                 </div>
-                <div class="w-16 h-0.5 bg-green-500"></div>
-                <div class="flex items-center">
-                    <div class="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">
+                
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-medium">
                         <i class="fas fa-check"></i>
                     </div>
-                    <span class="ml-2 text-sm font-medium text-green-600">Schedule Selection</span>
+                    <span class="text-xs font-medium text-green-600 mt-2">Schedule</span>
                 </div>
-                <div class="w-16 h-0.5 bg-[#0d5c2f]"></div>
-                <div class="flex items-center">
-                    <div class="bg-[#0d5c2f] text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">3</div>
-                    <span class="ml-2 text-sm font-medium text-[#0d5c2f]">Document Upload</span>
+                
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-[#0d5c2f] text-white flex items-center justify-center text-sm font-medium">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <span class="text-xs font-medium text-[#0d5c2f] mt-2">Requirements</span>
                 </div>
             </div>
         </div>
@@ -32,58 +45,94 @@
 </div>
 
 <div class="py-8 bg-gray-50 min-h-screen">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Final Booking Summary -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
             <div class="p-6 border-b border-gray-200">
                 <h2 class="text-2xl font-bold text-gray-900">Final Booking Summary</h2>
             </div>
             <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 gap-6">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Service Details</h3>
+                        <h3 class="text-base font-semibold text-gray-900 mb-1">Service Details</h3>
+                        <p class="text-xs text-gray-600 mb-3">{{ $service->name }}</p>
+                        <div class="space-y-3">
+                            <div class="flex items-start py-2 border-t border-gray-100">
+                                <div class="w-7 h-7 rounded-full bg-[#0d5c2f]/10 flex items-center justify-center mr-2.5">
+                                    <i class="fas fa-clock text-[#0d5c2f] text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-medium text-gray-700">Duration</div>
+                                    <div class="text-xs text-gray-600 mt-0.5">{{ $service->formatted_duration }}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start py-2 border-t border-gray-100">
+                                <div class="w-7 h-7 rounded-full bg-[#0d5c2f]/10 flex items-center justify-center mr-2.5">
+                                    <i class="fas fa-users text-[#0d5c2f] text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-medium text-gray-700">Capacity</div>
+                                    <div class="text-xs text-gray-600 mt-0.5">Max {{ $service->max_slots }} slot(s)</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start py-2 border-t border-gray-100">
+                                <div class="w-7 h-7 rounded-full bg-[#0d5c2f]/10 flex items-center justify-center mr-2.5">
+                                    <i class="fas fa-money-bill-wave text-[#0d5c2f] text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-medium text-gray-700">Fees</div>
+                                    <div class="text-xs font-semibold text-[#0d5c2f] mt-0.5">{{ $service->formatted_fees }}</div>
+                                </div>
+                            </div>
+                            @if($service->schedules)
+                                <div class="pt-2 border-t border-gray-100">
+                                    <div class="flex items-start">
+                                        <div class="w-7 h-7 rounded-full bg-[#0d5c2f]/10 flex items-center justify-center mr-2.5">
+                                            <i class="fas fa-calendar-alt text-[#0d5c2f] text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-medium text-gray-700">Available Times</div>
+                                            <div class="text-[11px] text-gray-600 mt-1 space-y-0.5">
+                                                @foreach($service->schedules as $day => $times)
+                                                    <div>
+                                                        <span class="font-medium text-gray-700">{{ ucfirst($day) }}:</span>
+                                                        {{ implode(', ', $times) }}
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900 mb-4">Schedule</h3>
                         <div class="space-y-2">
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Service:</span>
-                                <span class="font-medium">{{ $service->name }}</span>
+                                <span class="text-xs text-gray-600">Date:</span>
+                                <span class="text-xs font-medium">{{ \Carbon\Carbon::parse($step2Data['selected_date'])->format('F d, Y') }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Duration:</span>
-                                <span class="font-medium">{{ $service->formatted_duration }}</span>
+                                <span class="text-xs text-gray-600">Time:</span>
+                                <span class="text-xs font-medium">{{ $step2Data['selected_time'] }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Fees:</span>
-                                <span class="font-medium text-[#0d5c2f]">{{ $service->formatted_fees }}</span>
+                                <span class="text-xs text-gray-600">Day:</span>
+                                <span class="text-xs font-medium">{{ \Carbon\Carbon::parse($step2Data['selected_date'])->format('l') }}</span>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Schedule</h3>
+                        <h3 class="text-base font-semibold text-gray-900 mb-4">Contact Info</h3>
                         <div class="space-y-2">
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Date:</span>
-                                <span class="font-medium">{{ \Carbon\Carbon::parse($step2Data['selected_date'])->format('F d, Y') }}</span>
+                                <span class="text-xs text-gray-600">Phone:</span>
+                                <span class="text-xs font-medium">{{ $step1Data['contact_phone'] }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-600">Time:</span>
-                                <span class="font-medium">{{ $step2Data['selected_time'] }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Day:</span>
-                                <span class="font-medium">{{ \Carbon\Carbon::parse($step2Data['selected_date'])->format('l') }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Contact Info</h3>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Phone:</span>
-                                <span class="font-medium">{{ $step1Data['contact_phone'] }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Address:</span>
-                                <span class="font-medium text-sm">{{ Str::limit($step1Data['contact_address'], 30) }}</span>
+                                <span class="text-xs text-gray-600">Address:</span>
+                                <span class="font-medium text-xs">{{ Str::limit($step1Data['contact_address'], 30) }}</span>
                             </div>
                         </div>
                     </div>
@@ -347,15 +396,24 @@ function toggleDocumentUpload(fieldName, value) {
     if (value === 'yes') {
         uploadDiv.classList.remove('hidden');
         fileInput.required = true;
+        fileInput.removeAttribute('disabled');
     } else {
         uploadDiv.classList.add('hidden');
         fileInput.required = false;
+        fileInput.setAttribute('disabled', 'disabled');
         fileInput.value = ''; // Clear the file input
     }
 }
 
 // Initialize on page load to handle any pre-selected values
 document.addEventListener('DOMContentLoaded', function() {
+    // Initially disable all conditional file inputs
+    const conditionalFileInputs = document.querySelectorAll('input[type="file"][id*="marriage_contract"], input[type="file"][id*="baptismal_permit"], input[type="file"][id*="civil_marriage_contract"], input[type="file"][id*="affidavit_of_cohabitation"], input[type="file"][id*="proof_of_ownership"], input[type="file"][id*="special_requests"]');
+    conditionalFileInputs.forEach(input => {
+        input.setAttribute('disabled', 'disabled');
+        input.required = false;
+    });
+    
     // Check for any pre-selected radio buttons and show/hide upload fields accordingly
     const radioButtons = document.querySelectorAll('input[type="radio"]:checked');
     radioButtons.forEach(radio => {

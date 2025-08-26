@@ -291,12 +291,18 @@ class AdminCalendar {
         
         // Fix timezone issue by creating date properly
         const displayDate = new Date(dateString + 'T00:00:00');
-        selectedDateTitle.textContent = `Events for ${displayDate.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        })}`;
+        
+        // Check if date is valid
+        if (isNaN(displayDate.getTime())) {
+            selectedDateTitle.textContent = `Events for ${dateString}`;
+        } else {
+            selectedDateTitle.textContent = `Events for ${displayDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            })}`;
+        }
         
         // Separate bookings and activities
         const bookings = events.filter(event => event.type === 'booking');
@@ -382,7 +388,20 @@ class AdminCalendar {
     }
 
     formatTime(dateString) {
-        return new Date(dateString).toLocaleTimeString('en-US', {
+        // Handle both string and Date object inputs
+        let date;
+        if (typeof dateString === 'string') {
+            date = new Date(dateString);
+        } else {
+            date = dateString;
+        }
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            return 'Invalid time';
+        }
+        
+        return date.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
         });

@@ -4,26 +4,41 @@
 
 @section('content')
 <div class="font-[Poppins]">
-    <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p class="text-gray-600">Welcome to your parish CMS</p>
+    <!-- Hero Header -->
+    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm mb-8">
+        <div class="px-6 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Dashboard</h1>
+                    <p class="text-white/80 mt-1">Welcome to your parish CMS - Manage bookings, finances, and users</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right text-white/90">
+                        <p class="text-sm">Last Updated</p>
+                        <p class="font-semibold">{{ now()->format('M d, Y g:i A') }}</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Tab Navigation -->
-    <div class="mb-8">
-        <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <button onclick="showTab('bookings')" id="tab-bookings" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-[#0d5c2f] text-[#0d5c2f]">
+    <div class="mb-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-2">
+            <nav class="flex space-x-2" aria-label="Tabs">
+                <button onclick="showTab('bookings')" id="tab-bookings" class="tab-button flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-[#0d5c2f] text-white shadow-sm">
                     <i class="fas fa-bookmark mr-2"></i>Bookings
                 </button>
-                <button onclick="showTab('finance')" id="tab-finance" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button onclick="showTab('finance')" id="tab-finance" class="tab-button flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800">
                     <i class="fas fa-chart-line mr-2"></i>Finance
                 </button>
-                <button onclick="showTab('trends')" id="tab-trends" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button onclick="showTab('trends')" id="tab-trends" class="tab-button flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800">
                     <i class="fas fa-users mr-2"></i>User Trends
                 </button>
-                <button onclick="showTab('actions')" id="tab-actions" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button onclick="showTab('actions')" id="tab-actions" class="tab-button flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800">
                     <i class="fas fa-bolt mr-2"></i>Quick Actions
                 </button>
             </nav>
@@ -35,39 +50,39 @@
         <!-- Bookings Tab -->
         <div id="bookings-tab" class="tab-content">
             <!-- Today's Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm border border-blue-200 p-6 text-white">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-blue-500/30 rounded-xl shadow-sm border-2 border-blue-500 p-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
-                            <i class="fas fa-calendar-day text-white text-xl"></i>
+                        <div class="p-2.5 bg-blue-500 rounded-lg">
+                            <i class="fas fa-calendar-day text-white text-lg"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-blue-100">Today's Bookings</p>
-                            <p class="text-2xl font-bold">{{ $stats['new_bookings'] ?? 0 }}</p>
+                            <p class="text-sm font-medium text-blue-800">Today's Bookings</p>
+                            <p class="text-2xl font-bold text-blue-900">{{ $stats['new_bookings'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-sm border border-green-200 p-6 text-white">
+                <div class="bg-green-500/30 rounded-xl shadow-sm border-2 border-green-500 p-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
-                            <i class="fas fa-check-circle text-white text-xl"></i>
+                        <div class="p-2.5 bg-green-500 rounded-lg">
+                            <i class="fas fa-check-circle text-white text-lg"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-green-100">Completed Today</p>
-                            <p class="text-2xl font-bold">{{ $stats['completed_bookings'] ?? 0 }}</p>
+                            <p class="text-sm font-medium text-green-800">Completed Today</p>
+                            <p class="text-2xl font-bold text-green-900">{{ $stats['completed_bookings'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-sm border border-orange-200 p-6 text-white">
+                <div class="bg-orange-500/30 rounded-xl shadow-sm border-2 border-orange-500 p-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
-                            <i class="fas fa-clock text-white text-xl"></i>
+                        <div class="p-2.5 bg-orange-500 rounded-lg">
+                            <i class="fas fa-clock text-white text-lg"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-orange-100">Pending Review</p>
-                            <p class="text-2xl font-bold">{{ $stats['payment_hold_bookings'] ?? 0 }}</p>
+                            <p class="text-sm font-medium text-orange-800">Pending Review</p>
+                            <p class="text-2xl font-bold text-orange-900">{{ $stats['payment_hold_bookings'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
@@ -176,38 +191,38 @@
 
             <!-- Recent Bookings -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-lg font-semibold text-gray-900">Recent Bookings</h2>
+                <div class="p-4 border-b border-gray-200">
+                    <h2 class="text-base font-semibold text-gray-900">Recent Bookings</h2>
                 </div>
-                <div class="p-6">
+                <div class="p-4">
                     @if(isset($stats['recent_bookings']) && $stats['recent_bookings']->count() > 0)
-                        <div class="space-y-4">
+                        <div class="space-y-2">
                             @foreach($stats['recent_bookings'] as $booking)
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-2 h-2 rounded-full 
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-1.5 h-1.5 rounded-full 
                                         {{ $booking->status === 'pending' ? 'bg-yellow-500' : 
                                            ($booking->status === 'acknowledged' ? 'bg-blue-500' : 
                                            ($booking->status === 'payment_hold' ? 'bg-orange-500' : 
                                            ($booking->status === 'approved' ? 'bg-green-500' : 'bg-gray-500'))) }}">
                                     </div>
                                     <div>
-                                        <p class="font-medium text-gray-900">#{{ $booking->id }} - {{ $booking->service->name ?? 'Unknown Service' }}</p>
-                                        <p class="text-sm text-gray-600">{{ $booking->user->name ?? 'Unknown User' }}</p>
+                                        <p class="text-sm font-medium text-gray-900">#{{ $booking->id }} - {{ $booking->service->name ?? 'Unknown Service' }}</p>
+                                        <p class="text-xs text-gray-600">{{ $booking->user->name ?? 'Unknown User' }}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-900">{{ ucfirst($booking->status) }}</p>
+                                    <p class="text-xs font-medium text-gray-900">{{ ucfirst($booking->status) }}</p>
                                     <p class="text-xs text-gray-500">{{ $booking->created_at->diffForHumans() }}</p>
                                 </div>
                             </div>
                             @endforeach
                         </div>
-                        <div class="mt-4">
-                            <a href="{{ route('admin.bookings.index') }}" class="text-[#0d5c2f] hover:underline text-sm">View all bookings →</a>
+                        <div class="mt-3">
+                            <a href="{{ route('admin.bookings.index') }}" class="text-[#0d5c2f] hover:underline text-xs">View all bookings →</a>
                         </div>
                     @else
-                        <p class="text-gray-500 text-center py-4">No bookings found</p>
+                        <p class="text-gray-500 text-center py-3 text-sm">No bookings found</p>
                     @endif
                 </div>
             </div>
@@ -216,39 +231,39 @@
         <!-- Finance Tab -->
         <div id="finance-tab" class="tab-content hidden">
             <!-- Today's Financial Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-sm border border-green-200 p-6 text-white">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-green-500/30 rounded-xl shadow-sm border-2 border-green-500 p-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
+                        <div class="p-3 bg-green-500 rounded-lg">
                             <i class="fas fa-money-bill-wave text-white text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-green-100">Today's Revenue</p>
-                            <p class="text-2xl font-bold">₱{{ number_format($stats['new_revenue'] ?? 0, 2) }}</p>
+                            <p class="text-sm font-medium text-green-800">Today's Revenue</p>
+                            <p class="text-2xl font-bold text-green-900">₱{{ number_format($stats['new_revenue'] ?? 0, 2) }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm border border-blue-200 p-6 text-white">
+                <div class="bg-blue-500/30 rounded-xl shadow-sm border-2 border-blue-500 p-6">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
+                        <div class="p-3 bg-blue-500 rounded-lg">
                             <i class="fas fa-calendar-alt text-white text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-blue-100">This Month</p>
-                            <p class="text-2xl font-bold">₱{{ number_format($stats['monthly_revenue'] ?? 0, 2) }}</p>
+                            <p class="text-sm font-medium text-blue-800">This Month</p>
+                            <p class="text-2xl font-bold text-blue-900">₱{{ number_format($stats['monthly_revenue'] ?? 0, 2) }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-sm border border-purple-200 p-6 text-white">
+                <div class="bg-purple-500/30 rounded-xl shadow-sm border-2 border-purple-500 p-6">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
+                        <div class="p-3 bg-purple-500 rounded-lg">
                             <i class="fas fa-chart-line text-white text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-purple-100">Avg. Transaction</p>
-                            <p class="text-2xl font-bold">₱{{ number_format($stats['avg_transaction'] ?? 0, 2) }}</p>
+                            <p class="text-sm font-medium text-purple-800">Avg. Transaction</p>
+                            <p class="text-2xl font-bold text-purple-900">₱{{ number_format($stats['avg_transaction'] ?? 0, 2) }}</p>
                         </div>
                     </div>
                 </div>
@@ -389,39 +404,39 @@
         <!-- User Trends Tab -->
         <div id="trends-tab" class="tab-content hidden">
             <!-- Today's User Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm border border-blue-200 p-6 text-white">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-blue-500/30 rounded-xl shadow-sm border-2 border-blue-500 p-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
-                            <i class="fas fa-user-plus text-white text-xl"></i>
+                        <div class="p-2.5 bg-blue-500 rounded-lg">
+                            <i class="fas fa-user-plus text-white text-lg"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-blue-100">New Users Today</p>
-                            <p class="text-2xl font-bold">{{ $stats['new_users'] ?? 0 }}</p>
+                            <p class="text-sm font-medium text-blue-800">New Users Today</p>
+                            <p class="text-2xl font-bold text-blue-900">{{ $stats['new_users'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-sm border border-green-200 p-6 text-white">
+                <div class="bg-green-500/30 rounded-xl shadow-sm border-2 border-green-500 p-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
-                            <i class="fas fa-user-shield text-white text-xl"></i>
+                        <div class="p-2.5 bg-green-500 rounded-lg">
+                            <i class="fas fa-user-shield text-white text-lg"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-green-100">Verified Users</p>
-                            <p class="text-2xl font-bold">{{ $stats['verified_users'] ?? 0 }}</p>
+                            <p class="text-sm font-medium text-green-800">Verified Users</p>
+                            <p class="text-2xl font-bold text-green-900">{{ $stats['verified_users'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-sm border border-purple-200 p-6 text-white">
+                <div class="bg-purple-500/30 rounded-xl shadow-sm border-2 border-purple-500 p-4">
                     <div class="flex items-center">
-                        <div class="p-3 bg-white/20 rounded-lg">
-                            <i class="fas fa-user-check text-white text-xl"></i>
+                        <div class="p-2.5 bg-purple-500 rounded-lg">
+                            <i class="fas fa-user-check text-white text-lg"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-purple-100">Active Users</p>
-                            <p class="text-2xl font-bold">{{ $stats['active_users'] ?? 0 }}</p>
+                            <p class="text-sm font-medium text-purple-800">Active Users</p>
+                            <p class="text-2xl font-bold text-purple-900">{{ $stats['active_users'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
@@ -519,18 +534,40 @@
                         <h2 class="text-lg font-semibold text-gray-900">User Registration Trend</h2>
                     </div>
                     <div class="p-6">
-                        <div class="space-y-4">
-                            @for($i = 5; $i >= 0; $i--)
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600">{{ now()->subDays($i)->format('M d') }}</span>
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-32 bg-gray-200 rounded-full h-2">
-                                        <div class="bg-[#0d5c2f] h-2 rounded-full" style="width: {{ rand(20, 80) }}%"></div>
+                        <div class="space-y-3">
+                            @php
+                                // Expecting $monthlyUsers: array of ['month' => 'Jan 2025', 'count' => 12]
+                                $monthlyData = isset($monthlyUsers) ? $monthlyUsers : [];
+                                $counts = array_map(fn($m) => $m['count'], $monthlyData);
+                                $maxCount = count($counts) ? max($counts) : 0;
+                            @endphp
+                            @if(count($monthlyData) > 0)
+                                @foreach($monthlyData as $idx => $m)
+                                @break($idx >= 6)
+                                @php $pct = $maxCount > 0 ? ($m['count'] / $maxCount) * 100 : 0; @endphp
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">{{ $m['month'] }}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-28 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-[#0d5c2f] h-2 rounded-full" style="width: {{ $pct }}%"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-gray-900">{{ $m['count'] }}</span>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-900">{{ rand(1, 15) }}</span>
                                 </div>
-                            </div>
-                            @endfor
+                                @endforeach
+                            @else
+                                @for($i = 5; $i >= 0; $i--)
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">{{ now()->subMonths($i)->format('M Y') }}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-28 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-[#0d5c2f] h-2 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <span class="text-xs font-medium text-gray-900">0</span>
+                                    </div>
+                                </div>
+                                @endfor
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -543,17 +580,25 @@
                         @if(isset($stats['recent_users']) && $stats['recent_users']->count() > 0)
                             <div class="space-y-3">
                                 @foreach($stats['recent_users'] as $user)
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                     <div class="flex items-center space-x-3">
                                         <div class="h-8 w-8 rounded-full bg-[#0d5c2f] flex items-center justify-center">
-                                            <i class="fas fa-user text-white text-sm"></i>
+                                            <i class="fas fa-user-plus text-white text-sm"></i>
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
-                                            <p class="text-xs text-gray-600">{{ $user->email }}</p>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-xs text-gray-600">{{ $user->email }}</span>
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    New Registration
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <span class="text-xs text-gray-500">{{ $user->created_at->diffForHumans() }}</span>
+                                    <div class="text-right">
+                                        <span class="text-xs text-gray-500">{{ $user->created_at->diffForHumans() }}</span>
+                                        <p class="text-xs text-gray-400">Account Created</p>
+                                    </div>
                                 </div>
                                 @endforeach
                             </div>
@@ -567,75 +612,124 @@
 
         <!-- Quick Actions Tab -->
         <div id="actions-tab" class="tab-content hidden">
+            <!-- Quick Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-lg p-4 text-white text-center">
+                    <i class="fas fa-bookmark text-2xl mb-2"></i>
+                    <p class="text-sm opacity-90">Total Bookings</p>
+                    <p class="text-xl font-bold">{{ $stats['total_bookings'] ?? 0 }}</p>
+                </div>
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white text-center">
+                    <i class="fas fa-users text-2xl mb-2"></i>
+                    <p class="text-sm opacity-90">Total Users</p>
+                    <p class="text-xl font-bold">{{ $stats['total_users'] ?? 0 }}</p>
+                </div>
+                <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white text-center">
+                    <i class="fas fa-money-bill-wave text-2xl mb-2"></i>
+                    <p class="text-sm opacity-90">Revenue</p>
+                    <p class="text-xl font-bold">₱{{ number_format($stats['total_revenue'] ?? 0, 0) }}</p>
+                </div>
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white text-center">
+                    <i class="fas fa-chart-line text-2xl mb-2"></i>
+                    <p class="text-sm opacity-90">Growth</p>
+                    <p class="text-xl font-bold">{{ $stats['new_users_month'] ?? 0 }}</p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Content Management -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">Content Management</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-[#0d5c2f] rounded-lg mr-3">
+                                <i class="fas fa-file-alt text-white"></i>
+                            </div>
+                            <h2 class="text-lg font-semibold text-gray-900">Content Management</h2>
+                        </div>
                     </div>
                     <div class="p-6">
                         <div class="space-y-3">
-                            <a href="{{ route('admin.cms.pages.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <a href="{{ route('admin.cms.pages.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#0d5c2f]/10 hover:border-l-4 hover:border-l-[#0d5c2f] transition-all duration-200">
                                 <i class="fas fa-plus text-[#0d5c2f] mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Create Page</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
-                            <a href="{{ route('admin.cms.media.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <a href="{{ route('admin.cms.media.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#0d5c2f]/10 hover:border-l-4 hover:border-l-[#0d5c2f] transition-all duration-200">
                                 <i class="fas fa-upload text-[#0d5c2f] mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Upload Media</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
-                            <a href="{{ route('admin.cms.pages.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                            <a href="{{ route('admin.cms.pages.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-[#0d5c2f]/10 hover:border-l-4 hover:border-l-[#0d5c2f] transition-all duration-200">
                                 <i class="fas fa-list text-[#0d5c2f] mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Manage Pages</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Booking Management -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">Booking Management</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-blue-500 rounded-lg mr-3">
+                                <i class="fas fa-calendar-check text-white"></i>
+                            </div>
+                            <h2 class="text-lg font-semibold text-gray-900">Booking Management</h2>
+                        </div>
                     </div>
                     <div class="p-6">
                         <div class="space-y-3">
-                            <a href="{{ route('admin.bookings.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-bookmark text-[#0d5c2f] mr-3"></i>
+                            <a href="{{ route('admin.bookings.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 hover:border-l-4 hover:border-l-blue-500 transition-all duration-200">
+                                <i class="fas fa-bookmark text-blue-500 mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">View All Bookings</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
-                            <a href="{{ route('admin.services.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-calendar-alt text-[#0d5c2f] mr-3"></i>
+                            <a href="{{ route('admin.services.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 hover:border-l-4 hover:border-l-blue-500 transition-all duration-200">
+                                <i class="fas fa-calendar-alt text-blue-500 mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Manage Services</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
-                            <a href="{{ route('admin.priests.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-cross text-[#0d5c2f] mr-3"></i>
+                            <a href="{{ route('admin.priests.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 hover:border-l-4 hover:border-l-blue-500 transition-all duration-200">
+                                <i class="fas fa-user-tie text-blue-500 mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Manage Priests</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
-                            <a href="{{ route('admin.parochial-activities.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-church text-[#0d5c2f] mr-3"></i>
+                            <a href="{{ route('admin.parochial-activities.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 hover:border-l-4 hover:border-l-blue-500 transition-all duration-200">
+                                <i class="fas fa-church text-blue-500 mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Manage Activities</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- User Management -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">User Management</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                    <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-green-500 rounded-lg mr-3">
+                                <i class="fas fa-users-cog text-white"></i>
+                            </div>
+                            <h2 class="text-lg font-semibold text-gray-900">User Management</h2>
+                        </div>
                     </div>
                     <div class="p-6">
                         <div class="space-y-3">
-                            <a href="{{ route('admin.users.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-users text-[#0d5c2f] mr-3"></i>
+                            <a href="{{ route('admin.users.index') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-green-50 hover:border-l-4 hover:border-l-green-500 transition-all duration-200">
+                                <i class="fas fa-users text-green-500 mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Manage Users</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
-                            <a href="{{ route('admin.users.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-user-plus text-[#0d5c2f] mr-3"></i>
+                            <a href="{{ route('admin.users.create') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-green-50 hover:border-l-4 hover:border-l-green-500 transition-all duration-200">
+                                <i class="fas fa-user-plus text-green-500 mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">Add New User</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
-                            <a href="{{ route('home') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="fas fa-eye text-[#0d5c2f] mr-3"></i>
+                            <a href="{{ route('home') }}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-green-50 hover:border-l-4 hover:border-l-green-500 transition-all duration-200">
+                                <i class="fas fa-eye text-green-500 mr-3"></i>
                                 <span class="text-sm font-medium text-gray-900">View Public Site</span>
+                                <i class="fas fa-arrow-right ml-auto text-gray-400"></i>
                             </a>
                         </div>
                     </div>
@@ -674,16 +768,16 @@ function showTab(tabName) {
     // Remove active state from all tab buttons
     const tabButtons = document.querySelectorAll('.tab-button');
     tabButtons.forEach(button => {
-        button.classList.remove('border-[#0d5c2f]', 'text-[#0d5c2f]');
-        button.classList.add('border-transparent', 'text-gray-500');
+        button.classList.remove('bg-[#0d5c2f]', 'text-white', 'shadow-sm');
+        button.classList.add('bg-gray-100', 'text-gray-600');
     });
 
     // Show selected tab content
     document.getElementById(tabName + '-tab').classList.remove('hidden');
 
     // Add active state to selected tab button
-    document.getElementById('tab-' + tabName).classList.remove('border-transparent', 'text-gray-500');
-    document.getElementById('tab-' + tabName).classList.add('border-[#0d5c2f]', 'text-[#0d5c2f]');
+    document.getElementById('tab-' + tabName).classList.remove('bg-gray-100', 'text-gray-600');
+    document.getElementById('tab-' + tabName).classList.add('bg-[#0d5c2f]', 'text-white', 'shadow-sm');
 }
 
 function initializeCharts() {
@@ -710,19 +804,52 @@ function initializeCharts() {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: chartColors.primary,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: '#f3f4f6'
+                            color: '#f3f4f6',
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8
                         }
+                    }
+                },
+                elements: {
+                    point: {
+                        backgroundColor: chartColors.primary,
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        radius: 6,
+                        hoverRadius: 8
                     }
                 }
             }
@@ -750,15 +877,35 @@ function initializeCharts() {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: chartColors.success,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return '₱' + context.parsed.y.toLocaleString();
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: '#f3f4f6'
+                            color: '#f3f4f6',
+                            lineWidth: 1
                         },
                         ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8,
                             callback: function(value) {
                                 return '₱' + value.toLocaleString();
                             }
@@ -767,7 +914,20 @@ function initializeCharts() {
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8
                         }
+                    }
+                },
+                elements: {
+                    bar: {
+                        borderRadius: 6,
+                        borderSkipped: false
                     }
                 }
             }
@@ -792,7 +952,30 @@ function initializeCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: chartColors.info,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
+                },
+                elements: {
+                    arc: {
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }
                 }
             }
@@ -822,19 +1005,52 @@ function initializeCharts() {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: chartColors.info,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: '#f3f4f6'
+                            color: '#f3f4f6',
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8
                         }
+                    }
+                },
+                elements: {
+                    point: {
+                        backgroundColor: chartColors.info,
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        radius: 6,
+                        hoverRadius: 8
                     }
                 }
             }
@@ -869,7 +1085,30 @@ function initializeCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: chartColors.purple,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
+                },
+                elements: {
+                    arc: {
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }
                 }
             }

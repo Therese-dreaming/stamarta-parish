@@ -40,74 +40,74 @@
             
             <nav class="mt-6 px-4">
                 <div class="space-y-2">
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                        <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-tachometer-alt w-4 h-4 mr-2"></i>
                         Dashboard
                     </a>
                     
                     <div class="pt-4">
-                        <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Content Management</h3>
+                        <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Content Management</h3>
                     </div>
                     
-                    <a href="{{ route('admin.cms.pages.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.cms.pages.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                        <i class="fas fa-file-alt w-5 h-5 mr-3"></i>
+                    <a href="{{ route('admin.cms.pages.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.cms.pages.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-file-alt w-4 h-4 mr-2"></i>
                         Pages
                     </a>
                     
-                    <a href="{{ route('admin.cms.media.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.cms.media.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                        <i class="fas fa-images w-5 h-5 mr-3"></i>
+                    <a href="{{ route('admin.cms.media.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.cms.media.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-images w-4 h-4 mr-2"></i>
                         Media Library
                     </a>
                 </div>
 
                 <!-- Priest Management -->
                 <div class="pt-4">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Priest Management</h3>
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Priest Management</h3>
                 </div>
                 
-                <a href="{{ route('admin.priests.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.priests.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-cross w-5 h-5 mr-3"></i>
+                <a href="{{ route('admin.priests.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.priests.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-cross w-4 h-4 mr-2"></i>
                     Priests
                 </a>
 
                 <!-- User Management -->
                 <div class="pt-4">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">User Management</h3>
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">User Management</h3>
                 </div>
                 
-                <a href="{{ route('admin.users.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-users w-5 h-5 mr-3"></i>
+                <a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-users w-4 h-4 mr-2"></i>
                     Users
                 </a>
 
                 <!-- Service Management -->
                 <div class="pt-4">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Service Management</h3>
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Service Management</h3>
                 </div>
                 
-                <a href="{{ route('admin.services.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.services.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-calendar-alt w-5 h-5 mr-3"></i>
+                <a href="{{ route('admin.services.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.services.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-calendar-alt w-4 h-4 mr-2"></i>
                     Services
                 </a>
 
                 <!-- Booking Management -->
                 <div class="pt-4">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
                 </div>
                 <div class="relative group">
-                    <button class="w-full flex items-center justify-between px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.bookings.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <button class="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.bookings.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                         <div class="flex items-center">
-                            <i class="fas fa-bookmark w-5 h-5 mr-3"></i>
+                            <i class="fas fa-bookmark w-4 h-4 mr-2"></i>
                             Bookings
                         </div>
-                        <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
+                        <i class="fas fa-chevron-down text-[10px] transition-transform group-hover:rotate-180"></i>
                     </button>
                     <div class="absolute left-0 right-0 top-full bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <a href="{{ route('admin.bookings.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <a href="{{ route('admin.bookings.index') }}" class="block px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                             <i class="fas fa-list mr-2"></i>
                             View Bookings
                         </a>
-                        <a href="{{ route('admin.bookings.calendar') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <a href="{{ route('admin.bookings.calendar') }}" class="block px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                             <i class="fas fa-calendar-alt mr-2"></i>
                             Calendar
                         </a>
@@ -116,23 +116,23 @@
 
                 <!-- Parochial Activities -->
                 <div class="pt-4">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Parochial Activities</h3>
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Parochial Activities</h3>
                 </div>
                 
-                <a href="{{ route('admin.parochial-activities.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.parochial-activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-church w-5 h-5 mr-3"></i>
+                <a href="{{ route('admin.parochial-activities.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.parochial-activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-church w-4 h-4 mr-2"></i>
                     Activities
                 </a>
 
                 <!-- Notifications -->
                 <div class="pt-4">
-                    <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
                 </div>
                 
-                <a href="{{ route('admin.notifications.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.notifications.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-bell w-5 h-5 mr-3"></i>
+                <a href="{{ route('admin.notifications.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.notifications.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-bell w-4 h-4 mr-2"></i>
                     Notifications
-                    <span id="notification-count" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                    <span id="notification-count" class="ml-auto bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-notification-count="0">0</span>
                 </a>
             </nav>
         </div>

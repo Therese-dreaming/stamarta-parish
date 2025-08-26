@@ -126,7 +126,7 @@
 
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="{{ route('services.my-bookings') }}" 
+            <a href="{{ route('booking.my-bookings') }}" 
                class="px-6 py-3 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors text-center">
                 <i class="fas fa-calendar-alt mr-2"></i>View My Bookings
             </a>

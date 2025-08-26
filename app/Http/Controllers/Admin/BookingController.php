@@ -52,8 +52,13 @@ class BookingController extends Controller
         // Add bookings to calendar events
         foreach ($bookings as $booking) {
             // Use service_date if available, otherwise use created_at
-            $eventDate = $booking->service_date ? $booking->service_date->format('Y-m-d') : $booking->created_at->format('Y-m-d');
-            $eventTime = $booking->service_time ? $booking->service_time->format('H:i:s') : '09:00:00';
+            $eventDate = $booking->service_date ? 
+                ($booking->service_date instanceof \Carbon\Carbon ? $booking->service_date->format('Y-m-d') : \Carbon\Carbon::parse($booking->service_date)->format('Y-m-d')) : 
+                $booking->created_at->format('Y-m-d');
+            
+            $eventTime = $booking->service_time ? 
+                ($booking->service_time instanceof \Carbon\Carbon ? $booking->service_time->format('H:i:s') : \Carbon\Carbon::parse($booking->service_time)->format('H:i:s')) : 
+                '09:00:00';
             
             $calendarEvents[] = [
                 'id' => 'booking-' . $booking->id,
@@ -71,8 +76,12 @@ class BookingController extends Controller
                     'service_name' => $booking->service->name ?? 'Unknown Service',
                     'contact_phone' => $booking->contact_phone ?? 'No phone',
                     'status' => $booking->status,
-                    'service_date' => $booking->service_date ? $booking->service_date->format('Y-m-d') : null,
-                    'service_time' => $booking->service_time ? $booking->service_time->format('H:i:s') : null,
+                    'service_date' => $booking->service_date ? 
+                        ($booking->service_date instanceof \Carbon\Carbon ? $booking->service_date->format('Y-m-d') : \Carbon\Carbon::parse($booking->service_date)->format('Y-m-d')) : 
+                        null,
+                    'service_time' => $booking->service_time ? 
+                        ($booking->service_time instanceof \Carbon\Carbon ? $booking->service_time->format('H:i:s') : \Carbon\Carbon::parse($booking->service_time)->format('H:i:s')) : 
+                        null,
                     'created_at' => $booking->created_at->format('Y-m-d H:i:s'),
                 ]
             ];
@@ -84,11 +93,14 @@ class BookingController extends Controller
                 // For recurring activities, add multiple events
                 $affectedDates = $activity->getAffectedDates();
                 foreach ($affectedDates as $date) {
+                    // Ensure $date is a Carbon instance
+                    $dateObj = $date instanceof \Carbon\Carbon ? $date : \Carbon\Carbon::parse($date);
+                    
                     $calendarEvents[] = [
-                        'id' => 'activity-' . $activity->id . '-' . $date->format('Y-m-d'),
+                        'id' => 'activity-' . $activity->id . '-' . $dateObj->format('Y-m-d'),
                         'title' => $activity->title,
-                        'start' => $date->format('Y-m-d') . 'T' . $activity->start_time->format('H:i:s'),
-                        'end' => $date->format('Y-m-d') . 'T' . $activity->end_time->format('H:i:s'),
+                        'start' => $dateObj->format('Y-m-d') . 'T' . $activity->start_time->format('H:i:s'),
+                        'end' => $dateObj->format('Y-m-d') . 'T' . $activity->end_time->format('H:i:s'),
                         'type' => 'activity',
                         'activity_id' => $activity->id,
                         'backgroundColor' => 'rgba(251, 191, 36, 0.25)', // Yellow with 25% opacity for activities

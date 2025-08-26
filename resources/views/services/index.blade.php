@@ -23,9 +23,9 @@
         </div>
 
         @if($services->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
                 @foreach($services as $service)
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
                     <!-- Service Header -->
                     <div class="bg-[#0d5c2f] text-white p-6">
                         <h3 class="text-xl font-semibold mb-2">{{ $service->name }}</h3>
@@ -33,7 +33,7 @@
                     </div>
                     
                     <!-- Service Content -->
-                    <div class="p-6">
+                    <div class="p-6 flex-1 flex flex-col">
                         @if($service->description)
                             <p class="text-gray-600 mb-4">{{ Str::limit($service->description, 120) }}</p>
                         @endif
@@ -79,7 +79,7 @@
                         @endif
                         
                         <!-- Action Button -->
-                        <div class="mt-6">
+                        <div class="mt-auto pt-4">
                             @auth
                                 @if(Auth::user()->email_verified_at)
                                     <a href="{{ route('services.book', $service) }}" 

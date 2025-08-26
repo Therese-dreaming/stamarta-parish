@@ -5,6 +5,7 @@
 @section('content')
 @include('components.toast')
 <div class="space-y-6">
+    
     <!-- Header with colored background -->
     <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
         <div class="px-6 py-8">

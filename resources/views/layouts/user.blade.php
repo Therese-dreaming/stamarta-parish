@@ -24,7 +24,37 @@
                 <!-- In the main navigation -->
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Home</a>
-                    <a href="{{ route('pages.index') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Pages</a>
+                    @php
+                        try {
+                            $navPages = \App\Models\Page::published()
+                                ->orderBy('title')
+                                ->get(['slug','title']);
+                        } catch (\Throwable $e) {
+                            $navPages = collect();
+                        }
+                    @endphp
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @keydown.escape.window="open=false" class="flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                            <span>Pages</span>
+                            <i class="fas fa-chevron-down text-xs ml-2"></i>
+                        </button>
+                        <div x-show="open" @click.away="open = false"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+                            <a href="{{ route('pages.index') }}" class="block px-4 py-2 text-sm text-[#0d5c2f] hover:bg-gray-50">View All Pages</a>
+                            <div class="my-1 border-t border-gray-100"></div>
+                            @forelse($navPages as $p)
+                                <a href="{{ route('page.show', $p->slug) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 truncate" title="{{ $p->title }}">{{ $p->title }}</a>
+                            @empty
+                                <span class="block px-4 py-2 text-sm text-gray-400">No pages available</span>
+                            @endforelse
+                        </div>
+                    </div>
                     <a href="{{ route('contact') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Contact</a>
                     
                     @auth
