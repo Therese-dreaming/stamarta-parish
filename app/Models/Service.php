@@ -208,4 +208,58 @@ class Service extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    /**
+     * Get all ratings for this service
+     */
+    public function ratings()
+    {
+        return $this->hasMany(ServiceRating::class);
+    }
+
+    /**
+     * Get the average rating for this service
+     */
+    public function getAverageRatingAttribute()
+    {
+        $rating = $this->ratings()->avg('rating');
+        return $rating ? round($rating, 1) : 0;
+    }
+
+    /**
+     * Get the total number of ratings for this service
+     */
+    public function getTotalRatingsAttribute()
+    {
+        return $this->ratings()->count();
+    }
+
+    /**
+     * Get the star rating HTML for display
+     */
+    public function getStarsHtmlAttribute()
+    {
+        $rating = $this->average_rating;
+        $stars = '';
+        
+        for ($i = 1; $i <= 5; $i++) {
+            if ($i <= $rating) {
+                $stars .= '<i class="fas fa-star text-yellow-400"></i>';
+            } elseif ($i - $rating < 1) {
+                $stars .= '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+            } else {
+                $stars .= '<i class="far fa-star text-gray-300"></i>';
+            }
+        }
+        
+        return $stars;
+    }
+
+    /**
+     * Check if a user has rated this service for a specific booking
+     */
+    public function hasUserRating($userId, $bookingId)
+    {
+        return $this->ratings()->where('user_id', $userId)->where('booking_id', $bookingId)->exists();
+    }
 } 

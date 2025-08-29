@@ -1,4 +1,4 @@
-@props(['activeBookings', 'selectedDate', 'service'])
+@props(['activeBookings', 'selectedDate', 'service', 'parochialActivities'])
 
 <div class="calendar-container bg-white rounded-lg shadow-sm border border-gray-200 p-8">
     <div class="calendar-header flex items-center justify-between mb-8">
@@ -45,23 +45,29 @@
                 <div class="w-5 h-5 bg-red-200 border-2 border-red-400 rounded mr-3"></div>
                 <span class="text-gray-600">Fully Booked</span>
             </div>
+            <div class="flex items-center">
+                <div class="w-5 h-5 bg-blue-200 border-2 border-blue-400 rounded mr-3"></div>
+                <span class="text-gray-600">Full Day Activity</span>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 class Calendar {
-    constructor(container, activeBookings, selectedDate, service) {
+    constructor(container, activeBookings, selectedDate, service, parochialActivities) {
         console.log('Calendar constructor called');
         console.log('Container:', container);
         console.log('Active bookings:', activeBookings);
         console.log('Selected date:', selectedDate);
         console.log('Service:', service);
+        console.log('Parochial activities:', parochialActivities);
         
         this.container = container;
         this.activeBookings = activeBookings;
         this.selectedDate = selectedDate;
         this.service = service;
+        this.parochialActivities = parochialActivities || [];
         this.currentDate = new Date();
         this.displayedMonth = new Date();
         
@@ -194,6 +200,14 @@ class Calendar {
         const [year, month, day] = dateString.split('-').map(Number);
         const date = new Date(year, month - 1, day); // month is 0-indexed in JavaScript
         
+        // Check if date is blocked by parochial activities
+        if (this.isDateBlockedByParochialActivity(dateString)) {
+            return {
+                status: 'parochial-activity',
+                reason: 'Date blocked by parochial activity'
+            };
+        }
+        
         const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const dayOfWeek = dayNames[date.getDay()];
         const serviceSchedules = this.service.schedules || {};
@@ -234,11 +248,44 @@ class Calendar {
         }
     }
 
+    isDateBlockedByParochialActivity(dateString) {
+        if (!this.parochialActivities || this.parochialActivities.length === 0) {
+            return false;
+        }
+
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const dayOfWeek = date.getDay();
+
+        return this.parochialActivities.some(activity => {
+            // Only full_day activities block the entire service
+            if (activity.block_type !== 'full_day') {
+                return false;
+            }
+
+            if (activity.is_recurring) {
+                // For recurring activities, check if the day of week matches
+                const recurringPattern = activity.recurring_pattern || {};
+                if (recurringPattern.type === 'weekly') {
+                    return recurringPattern.day_of_week === dayOfWeek;
+                }
+                // Add more recurring pattern types as needed
+            } else {
+                // For one-time activities, check if the date matches
+                const activityDate = new Date(activity.event_date);
+                return activityDate.toDateString() === date.toDateString();
+            }
+            return false;
+        });
+    }
+
     updateDayClasses(dayElement, availability) {
         const baseClasses = 'calendar-day text-center py-4 px-2 cursor-pointer transition-colors text-lg font-medium';
         
         if (availability.status === 'not-available') {
             dayElement.className = baseClasses + ' text-gray-400 cursor-not-allowed bg-gray-100';
+        } else if (availability.status === 'parochial-activity') {
+            dayElement.className = baseClasses + ' text-white bg-blue-200 border-2 border-blue-400 cursor-not-allowed';
         } else if (availability.status === 'fully-booked') {
             dayElement.className = baseClasses + ' text-white bg-red-200 border-2 border-red-400 cursor-not-allowed';
         } else if (availability.status === 'available') {
@@ -405,7 +452,8 @@ document.addEventListener('DOMContentLoaded', function() {
             calendarContainer,
             @json($activeBookings),
             @json($selectedDate),
-            @json($service)
+            @json($service),
+            @json($parochialActivities ?? [])
         );
         
         // Attach time slot listeners if there are existing time slots

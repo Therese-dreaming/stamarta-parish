@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') | Santa Marta | San Roque</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite('resources/css/app.css')
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.4.2/css/all.css">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -58,41 +59,54 @@
                     <a href="{{ route('contact') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Contact</a>
                     
                     @auth
-                        <!-- Notification Dropdown -->
+                                                <!-- Notification Dropdown -->
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="relative flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                            <button @click="open = !open" class="relative flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors p-2 rounded-lg hover:bg-gray-100">
                                 <i class="fas fa-bell text-xl"></i>
-                                <span id="header-notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
+                                <span id="header-notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden font-medium" data-notification-count="0">0</span>
                             </button>
                             
                             <!-- Notification Dropdown Menu -->
                             <div x-show="open" @click.away="open = false" 
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 max-h-96 overflow-y-auto">
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="transform opacity-0 scale-95 translate-y-2"
+                                 x-transition:enter-end="transform opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="transform opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="transform opacity-0 scale-95 translate-y-2"
+                                 class="absolute right-0 mt-3 w-[420px] bg-white rounded-xl shadow-2xl border border-gray-200 z-50">
                                 
-                                <div class="px-4 py-3 border-b border-gray-100">
+                                <!-- Header -->
+                                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                                     <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
-                                        <a href="{{ route('user.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">View All</a>
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-[#0d5c2f] rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-bell text-white text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
+                                                <p class="text-xs text-gray-500">Stay updated with your activities</p>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('user.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium">View All</a>
                                     </div>
                                 </div>
                                 
-                                <div id="header-notifications-list" class="divide-y divide-gray-100">
+                                <!-- Notifications List -->
+                                <div id="header-notifications-list" class="max-h-80 overflow-y-auto">
                                     <!-- Notifications will be loaded here -->
-                                    <div class="px-4 py-3 text-center text-gray-500 text-sm">
-                                        <i class="fas fa-spinner fa-spin mr-2"></i>
-                                        Loading notifications...
+                                    <div class="px-6 py-8 text-center">
+                                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                                        </div>
+                                        <p class="text-sm text-gray-500">Loading notifications...</p>
                                     </div>
                                 </div>
                                 
-                                <div class="px-4 py-2 border-t border-gray-100">
-                                    <button id="mark-all-read-header" class="w-full text-left text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">
-                                        Mark all as read
+                                <!-- Footer -->
+                                <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+                                    <button id="mark-all-read-header" class="w-full text-center text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium py-2 rounded-lg hover:bg-white transition-colors">
+                                        <i class="fas fa-check-double mr-2"></i>Mark all as read
                                     </button>
                                 </div>
                             </div>
@@ -227,6 +241,9 @@
     <!-- Toast Notifications -->
     <x-toast />
     
+    <!-- Chatbot -->
+    <x-chatbot />
+    
     <script>
         @auth
         // Load header notifications for authenticated users
@@ -263,15 +280,54 @@
                         const isRead = notification.is_read ? 'border-gray-300' : 'border-[#0d5c2f]';
                         const badge = notification.is_read ? '' : '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full mr-2"></span>';
                         
+                        // Determine icon and styling based on notification type
+                        let icon = 'fas fa-bell';
+                        let iconBg = 'bg-blue-100';
+                        let iconColor = 'text-blue-600';
+                        let borderColor = notification.is_read ? 'border-gray-100' : 'border-[#0d5c2f]';
+                        
+                        if (notification.message.toLowerCase().includes('booking')) {
+                            icon = 'fas fa-calendar-check';
+                            iconBg = 'bg-green-100';
+                            iconColor = 'text-green-600';
+                        } else if (notification.message.toLowerCase().includes('payment')) {
+                            icon = 'fas fa-credit-card';
+                            iconBg = 'bg-purple-100';
+                            iconColor = 'text-purple-600';
+                        } else if (notification.message.toLowerCase().includes('approved') || notification.message.toLowerCase().includes('confirmed')) {
+                            icon = 'fas fa-check-circle';
+                            iconBg = 'bg-green-100';
+                            iconColor = 'text-green-600';
+                        } else if (notification.message.toLowerCase().includes('rejected') || notification.message.toLowerCase().includes('cancelled')) {
+                            icon = 'fas fa-times-circle';
+                            iconBg = 'bg-red-100';
+                            iconColor = 'text-red-600';
+                        } else if (notification.message.toLowerCase().includes('reminder')) {
+                            icon = 'fas fa-clock';
+                            iconBg = 'bg-orange-100';
+                            iconColor = 'text-orange-600';
+                        }
+                        
                         html += `
-                            <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header" data-id="${notification.id}" data-read="${notification.is_read}">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        ${badge}
-                                        <p class="text-sm text-gray-900 font-medium">${notification.message}</p>
-                                        <p class="text-xs text-gray-500 mt-1">${notification.created_at}</p>
+                            <div class="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header border-l-4 ${borderColor} ${!notification.is_read ? 'bg-blue-50/50' : ''}" data-id="${notification.id}" data-read="${notification.is_read}">
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 ${iconBg} rounded-full flex items-center justify-center">
+                                            <i class="${icon} ${iconColor} text-sm"></i>
+                                        </div>
                                     </div>
-                                    ${!notification.is_read ? '<button class="mark-read-header-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 ml-2">Mark read</button>' : ''}
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm text-gray-900 font-medium leading-5 mb-1">${notification.message}</p>
+                                                <div class="flex items-center space-x-2">
+                                                    <p class="text-xs text-gray-500">${notification.created_at}</p>
+                                                    ${!notification.is_read ? '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full"></span>' : ''}
+                                                </div>
+                                            </div>
+                                            ${!notification.is_read ? '<button class="mark-read-header-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium flex-shrink-0 ml-3">Mark read</button>' : ''}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -308,7 +364,15 @@
                         });
                     });
                 } else {
-                    notificationsList.innerHTML = '<div class="px-4 py-3 text-center text-gray-500 text-sm">No new notifications</div>';
+                    notificationsList.innerHTML = `
+                        <div class="px-6 py-12 text-center">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-bell-slash text-gray-400 text-xl"></i>
+                            </div>
+                            <p class="text-sm text-gray-500 font-medium mb-1">No new notifications</p>
+                            <p class="text-xs text-gray-400">You're all caught up!</p>
+                        </div>
+                    `;
                 }
             })
             .catch(error => {

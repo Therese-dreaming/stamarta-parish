@@ -42,6 +42,18 @@ class Notification extends Model
     const ACTION_USER_REGISTERED = 'user_registered';
     const ACTION_PRIEST_ASSIGNED = 'priest_assigned';
     const ACTION_PRIEST_CHANGED = 'priest_changed';
+    
+    // Staff action types
+    const ACTION_STAFF_ACKNOWLEDGED = 'staff_acknowledged';
+    const ACTION_STAFF_APPROVED = 'staff_approved';
+    const ACTION_STAFF_REJECTED = 'staff_rejected';
+    const ACTION_STAFF_COMPLETED = 'staff_completed';
+    const ACTION_STAFF_PAYMENT_VERIFIED = 'staff_payment_verified';
+    const ACTION_STAFF_PAYMENT_REJECTED = 'staff_payment_rejected';
+
+    // Certificate actions
+    const ACTION_CERTIFICATE_UPLOADED = 'certificate_uploaded'; // user-facing
+    const ACTION_STAFF_CERTIFICATE_UPLOADED = 'staff_certificate_uploaded'; // admin/staff-facing
 
     // Relationships
     public function user()
@@ -115,6 +127,16 @@ class Notification extends Model
             self::ACTION_USER_REGISTERED => 'fas fa-user-plus',
             self::ACTION_PRIEST_ASSIGNED => 'fas fa-cross',
             self::ACTION_PRIEST_CHANGED => 'fas fa-exchange-alt',
+            // Staff actions
+            self::ACTION_STAFF_ACKNOWLEDGED,
+            self::ACTION_STAFF_APPROVED,
+            self::ACTION_STAFF_COMPLETED,
+            self::ACTION_STAFF_PAYMENT_VERIFIED => 'fas fa-user-check',
+            self::ACTION_STAFF_REJECTED,
+            self::ACTION_STAFF_PAYMENT_REJECTED => 'fas fa-user-times',
+            // Certificates
+            self::ACTION_CERTIFICATE_UPLOADED => 'fas fa-file-certificate',
+            self::ACTION_STAFF_CERTIFICATE_UPLOADED => 'fas fa-file-upload',
             default => 'fas fa-bell'
         };
     }
@@ -132,6 +154,16 @@ class Notification extends Model
             self::ACTION_USER_REGISTERED => 'text-blue-600',
             self::ACTION_PRIEST_ASSIGNED => 'text-indigo-600',
             self::ACTION_PRIEST_CHANGED => 'text-orange-600',
+            // Staff actions
+            self::ACTION_STAFF_ACKNOWLEDGED => 'text-blue-600',
+            self::ACTION_STAFF_APPROVED => 'text-green-600',
+            self::ACTION_STAFF_REJECTED => 'text-red-600',
+            self::ACTION_STAFF_COMPLETED => 'text-purple-600',
+            self::ACTION_STAFF_PAYMENT_VERIFIED => 'text-green-600',
+            self::ACTION_STAFF_PAYMENT_REJECTED => 'text-red-600',
+            // Certificates
+            self::ACTION_CERTIFICATE_UPLOADED => 'text-purple-600',
+            self::ACTION_STAFF_CERTIFICATE_UPLOADED => 'text-purple-600',
             default => 'text-gray-600'
         };
     }
@@ -149,6 +181,16 @@ class Notification extends Model
             self::ACTION_USER_REGISTERED => 'bg-blue-100 text-blue-800',
             self::ACTION_PRIEST_ASSIGNED => 'bg-indigo-100 text-indigo-800',
             self::ACTION_PRIEST_CHANGED => 'bg-orange-100 text-orange-800',
+            // Staff actions
+            self::ACTION_STAFF_ACKNOWLEDGED => 'bg-blue-100 text-blue-800',
+            self::ACTION_STAFF_APPROVED => 'bg-green-100 text-green-800',
+            self::ACTION_STAFF_REJECTED => 'bg-red-100 text-red-800',
+            self::ACTION_STAFF_COMPLETED => 'bg-purple-100 text-purple-800',
+            self::ACTION_STAFF_PAYMENT_VERIFIED => 'bg-green-100 text-green-800',
+            self::ACTION_STAFF_PAYMENT_REJECTED => 'bg-red-100 text-red-800',
+            // Certificates
+            self::ACTION_CERTIFICATE_UPLOADED => 'bg-purple-100 text-purple-800',
+            self::ACTION_STAFF_CERTIFICATE_UPLOADED => 'bg-purple-100 text-purple-800',
             default => 'bg-gray-100 text-gray-800'
         };
     }

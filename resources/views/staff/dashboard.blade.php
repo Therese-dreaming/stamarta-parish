@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Welcome back, {{ $user->name }}!</h1>
-        <p class="text-gray-600">Here's your performance overview and recent activities</p>
+        <p class="text-gray-600">Here's your personal performance overview and recent activities</p>
     </div>
 
     <!-- Tab Navigation -->
@@ -21,10 +21,10 @@
                     <i class="fas fa-history mr-2"></i>Recent Activities
                 </button>
                 <button onclick="showTab('bookings')" id="tab-bookings" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    <i class="fas fa-bookmark mr-2"></i>Bookings Overview
+                    <i class="fas fa-bookmark mr-2"></i>My Bookings
                 </button>
-                <button onclick="showTab('content')" id="tab-content" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    <i class="fas fa-edit mr-2"></i>My Content
+                <button onclick="showTab('pages')" id="tab-pages" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    <i class="fas fa-file-alt mr-2"></i>My Pages
                 </button>
             </nav>
         </div>
@@ -34,64 +34,71 @@
     <div id="tab-content">
         <!-- Overview Tab -->
         <div id="overview-tab" class="tab-content">
-            <!-- Performance Metrics -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Key Performance Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- This Month's Actions -->
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-sm border border-blue-200 p-6 text-white">
                     <div class="flex items-center">
                         <div class="p-3 bg-white/20 rounded-lg">
-                            <i class="fas fa-tasks text-white text-xl"></i>
+                            <i class="fas fa-calendar-check text-white text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-blue-100">Actions Today</p>
-                            <p class="text-2xl font-bold">{{ $staffStats['processed_today'] }}</p>
+                            <p class="text-sm font-medium text-blue-100">This Month</p>
+                            <p class="text-2xl font-bold">{{ $staffStats['processed_this_month'] }}</p>
+                            <p class="text-xs text-blue-100">Actions</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Efficiency Rating -->
                 <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-sm border border-green-200 p-6 text-white">
                     <div class="flex items-center">
                         <div class="p-3 bg-white/20 rounded-lg">
                             <i class="fas fa-star text-white text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-green-100">Efficiency Rating</p>
-                            <p class="text-2xl font-bold">
+                            <p class="text-sm font-medium text-green-100">Efficiency</p>
+                            <p class="text-2xl font-bold">{{ $performanceMetrics['efficiency_rating'] }}/5</p>
+                            <div class="flex mt-1">
                                 @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= $performanceMetrics['efficiency_rating'] ? 'text-yellow-300' : 'text-gray-300' }}"></i>
+                                    <i class="fas fa-star {{ $i <= $performanceMetrics['efficiency_rating'] ? 'text-yellow-300' : 'text-gray-300' }} text-sm"></i>
                                 @endfor
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Accuracy Rate -->
                 <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl shadow-sm border border-purple-200 p-6 text-white">
                     <div class="flex items-center">
                         <div class="p-3 bg-white/20 rounded-lg">
                             <i class="fas fa-bullseye text-white text-xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-purple-100">Accuracy Rate</p>
+                            <p class="text-sm font-medium text-purple-100">Accuracy</p>
                             <p class="text-2xl font-bold">{{ $performanceMetrics['accuracy_rate'] }}%</p>
+                            <p class="text-xs text-purple-100">Rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average Processing Time -->
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-sm border border-orange-200 p-6 text-white">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-white/20 rounded-lg">
+                            <i class="fas fa-clock text-white text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-orange-100">Avg. Time</p>
+                            <p class="text-2xl font-bold">{{ $performanceMetrics['avg_processing_time'] }}</p>
+                            <p class="text-xs text-orange-100">Minutes</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- My Actions Statistics -->
+            <!-- My Actions This Month -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- Total Processed -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div class="flex items-center">
-                        <div class="p-3 bg-blue-100 rounded-lg">
-                            <i class="fas fa-cogs text-blue-600 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Processed</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['total_processed'] }}</p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Acknowledged -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center">
@@ -100,7 +107,8 @@
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Acknowledged</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['acknowledged_by_me'] }}</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['acknowledged_this_month'] }}</p>
+                            <p class="text-xs text-gray-500">This month</p>
                         </div>
                     </div>
                 </div>
@@ -113,7 +121,8 @@
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Approved</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['approved_by_me'] }}</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['approved_this_month'] }}</p>
+                            <p class="text-xs text-gray-500">This month</p>
                         </div>
                     </div>
                 </div>
@@ -126,28 +135,45 @@
                         </div>
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Rejected</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['rejected_by_me'] }}</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['rejected_this_month'] }}</p>
+                            <p class="text-xs text-gray-500">This month</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completed -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <i class="fas fa-flag-checkered text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Completed</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $staffStats['completed_this_month'] }}</p>
+                            <p class="text-xs text-gray-500">This month</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts and Analytics -->
+            <!-- Charts Row -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <!-- Monthly Activity Trends -->
+                <!-- Weekly Activity Chart -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                     <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">My Monthly Activity</h2>
+                        <h2 class="text-lg font-semibold text-gray-900">My Weekly Activity</h2>
+                        <p class="text-sm text-gray-600">Actions performed this week</p>
                     </div>
                     <div class="p-6">
-                        <canvas id="monthlyActivityChart" width="400" height="200"></canvas>
+                        <canvas id="weeklyActivityChart" width="400" height="200"></canvas>
                     </div>
                 </div>
 
-                <!-- Action Type Distribution -->
+                <!-- Action Distribution Chart -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                     <div class="p-6 border-b border-gray-200">
                         <h2 class="text-lg font-semibold text-gray-900">My Action Distribution</h2>
+                        <p class="text-sm text-gray-600">This month's breakdown</p>
                     </div>
                     <div class="p-6">
                         <canvas id="actionDistributionChart" width="400" height="200"></canvas>
@@ -157,32 +183,56 @@
 
             <!-- Performance Details -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Performance Metrics -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                     <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">Performance Metrics</h2>
+                        <h2 class="text-lg font-semibold text-gray-900">Performance Details</h2>
                     </div>
                     <div class="p-6">
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-900">Average Processing Time</span>
-                                <span class="text-sm text-gray-600">{{ $performanceMetrics['avg_processing_time'] }} minutes</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-900">This Month's Actions</span>
-                                <span class="text-sm text-gray-600">{{ $staffStats['processed_this_month'] }}</span>
+                                <span class="text-sm font-medium text-gray-900">Total Actions (All Time)</span>
+                                <span class="text-sm text-gray-600">{{ $staffStats['total_processed'] }}</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-sm font-medium text-gray-900">Last Month's Actions</span>
                                 <span class="text-sm text-gray-600">{{ $staffStats['processed_last_month'] }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-900">Completed Bookings</span>
-                                <span class="text-sm text-gray-600">{{ $staffStats['completed_by_me'] }}</span>
+                                <span class="text-sm font-medium text-gray-900">Today's Actions</span>
+                                <span class="text-sm text-gray-600">{{ $staffStats['processed_today'] }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-900">Success Rate</span>
+                                <span class="text-sm text-gray-600">{{ $performanceMetrics['success_rate'] }}%</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Monthly Performance Trend -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Monthly Performance Trend</h2>
+                        <p class="text-sm text-gray-600">Your actions over the past 6 months</p>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="monthlyTrendChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Service Type Distribution -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Service Type Distribution</h2>
+                        <p class="text-sm text-gray-600">Bookings you've processed by service type</p>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="serviceDistributionChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Daily Activity Progress -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                     <div class="p-6 border-b border-gray-200">
                         <h2 class="text-lg font-semibold text-gray-900">Daily Activity (Last 7 Days)</h2>
@@ -216,12 +266,13 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div class="p-6 border-b border-gray-200">
                     <h2 class="text-lg font-semibold text-gray-900">My Recent Activities</h2>
+                    <p class="text-sm text-gray-600">Your latest actions and decisions</p>
                 </div>
                 <div class="p-6">
                     @if($recentActivities->count() > 0)
                         <div class="space-y-4">
                             @foreach($recentActivities as $activity)
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div class="flex items-center space-x-3">
                                     <div class="p-2 rounded-lg bg-{{ $activity->action_color }}-100">
                                         <i class="{{ $activity->action_icon }} text-{{ $activity->action_color }}-600"></i>
@@ -246,8 +297,17 @@
                             </div>
                             @endforeach
                         </div>
+                        <div class="mt-6 text-center">
+                            <a href="{{ route('staff.bookings.index') }}" class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                                <i class="fas fa-eye mr-2"></i>View All Bookings
+                            </a>
+                        </div>
                     @else
-                        <p class="text-gray-500 text-center py-4">No recent activities found</p>
+                        <div class="text-center py-8">
+                            <i class="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500">No recent activities found</p>
+                            <p class="text-sm text-gray-400 mt-2">Start processing bookings to see your activities here</p>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -255,7 +315,7 @@
 
         <!-- Bookings Tab -->
         <div id="bookings-tab" class="tab-content hidden">
-            <!-- Current Booking Statistics -->
+            <!-- My Booking Statistics -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center">
@@ -265,6 +325,7 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Pending</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $bookingStats['pending_bookings'] }}</p>
+                            <p class="text-xs text-gray-500">Need attention</p>
                         </div>
                     </div>
                 </div>
@@ -277,6 +338,7 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Acknowledged</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $bookingStats['acknowledged_bookings'] }}</p>
+                            <p class="text-xs text-gray-500">By me</p>
                         </div>
                     </div>
                 </div>
@@ -289,6 +351,7 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Payment Hold</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $bookingStats['payment_hold_bookings'] }}</p>
+                            <p class="text-xs text-gray-500">Awaiting payment</p>
                         </div>
                     </div>
                 </div>
@@ -301,51 +364,64 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Approved</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $bookingStats['approved_bookings'] }}</p>
+                            <p class="text-xs text-gray-500">By me</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Bookings Needing Attention -->
+            <!-- Bookings Needing My Attention -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-lg font-semibold text-gray-900">Bookings Needing Attention</h2>
+                    <h2 class="text-lg font-semibold text-gray-900">Bookings Needing My Attention</h2>
+                    <p class="text-sm text-gray-600">Bookings that require your action</p>
                 </div>
                 <div class="p-6">
                     @if($recentBookings->count() > 0)
                         <div class="space-y-4">
                             @foreach($recentBookings as $booking)
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-2 h-2 rounded-full 
+                                    <div class="w-3 h-3 rounded-full 
                                         {{ $booking->status === 'pending' ? 'bg-yellow-500' : 
                                            ($booking->status === 'acknowledged' ? 'bg-blue-500' : 'bg-orange-500') }}">
                                     </div>
                                     <div>
                                         <p class="font-medium text-gray-900">#{{ $booking->id }} - {{ $booking->service->name ?? 'Unknown Service' }}</p>
                                         <p class="text-sm text-gray-600">{{ $booking->user->name ?? 'Unknown User' }}</p>
+                                        <p class="text-xs text-gray-500">{{ $booking->service_date->format('M d, Y') }} at {{ $booking->service_time }}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-900">{{ ucfirst($booking->status) }}</p>
-                                    <p class="text-xs text-gray-500">{{ $booking->created_at->diffForHumans() }}</p>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {{ $booking->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                           ($booking->status === 'acknowledged' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800') }}">
+                                        {{ ucfirst($booking->status) }}
+                                    </span>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $booking->created_at->diffForHumans() }}</p>
                                 </div>
                             </div>
                             @endforeach
                         </div>
-                        <div class="mt-4">
-                            <a href="{{ route('staff.bookings.index') }}" class="text-[#0d5c2f] hover:underline text-sm">View all bookings →</a>
+                        <div class="mt-6 text-center">
+                            <a href="{{ route('staff.bookings.index') }}" class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                                <i class="fas fa-list mr-2"></i>View All Bookings
+                            </a>
                         </div>
                     @else
-                        <p class="text-gray-500 text-center py-4">No bookings need attention</p>
+                        <div class="text-center py-8">
+                            <i class="fas fa-check-circle text-green-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500">No bookings need attention</p>
+                            <p class="text-sm text-gray-400 mt-2">Great job! All bookings are up to date</p>
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
 
-        <!-- Content Tab -->
-        <div id="content-tab" class="tab-content hidden">
-            <!-- Content Statistics -->
+        <!-- Pages Tab -->
+        <div id="pages-tab" class="tab-content hidden">
+            <!-- CMS Statistics -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center">
@@ -355,6 +431,7 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Pages Created</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $cmsStats['pages_created_by_me'] }}</p>
+                            <p class="text-xs text-gray-500">Total</p>
                         </div>
                     </div>
                 </div>
@@ -367,6 +444,7 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Media Uploaded</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $cmsStats['media_uploaded_by_me'] }}</p>
+                            <p class="text-xs text-gray-500">Total</p>
                         </div>
                     </div>
                 </div>
@@ -379,6 +457,7 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Activities Created</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $parochialStats['activities_created_by_me'] }}</p>
+                            <p class="text-xs text-gray-500">Total</p>
                         </div>
                     </div>
                 </div>
@@ -391,6 +470,7 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-gray-600">Active Activities</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $parochialStats['active_activities_by_me'] }}</p>
+                            <p class="text-xs text-gray-500">Current</p>
                         </div>
                     </div>
                 </div>
@@ -402,52 +482,80 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                     <div class="p-6 border-b border-gray-200">
                         <h2 class="text-lg font-semibold text-gray-900">Recent Pages Created</h2>
+                        <p class="text-sm text-gray-600">Your latest page content</p>
                     </div>
                     <div class="p-6">
                         @if($cmsStats['recent_pages_created']->count() > 0)
                             <div class="space-y-3">
                                 @foreach($cmsStats['recent_pages_created'] as $page)
-                                <div class="flex items-center justify-between">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                     <div>
                                         <p class="text-sm font-medium text-gray-900">{{ $page->title }}</p>
                                         <p class="text-xs text-gray-600">{{ $page->created_at->diffForHumans() }}</p>
                                     </div>
-                                    <span class="text-xs px-2 py-1 rounded-full {{ $page->status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                        {{ ucfirst($page->status) }}
+                                    <span class="text-xs px-2 py-1 rounded-full {{ $page->is_published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                        {{ $page->is_published ? 'Published' : 'Draft' }}
                                     </span>
                                 </div>
                                 @endforeach
                             </div>
                         @else
-                            <p class="text-gray-500 text-center py-4">No pages created yet</p>
+                            <div class="text-center py-8">
+                                <i class="fas fa-file-alt text-gray-400 text-4xl mb-4"></i>
+                                <p class="text-gray-500">No pages created yet</p>
+                                <p class="text-sm text-gray-400 mt-2">Start creating content to see your pages here</p>
+                            </div>
                         @endif
                     </div>
                 </div>
 
-                <!-- Recent Activities -->
+                <!-- Recent Media -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                     <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">Recent Activities Created</h2>
+                        <h2 class="text-lg font-semibold text-gray-900">Recent Media Uploaded</h2>
+                        <p class="text-sm text-gray-600">Your latest media files</p>
                     </div>
                     <div class="p-6">
-                        @if($parochialStats['recent_activities_created']->count() > 0)
+                        @if($cmsStats['recent_media_uploaded']->count() > 0)
                             <div class="space-y-3">
-                                @foreach($parochialStats['recent_activities_created'] as $activity)
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $activity->title }}</p>
-                                        <p class="text-xs text-gray-600">{{ $activity->event_date->format('M d, Y') }}</p>
+                                @foreach($cmsStats['recent_media_uploaded'] as $media)
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-500 text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">{{ $media->filename }}</p>
+                                            <p class="text-xs text-gray-600">{{ $media->created_at->diffForHumans() }}</p>
+                                        </div>
                                     </div>
-                                    <span class="text-xs px-2 py-1 rounded-full {{ $activity->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
-                                        {{ ucfirst($activity->status) }}
-                                    </span>
+                                    <span class="text-xs text-gray-500">{{ $media->file_size }}</span>
                                 </div>
                                 @endforeach
                             </div>
                         @else
-                            <p class="text-gray-500 text-center py-4">No activities created yet</p>
+                            <div class="text-center py-8">
+                                <i class="fas fa-image text-gray-400 text-4xl mb-4"></i>
+                                <p class="text-gray-500">No media uploaded yet</p>
+                                <p class="text-sm text-gray-400 mt-2">Start uploading files to see your media here</p>
+                            </div>
                         @endif
                     </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 text-center">
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="{{ route('staff.pages.index') }}" class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                        <i class="fas fa-edit mr-2"></i>Manage Pages
+                    </a>
+                    <a href="{{ route('staff.cms.media.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-image mr-2"></i>Manage Media
+                    </a>
+                    <a href="{{ route('staff.parochial-activities.index') }}" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-calendar mr-2"></i>Manage Activities
+                    </a>
                 </div>
             </div>
         </div>
@@ -496,21 +604,19 @@ function showTab(tabName) {
 }
 
 function initializeCharts() {
-    // Monthly Activity Chart
-    const monthlyActivityCtx = document.getElementById('monthlyActivityChart');
-    if (monthlyActivityCtx) {
-        new Chart(monthlyActivityCtx, {
-            type: 'line',
+    // Weekly Activity Chart
+    const weeklyActivityCtx = document.getElementById('weeklyActivityChart');
+    if (weeklyActivityCtx) {
+        new Chart(weeklyActivityCtx, {
+            type: 'bar',
             data: {
-                labels: @json(array_column($monthlyActivity, 'month')),
+                labels: @json(array_column($weeklyActivity, 'day')),
                 datasets: [{
                     label: 'Actions',
-                    data: @json(array_column($monthlyActivity, 'actions')),
+                    data: @json(array_column($weeklyActivity, 'actions')),
+                    backgroundColor: chartColors.primary,
                     borderColor: chartColors.primary,
-                    backgroundColor: chartColors.primary + '20',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
+                    borderWidth: 1
                 }]
             },
             options: {
@@ -555,6 +661,80 @@ function initializeCharts() {
                     backgroundColor: [
                         chartColors.info,
                         chartColors.success,
+                        chartColors.danger,
+                        chartColors.purple
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Monthly Trend Chart
+    const monthlyTrendCtx = document.getElementById('monthlyTrendChart');
+    if (monthlyTrendCtx) {
+        new Chart(monthlyTrendCtx, {
+            type: 'line',
+            data: {
+                labels: @json(array_column($monthlyActivity, 'month')),
+                datasets: [{
+                    label: 'Actions',
+                    data: @json(array_column($monthlyActivity, 'actions')),
+                    borderColor: chartColors.primary,
+                    backgroundColor: chartColors.primary + '20',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f3f4f6'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Service Distribution Chart
+    const serviceDistributionCtx = document.getElementById('serviceDistributionChart');
+    if (serviceDistributionCtx) {
+        new Chart(serviceDistributionCtx, {
+            type: 'pie',
+            data: {
+                labels: @json(array_keys($serviceDistribution)),
+                datasets: [{
+                    data: @json(array_values($serviceDistribution)),
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.info,
+                        chartColors.success,
+                        chartColors.warning,
                         chartColors.danger,
                         chartColors.purple
                     ],

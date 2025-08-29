@@ -27,19 +27,19 @@
 <body class="bg-gray-50 font-['Poppins'] min-h-full flex flex-col">
     <div class="min-h-screen">
         <!-- Sidebar -->
-        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" id="sidebar">
-            <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+                    <div class="fixed inset-y-0 left-0 z-50 w-60 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" id="sidebar">
+            <div class="flex items-center justify-between h-14 px-5 border-b border-gray-200">
                 <div class="flex items-center">
                     <img src="{{ asset('images/church-logo.png') }}" alt="Logo" class="h-8 w-8">
-                    <h1 class="ml-3 text-lg font-bold text-[#0d5c2f]">Priest Dashboard</h1>
+                    <h1 class="ml-3 text-l font-bold text-[#0d5c2f]">Priest Dashboard</h1>
                 </div>
                 <button id="closeSidebar" class="lg:hidden text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <nav class="mt-6 px-4">
-                <div class="space-y-2">
+            <nav class="mt-4 px-3">
+                <div class="space-y-1.5 text-sm">
                     <a href="{{ route('priest.dashboard') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
                         <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
                         Dashboard
@@ -47,7 +47,7 @@
                     
                     <!-- Booking Management -->
                     <div class="pt-4">
-                        <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
+                        <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
                     </div>
                     
                     <a href="{{ route('priest.bookings.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.bookings.index') ? 'bg-[#0d5c2f] text-white' : '' }}">
@@ -75,10 +75,10 @@
         </div>
 
         <!-- Main Content -->
-        <div class="lg:ml-64">
+        <div class="lg:ml-60">
             <!-- Top Navigation -->
             <div class="bg-white shadow-sm border-b border-gray-200">
-                <div class="flex items-center justify-between h-16 px-6">
+                <div class="flex items-center justify-between h-14 px-5">
                     <div class="flex items-center">
                         <button id="openSidebar" class="lg:hidden text-gray-500 hover:text-gray-700 mr-4">
                             <i class="fas fa-bars"></i>
@@ -104,7 +104,7 @@
                                  x-transition:leave-end="transform opacity-0 scale-95"
                                  class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 max-h-96 overflow-y-auto">
                                 
-                                <div class="px-4 py-3 border-b border-gray-100">
+                                <div class="px-3 py-2.5 border-b border-gray-100">
                                     <div class="flex items-center justify-between">
                                         <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
                                         <a href="{{ route('priest.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">View All</a>
@@ -113,13 +113,13 @@
                                 
                                 <div id="header-notifications-list" class="divide-y divide-gray-100">
                                     <!-- Notifications will be loaded here -->
-                                    <div class="px-4 py-3 text-center text-gray-500 text-sm">
-                                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                                    <div class="px-3 py-2.5 text-center text-gray-500 text-xs">
+                                        <i class="fas fa-spinner fa-spin mr-1.5"></i>
                                         Loading notifications...
                                     </div>
                                 </div>
                                 
-                                <div class="px-4 py-2 border-t border-gray-100">
+                                <div class="px-3 py-2 border-t border-gray-100">
                                     <button id="mark-all-read-header" class="w-full text-left text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80">
                                         Mark all as read
                                     </button>
@@ -170,7 +170,7 @@
             </div>
 
             <!-- Page Content -->
-            <main class="p-6">
+            <main class="p-5">
                 @if(session('success'))
                     <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
                         <i class="fas fa-check-circle mr-2"></i>
@@ -262,18 +262,36 @@
                     if (data.notifications && data.notifications.length > 0) {
                         let html = '';
                         data.notifications.forEach(notification => {
-                            const isRead = notification.is_read ? 'border-gray-300' : 'border-[#0d5c2f]';
-                            const badge = notification.is_read ? '' : '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full mr-2"></span>';
-                            
+                            const isRead = !!notification.is_read;
+                            const msg = (notification.message || '').toLowerCase();
+                            let icon = 'fas fa-bell', iconBg = 'bg-blue-100', iconColor = 'text-blue-600';
+                            if (msg.includes('booking')) { icon = 'fas fa-calendar-check'; iconBg = 'bg-green-100'; iconColor = 'text-green-600'; }
+                            else if (msg.includes('payment')) { icon = 'fas fa-credit-card'; iconBg = 'bg-purple-100'; iconColor = 'text-purple-600'; }
+                            else if (msg.includes('approved') || msg.includes('confirmed')) { icon = 'fas fa-check-circle'; iconBg = 'bg-green-100'; iconColor = 'text-green-600'; }
+                            else if (msg.includes('rejected') || msg.includes('cancelled')) { icon = 'fas fa-times-circle'; iconBg = 'bg-red-100'; iconColor = 'text-red-600'; }
+                            else if (msg.includes('reminder')) { icon = 'fas fa-clock'; iconBg = 'bg-orange-100'; iconColor = 'text-orange-600'; }
+                            const borderColor = isRead ? 'border-gray-100' : 'border-[#0d5c2f]';
+                            const bgUnread = isRead ? '' : 'bg-blue-50/50';
                             html += `
-                                <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header" data-id="${notification.id}" data-read="${notification.is_read}">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1">
-                                            ${badge}
-                                            <p class="text-sm text-gray-900 font-medium">${notification.message}</p>
-                                            <p class="text-xs text-gray-500 mt-1">${notification.created_at}</p>
+                                <div class="px-3 py-2.5 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header border-l-4 ${borderColor} ${bgUnread}" data-id="${notification.id}" data-read="${notification.is_read}">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-8 h-8 ${iconBg} rounded-full flex items-center justify-center">
+                                                <i class="${icon} ${iconColor} text-xs"></i>
+                                            </div>
                                         </div>
-                                        ${!notification.is_read ? '<button class="mark-read-header-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 ml-2">Mark read</button>' : ''}
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-start justify-between">
+                                                <div class="flex-1">
+                                                    <p class="text-xs text-gray-900 font-medium leading-5">${notification.message}</p>
+                                                    <div class="flex items-center space-x-2 mt-0.5">
+                                                        <p class="text-[11px] text-gray-500">${notification.created_at}</p>
+                                                        ${!isRead ? '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full"></span>' : ''}
+                                                    </div>
+                                                </div>
+                                                ${!isRead ? '<button class="mark-read-header-btn text-[11px] text-[#0d5c2f] hover:text-[#0d5c2f]/80 ml-2">Mark read</button>' : ''}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             `;
@@ -322,7 +340,7 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ notification_id: notificationId })
+                    body: JSON.stringify({ notification_ids: [notificationId] })
                 })
                 .then(response => response.json())
                 .then(data => {

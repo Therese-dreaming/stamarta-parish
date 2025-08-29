@@ -22,6 +22,7 @@ class Booking extends Model
         'custom_data',
         'status',
         'priest_id',
+        'certificate_path',
     ];
 
     protected $casts = [

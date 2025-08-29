@@ -82,6 +82,7 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
+        // Notify user about their booking being acknowledged
         self::createUserNotification(
             Notification::ACTION_BOOKING_ACKNOWLEDGED,
             "Your booking #{$booking->id} has been acknowledged by parish staff",
@@ -93,6 +94,21 @@ class NotificationService
             $booking->user_id,
             $booking->id
         );
+
+        // Notify admin about staff action
+        self::createAdminStaffNotification(
+            Notification::ACTION_STAFF_ACKNOWLEDGED,
+            "Staff member {$userName} acknowledged booking #{$booking->id} for {$booking->user->name}",
+            [
+                'booking_id' => $booking->id,
+                'user_name' => $booking->user->name,
+                'service_name' => $booking->service->name,
+                'staff_name' => $userName,
+                'action_type' => 'acknowledged'
+            ],
+            null, // Notify all admin
+            $booking->id
+        );
     }
 
     /**
@@ -102,6 +118,7 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
+        // Notify user about their booking being approved
         self::createUserNotification(
             Notification::ACTION_BOOKING_APPROVED,
             "Your booking #{$booking->id} has been approved!",
@@ -113,6 +130,21 @@ class NotificationService
             $booking->user_id,
             $booking->id
         );
+
+        // Notify admin about staff action
+        self::createAdminStaffNotification(
+            Notification::ACTION_STAFF_APPROVED,
+            "Staff member {$userName} approved booking #{$booking->id} for {$booking->user->name}",
+            [
+                'booking_id' => $booking->id,
+                'user_name' => $booking->user->name,
+                'service_name' => $booking->service->name,
+                'staff_name' => $userName,
+                'action_type' => 'approved'
+            ],
+            null, // Notify all admin
+            $booking->id
+        );
     }
 
     /**
@@ -122,6 +154,7 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
+        // Notify user about their booking being rejected
         self::createUserNotification(
             Notification::ACTION_BOOKING_REJECTED,
             "Your booking #{$booking->id} has been rejected" . ($reason ? ": {$reason}" : ""),
@@ -134,6 +167,22 @@ class NotificationService
             $booking->user_id,
             $booking->id
         );
+
+        // Notify admin about staff action
+        self::createAdminStaffNotification(
+            Notification::ACTION_STAFF_REJECTED,
+            "Staff member {$userName} rejected booking #{$booking->id} for {$booking->user->name}" . ($reason ? ": {$reason}" : ""),
+            [
+                'booking_id' => $booking->id,
+                'user_name' => $booking->user->name,
+                'service_name' => $booking->service->name,
+                'staff_name' => $userName,
+                'action_type' => 'rejected',
+                'reason' => $reason
+            ],
+            null, // Notify all admin
+            $booking->id
+        );
     }
 
     /**
@@ -143,6 +192,7 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
+        // Notify user about their booking being completed
         self::createUserNotification(
             Notification::ACTION_BOOKING_COMPLETED,
             "Your booking #{$booking->id} has been completed successfully",
@@ -154,6 +204,21 @@ class NotificationService
             $booking->user_id,
             $booking->id
         );
+
+        // Notify admin about staff action
+        self::createAdminStaffNotification(
+            Notification::ACTION_STAFF_COMPLETED,
+            "Staff member {$userName} marked booking #{$booking->id} as completed for {$booking->user->name}",
+            [
+                'booking_id' => $booking->id,
+                'user_name' => $booking->user->name,
+                'service_name' => $booking->service->name,
+                'staff_name' => $userName,
+                'action_type' => 'completed'
+            ],
+            null, // Notify all admin
+            $booking->id
+        );
     }
 
     /**
@@ -163,6 +228,7 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
+        // Notify user about their payment being verified
         self::createUserNotification(
             Notification::ACTION_PAYMENT_VERIFIED,
             "Payment for booking #{$booking->id} has been verified",
@@ -175,6 +241,22 @@ class NotificationService
             $booking->user_id,
             $booking->id
         );
+
+        // Notify admin about staff action
+        self::createAdminStaffNotification(
+            Notification::ACTION_STAFF_PAYMENT_VERIFIED,
+            "Staff member {$userName} verified payment for booking #{$booking->id} ({$booking->user->name})",
+            [
+                'booking_id' => $booking->id,
+                'user_name' => $booking->user->name,
+                'service_name' => $booking->service->name,
+                'staff_name' => $userName,
+                'action_type' => 'payment_verified',
+                'payment_amount' => $booking->payment->total_fee ?? 'N/A'
+            ],
+            null, // Notify all admin
+            $booking->id
+        );
     }
 
     /**
@@ -184,6 +266,7 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
+        // Notify user about their payment being rejected
         self::createUserNotification(
             Notification::ACTION_PAYMENT_REJECTED,
             "Payment for booking #{$booking->id} has been rejected" . ($reason ? ": {$reason}" : ""),
@@ -194,6 +277,22 @@ class NotificationService
                 'reason' => $reason
             ],
             $booking->user_id,
+            $booking->id
+        );
+
+        // Notify admin about staff action
+        self::createAdminStaffNotification(
+            Notification::ACTION_STAFF_PAYMENT_REJECTED,
+            "Staff member {$userName} rejected payment for booking #{$booking->id} ({$booking->user->name})" . ($reason ? ": {$reason}" : ""),
+            [
+                'booking_id' => $booking->id,
+                'user_name' => $booking->user->name,
+                'service_name' => $booking->service->name,
+                'staff_name' => $userName,
+                'action_type' => 'payment_rejected',
+                'reason' => $reason
+            ],
+            null, // Notify all admin
             $booking->id
         );
     }
@@ -245,6 +344,41 @@ class NotificationService
                 'service_name' => $booking->service->name,
                 'old_priest_name' => $oldPriestName,
                 'new_priest_name' => $newPriestName
+            ],
+            $booking->user_id,
+            $booking->id
+        );
+    }
+
+    /**
+     * Notify when a certificate is uploaded
+     */
+    public static function certificateUploaded(Booking $booking, string $filename)
+    {
+        $uploader = auth()->user() ? auth()->user()->name : 'Parish Staff';
+        // Notify admin/staff that a certificate was uploaded by staff/admin
+        self::createAdminStaffNotification(
+            Notification::ACTION_STAFF_CERTIFICATE_UPLOADED,
+            "{$uploader} uploaded a certificate for booking #{$booking->id} ({$booking->user->name})",
+            [
+                'booking_id' => $booking->id,
+                'user_name' => $booking->user->name,
+                'service_name' => $booking->service->name,
+                'staff_name' => $uploader,
+                'file' => $filename,
+            ],
+            null,
+            $booking->id
+        );
+
+        // Notify user that their certificate is now available
+        self::createUserNotification(
+            Notification::ACTION_CERTIFICATE_UPLOADED,
+            "Your certificate for booking #{$booking->id} is now available",
+            [
+                'booking_id' => $booking->id,
+                'service_name' => $booking->service->name,
+                'file' => $filename,
             ],
             $booking->user_id,
             $booking->id

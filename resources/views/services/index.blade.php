@@ -23,7 +23,7 @@
         </div>
 
         @if($services->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
                 @foreach($services as $service)
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
                     <!-- Service Header -->
@@ -35,13 +35,104 @@
                     <!-- Service Content -->
                     <div class="p-6 flex-1 flex flex-col">
                         @if($service->description)
-                            <p class="text-gray-600 mb-4">{{ Str::limit($service->description, 120) }}</p>
+                            <p class="text-gray-600 mb-4 flex-1">{{ Str::limit($service->description, 120) }}</p>
+                        @endif
+                        
+                        <!-- Rating Display -->
+                        @if($service->total_ratings > 0)
+                            <div class="mb-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <div class="flex items-center space-x-1">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= $service->average_rating)
+                                                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                            @elseif($i - $service->average_rating < 1)
+                                                <i class="fas fa-star-half-alt text-yellow-400 text-sm"></i>
+                                            @else
+                                                <i class="far fa-star text-gray-300 text-sm"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">{{ $service->average_rating }}</span>
+                                    <span class="text-sm text-gray-500">({{ $service->total_ratings }} {{ Str::plural('rating', $service->total_ratings) }})</span>
+                                </div>
+                                
+                                <!-- User's Rating (if authenticated and has rated) -->
+                                @auth
+                                    @if($service->hasUserRating(Auth::id(), null))
+                                        @php
+                                            $userRating = $service->ratings()->where('user_id', Auth::id())->first();
+                                        @endphp
+                                        @if($userRating)
+                                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-xs font-medium text-blue-800">Your Rating:</span>
+                                                    <div class="flex items-center space-x-1">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            @if($i <= $userRating->rating)
+                                                                <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                                            @else
+                                                                <i class="far fa-star text-gray-300 text-xs"></i>
+                                                            @endif
+                                                        @endfor
+                                                        <span class="text-xs text-blue-800 ml-1">{{ $userRating->rating }}/5</span>
+                                                    </div>
+                                                </div>
+                                                @if($userRating->comment)
+                                                    <p class="text-xs text-blue-700 mt-1 italic">"{{ Str::limit($userRating->comment, 50) }}"</p>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endif
+                                @endauth
+                            </div>
                         @endif
                         
                         <!-- Fees -->
                         <div class="mb-4">
                             <h4 class="font-semibold text-gray-900 mb-2">Fees:</h4>
-                            <p class="text-sm text-gray-600">{{ $service->formatted_fees }}</p>
+                            @php
+                                $fees = $service->fees ?? [];
+                                $regularFee = null;
+                                $rushFee = null;
+                                $otherFees = [];
+                                
+                                foreach ($fees as $type => $feeData) {
+                                    if (is_array($feeData) && isset($feeData['amount'])) {
+                                        if (strtolower($type) === 'regular') {
+                                            $regularFee = $feeData;
+                                        } elseif (strtolower($type) === 'rush') {
+                                            $rushFee = $feeData;
+                                        } else {
+                                            $otherFees[$type] = $feeData;
+                                        }
+                                    } else {
+                                        if (strtolower($type) === 'regular') {
+                                            $regularFee = ['amount' => $feeData, 'description' => 'Regular'];
+                                        } elseif (strtolower($type) === 'rush') {
+                                            $rushFee = ['amount' => $feeData, 'description' => 'Rush'];
+                                        } else {
+                                            $otherFees[$type] = ['amount' => $feeData, 'description' => ucfirst($type)];
+                                        }
+                                    }
+                                }
+                            @endphp
+                            
+                            @if($regularFee)
+                                <p class="text-sm text-gray-600">{{ $regularFee['description'] }}: ₱{{ number_format($regularFee['amount'], 2) }}</p>
+                            @endif
+                            
+                            @if($rushFee)
+                                <p class="text-sm text-orange-600 mt-1">{{ $rushFee['description'] }}: ₱{{ number_format($rushFee['amount'], 2) }}</p>
+                            @endif
+                            
+                            @foreach($otherFees as $type => $feeData)
+                                <p class="text-sm text-gray-600 mt-1">{{ $feeData['description'] }}: ₱{{ number_format($feeData['amount'], 2) }}</p>
+                            @endforeach
+                            
+                            @if(empty($fees))
+                                <p class="text-sm text-gray-600">Contact office for pricing</p>
+                            @endif
                         </div>
                         
                         <!-- Schedule Preview -->

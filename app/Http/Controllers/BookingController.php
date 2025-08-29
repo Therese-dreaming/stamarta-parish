@@ -58,16 +58,22 @@ class BookingController extends Controller
             ->select('service_date', 'service_time', 'status')
             ->get();
 
+        // Get parochial activities that block this service
+        $parochialActivities = \App\Models\ParochialActivity::where('status', 'active')
+            ->where('block_type', 'full_day')
+            ->get();
+
         // Debug information
         \Log::info('Step2 Debug Info', [
             'service_id' => $service->id,
             'service_schedules' => $service->schedules,
             'active_bookings_count' => $activeBookings->count(),
             'active_bookings' => $activeBookings->toArray(),
-            'selected_date' => $selectedDate
+            'selected_date' => $selectedDate,
+            'parochial_activities_count' => $parochialActivities->count()
         ]);
 
-        return view('booking.step2', compact('service', 'step1Data', 'activeBookings', 'selectedDate'));
+        return view('booking.step2', compact('service', 'step1Data', 'activeBookings', 'selectedDate', 'parochialActivities'));
     }
 
     public function step2Store(Request $request, Service $service)
@@ -118,8 +124,14 @@ class BookingController extends Controller
 
         switch($serviceType) {
             case 'solo_baptism':
-            case 'group_baptism':
                 $requiredDocuments = ['birth_certificate', 'parents_ids'];
+                $conditionalDocuments = [
+                    'marriage_contract' => 'parents_married',
+                    'baptismal_permit' => 'from_another_parish'
+                ];
+                break;
+            case 'group_baptism':
+                $requiredDocuments = ['birth_certificates', 'parents_ids'];
                 $conditionalDocuments = [
                     'marriage_contract' => 'parents_married',
                     'baptismal_permit' => 'from_another_parish'
@@ -231,9 +243,28 @@ class BookingController extends Controller
 
     public function myBookings()
     {
-        $bookings = Auth::user()->bookings()->with('service')->latest()->paginate(10);
-        
+        $bookings = Auth::user()->bookings()
+            ->with(['service', 'payment'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         return view('booking.my-bookings', compact('bookings'));
+    }
+
+    /**
+     * Show individual booking details
+     */
+    public function show(Booking $booking)
+    {
+        // Ensure user can only view their own bookings
+        if ($booking->user_id !== Auth::id()) {
+            return redirect()->route('booking.my-bookings')->with('error', 'Unauthorized action.');
+        }
+
+        // Load relationships
+        $booking->load(['service', 'payment', 'user']);
+
+        return view('booking.show', compact('booking'));
     }
 
     /**
@@ -452,7 +483,7 @@ class BookingController extends Controller
             return redirect()->route('booking.my-bookings')->with('error', 'This booking is not ready for payment.');
         }
 
-        $booking->load('service');
+        $booking->load(['service', 'payment']);
         
         return view('booking.payment', compact('booking'));
     }
@@ -468,6 +499,9 @@ class BookingController extends Controller
         if ($booking->status !== 'acknowledged') {
             return redirect()->route('booking.my-bookings')->with('error', 'Booking must be acknowledged first.');
         }
+
+        // Load the payment relationship to access existing total_fee
+        $booking->load('payment');
 
         $request->validate([
             'payment_method' => 'required|in:gcash,metrobank',
@@ -490,9 +524,15 @@ class BookingController extends Controller
                 throw new \Exception('Failed to store payment proof file');
             }
 
-            // Get the appropriate fee for this booking
-            $feeInfo = $booking->service->getFeeForDate($booking->service_date);
-            $totalFee = $feeInfo['amount'] ?? 0;
+            // Use the existing total fee that was set by admin/staff when acknowledging the booking
+            $existingPayment = $booking->payment;
+            if (!$existingPayment || !$existingPayment->total_fee) {
+                // Fallback to service fee if no total fee was set
+                $feeInfo = $booking->service->getFeeForDate($booking->service_date);
+                $totalFee = $feeInfo['amount'] ?? 0;
+            } else {
+                $totalFee = $existingPayment->total_fee;
+            }
 
             // Create or update payment record
             $booking->payment()->updateOrCreate(

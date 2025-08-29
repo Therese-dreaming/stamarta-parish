@@ -15,6 +15,7 @@ class Page extends Model
         'title',
         'slug',
         'content',
+        'content_blocks',
         'layout',
         'image_media_id',
         'meta_title',
@@ -28,6 +29,7 @@ class Page extends Model
     protected $casts = [
         'is_published' => 'boolean',
         'published_at' => 'datetime',
+        'content_blocks' => 'array',
     ];
 
     public function image()

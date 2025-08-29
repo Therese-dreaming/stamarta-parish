@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder
             PageSeeder::class,
             ServiceSeeder::class,
             PriestSeeder::class,
-            BookingSeeder::class
+            BookingSeeder::class,
+            FaqSeeder::class,
         ]);
     }
 }

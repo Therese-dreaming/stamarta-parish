@@ -469,10 +469,20 @@
                                                 <i class="fas fa-file-image text-[#0d5c2f] text-xl"></i>
                                             </div>
                                             <p class="text-gray-700 mb-3 text-center text-sm">Payment proof has been uploaded</p>
-                                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.download-payment-proof', $booking) : route('admin.bookings.download-payment-proof', $booking) }}" 
-                                            class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors text-sm">
-                                                <i class="fas fa-download mr-2"></i>Download Proof
-                                            </a>
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ Storage::url($booking->payment->payment_proof) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm">
+                                                    <i class="fas fa-eye mr-2"></i>View Proof
+                                                </a>
+                                                <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.download-payment-proof', $booking) : route('admin.bookings.download-payment-proof', $booking) }}" 
+                                                class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors text-sm">
+                                                    <i class="fas fa-download mr-2"></i>Download Proof
+                                                </a>
+                                                @if($booking->status === 'payment_hold')
+                                                <button onclick="openPaymentVerificationModal()" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm" id="payment-verification">
+                                                    <i class="fas fa-check mr-2"></i>Verify Payment
+                                                </button>
+                                                @endif
+                                            </div>
                                         </div>
                                         <div class="mt-3 space-y-2">
                                             @if($booking->payment->payment_submitted_at)
@@ -541,10 +551,10 @@
                             </div>
                             <div class="bg-[#0d5c2f]/5 rounded-xl p-4 text-center">
                                 <span class="text-2xl font-bold text-[#0d5c2f]">
-                                    @if($booking->payment)
-                                        {{ substr($booking->payment->formatted_total_fee, 1) }}
+                                    @if($booking->payment && is_numeric($booking->payment->total_fee))
+                                        {{ number_format($booking->payment->total_fee, 2) }}
                                     @else
-                                        0
+                                        0.00
                                     @endif
                                 </span>
                                 <p class="text-xs text-gray-600 mt-1">Total Fee (₱)</p>
@@ -705,21 +715,54 @@
                     </div>
                     <div class="p-4">
                         <div class="space-y-3">
-                            <a href="#" 
-                                onclick="window.print(); return false;"
-                                class="w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors flex items-center justify-center">
-                                 <i class="fas fa-print mr-2"></i>
-                                 <span>Print Booking Details</span>
+                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.print', $booking) : route('admin.bookings.print', $booking) }}" 
+                               target="_blank"
+                               class="w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors flex items-center justify-center">
+                                 <i class="fas fa-file-pdf mr-2"></i>
+                                 <span>Download as PDF</span>
                              </a>
-                            
-                            @if($booking->status === 'approved' || $booking->status === 'completed')
-                                <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.certificate', $booking) : route('admin.bookings.certificate', $booking) }}" 
-                                   target="_blank"
-                                   class="w-full px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors flex items-center justify-center">
-                                    <i class="fas fa-certificate mr-2"></i>
-                                    <span>Generate Certificate</span>
-                                </a>
+
+                            @if($booking->status === 'pending')
+                                <button onclick="openAcknowledgeModal()" 
+                                        class="w-full px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors flex items-center justify-center">
+                                    <i class="fas fa-check mr-2"></i>
+                                    <span>Acknowledge Booking</span>
+                                </button>
                             @endif
+
+                            @if($booking->status === 'payment_hold')
+                                <button onclick="openPaymentVerificationModal()" 
+                                        class="w-full px-4 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors flex items-center justify-center">
+                                    <i class="fas fa-check-double mr-2"></i>
+                                    <span>Verify Payment</span>
+                                </button>
+                            @endif
+
+                            @if($booking->status === 'approved')
+                                <button onclick="openCompleteModal()" 
+                                        class="w-full px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg transition-colors flex items-center justify-center">
+                                    <i class="fas fa-flag-checkered mr-2"></i>
+                                    <span>Mark as Completed</span>
+                                </button>
+                            @endif
+                            
+                            <div class="space-y-2">
+                                <button onclick="openCertificateModal()" class="w-full px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors flex items-center justify-center">
+                                    <i class="fas fa-upload mr-2"></i>
+                                    <span>Upload Certificate</span>
+                                </button>
+                                @if($booking->certificate_path)
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ Storage::url($booking->certificate_path) }}" target="_blank" class="w-full px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors flex items-center justify-center">
+                                            <i class="fas fa-eye mr-2"></i>
+                                            <span>View Certificate</span>
+                                        </a>
+                                        <button onclick="openDeleteCertificateModal()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
                             
                             @if(in_array($booking->status, ['pending', 'acknowledged', 'payment_hold']))
                                 <button onclick="openCancelModal()" 
@@ -771,7 +814,7 @@
                                        required
                                        class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
                                        placeholder="0.00"
-                                       value="{{ $booking->service ? ($booking->service->getFeeForDate($booking->service_date)['amount'] ?? '') : '' }}">
+                                       value="{{ $booking->payment && $booking->payment->total_fee ? $booking->payment->total_fee : ($booking->service ? ($booking->service->getFeeForDate($booking->service_date)['amount'] ?? '') : '') }}">
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Enter the total amount the user needs to pay</p>
                         </div>
@@ -891,15 +934,27 @@
                 
                 <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.verify-payment', $booking) : route('admin.bookings.verify-payment', $booking) }}" method="POST">
                     @csrf
-                    <div class="mb-4">
-                        <label for="verification_notes" class="block text-sm font-medium text-gray-700 mb-2">
-                            Notes (Optional)
-                        </label>
-                        <textarea id="verification_notes" 
-                                  name="notes" 
-                                  rows="2"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
-                                  placeholder="Add any notes about the payment verification"></textarea>
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        <input type="hidden" name="verification_status" value="approved">
+                        <div>
+                            <label for="priest_id" class="block text-sm font-medium text-gray-700 mb-2">Assign Priest *</label>
+                            <select id="priest_id" name="priest_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
+                                <option value="">Select a priest</option>
+                                @foreach($priests as $priest)
+                                    <option value="{{ $priest->id }}" @selected($booking->priest_id === $priest->id)>{{ $priest->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="verification_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                                Notes (Optional)
+                            </label>
+                            <textarea id="verification_notes" 
+                                      name="notes" 
+                                      rows="2"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                      placeholder="Add any notes about the payment verification"></textarea>
+                        </div>
                     </div>
                     
                     <div class="flex items-center justify-end space-x-3">
@@ -976,117 +1031,210 @@
     </div>
 </div>
 
+<!-- Certificate Upload Modal -->
+<div id="certificateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-lg max-w-xl w-full">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-file-upload text-purple-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Upload Certificate</h3>
+                        <p class="text-xs text-gray-600">PDF or Image (max 8 MB). Preview before uploading.</p>
+                    </div>
+                </div>
+                <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.certificate.upload', $booking) : route('admin.bookings.certificate.upload', $booking) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div id="dropzone" class="border-2 border-dashed border-gray-300 rounded-lg p-5 flex flex-col items-center justify-center text-center hover:border-purple-300 transition-colors">
+                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <p class="text-sm text-gray-700">Drag & drop certificate here, or</p>
+                        <label class="mt-1 inline-block px-3 py-1.5 bg-purple-600 text-white rounded-md text-xs cursor-pointer">Browse<input type="file" name="certificate" id="certificateInput" accept=".pdf,.jpg,.jpeg,.png" class="hidden"></label>
+                        <p class="mt-2 text-xs text-gray-500">Accepted: PDF, JPG, PNG</p>
+                    </div>
+
+                    <div id="previewContainer" class="mt-4 hidden">
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <div class="flex items-start gap-3">
+                                <div id="previewThumb" class="w-20 h-20 bg-white border border-gray-200 rounded flex items-center justify-center overflow-hidden"></div>
+                                <div class="flex-1">
+                                    <p id="previewName" class="text-sm font-medium text-gray-900"></p>
+                                    <p id="previewMeta" class="text-xs text-gray-500"></p>
+                                    <div id="previewEmbed" class="mt-2 hidden">
+                                        <iframe id="previewPdf" class="w-full h-64 border border-gray-200 rounded"></iframe>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 mt-4">
+                        <button type="button" onclick="closeModal('certificateModal')" class="px-3 py-1.5 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 text-xs">Cancel</button>
+                        <button type="submit" id="uploadSubmit" class="px-4 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-xs disabled:opacity-50" disabled>Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Certificate Modal -->
+<div id="deleteCertificateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 animate-fade-in">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full animate-slide-up">
+            <div class="p-6">
+                <div class="flex items-center mb-6">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-trash text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Delete Certificate</h3>
+                        <p class="text-sm text-gray-600">Are you sure you want to remove this certificate?</p>
+                    </div>
+                </div>
+                
+                <div class="bg-red-50 rounded-lg p-4 mb-6 border border-red-200">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 mr-2"></i>
+                        <p class="text-sm text-red-700">
+                            This action will permanently remove the certificate from this booking. The user will no longer be able to view it.
+                        </p>
+                    </div>
+                </div>
+                
+                <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.certificate.delete', $booking) : route('admin.bookings.certificate.delete', $booking) }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    
+                    <div class="flex items-center justify-end space-x-3">
+                        <button type="button" 
+                                onclick="closeModal('deleteCertificateModal')"
+                                class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                            <i class="fas fa-trash mr-2"></i>Delete Certificate
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-    .timeline-left {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .timeline-line {
-        width: 2px;
-        height: 100%;
-        background-color: #e5e7eb;
-        margin-top: 8px;
-    }
-    
-    .animate-pulse-slow {
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-    
-    .animate-fade-in-up {
-        animation: fadeInUp 0.5s ease forwards;
-    }
-    
-    .animate-fade-in {
-        animation: fadeIn 0.3s ease forwards;
-    }
-    
-    .animate-slide-up {
-        animation: slideUp 0.3s ease forwards;
-    }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .bg-pattern {
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
+    .timeline-left { display:flex; flex-direction:column; align-items:center; }
+    .timeline-line { width:2px; height:100%; background-color:#e5e7eb; margin-top:8px; }
+    .animate-pulse-slow { animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+    .animate-fade-in { animation: fadeIn 0.3s ease forwards; }
+    .animate-slide-up { animation: slideUp 0.3s ease forwards; }
+    @keyframes fadeInUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0);} }
+    @keyframes fadeIn { from { opacity:0;} to { opacity:1;} }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px);} to { opacity:1; transform:translateY(0);} }
+    .bg-pattern { background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
 </style>
 
 <script>
-function openAcknowledgeModal() {
-    const el = document.getElementById('acknowledgeModal');
-    if (el) el.classList.remove('hidden');
-}
+function openAcknowledgeModal() { const el = document.getElementById('acknowledgeModal'); if (el) el.classList.remove('hidden'); }
+function openRejectModal() { const el = document.getElementById('rejectModal'); if (el) el.classList.remove('hidden'); }
+function openPaymentVerificationModal() { const el = document.getElementById('paymentVerificationModal'); if (el) el.classList.remove('hidden'); setTimeout(togglePriestField, 0); }
+function openCancelModal() { const el = document.getElementById('cancelModal'); if (el) el.classList.remove('hidden'); }
+function openCertificateModal() { const el = document.getElementById('certificateModal'); if (el) el.classList.remove('hidden'); }
+function openDeleteCertificateModal() { const el = document.getElementById('deleteCertificateModal'); if (el) el.classList.remove('hidden'); }
+function closeModal(modalId) { const el = document.getElementById(modalId); if (el) el.classList.add('hidden'); }
 
-function openRejectModal() {
-    const el = document.getElementById('rejectModal');
-    if (el) el.classList.remove('hidden');
-}
-
-function openPaymentVerificationModal() {
-    const el = document.getElementById('paymentVerificationModal');
-    if (el) el.classList.remove('hidden');
-}
-
-function openCancelModal() {
-    const el = document.getElementById('cancelModal');
-    if (el) el.classList.remove('hidden');
-}
-
-function closeModal(modalId) {
-    const el = document.getElementById(modalId);
-    if (el) el.classList.add('hidden');
-}
-
-// Close modals when clicking outside their inner panel
-['acknowledgeModal','rejectModal','paymentVerificationModal','cancelModal'].forEach(id => {
+['acknowledgeModal','rejectModal','paymentVerificationModal','cancelModal','certificateModal','deleteCertificateModal'].forEach(id => {
     const modal = document.getElementById(id);
     if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal(this.id);
-            }
-        });
+        modal.addEventListener('click', function(e) { if (e.target === this) { closeModal(this.id); } });
     }
 });
 
-// Reveal timeline items on load (for older entries without the new animation class)
+// Reveal timeline items on load
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.timeline-item').forEach((item, index) => {
-        setTimeout(() => {
-            item.style.opacity = '1';
-        }, 100 * (index + 1));
+        setTimeout(() => { item.style.opacity = '1'; }, 100 * (index + 1));
     });
+
+    const input = document.getElementById('certificateInput');
+    const dropzone = document.getElementById('dropzone');
+    const preview = {
+        container: document.getElementById('previewContainer'),
+        thumb: document.getElementById('previewThumb'),
+        name: document.getElementById('previewName'),
+        meta: document.getElementById('previewMeta'),
+        embedWrap: document.getElementById('previewEmbed'),
+        pdf: document.getElementById('previewPdf')
+    };
+    const submitBtn = document.getElementById('uploadSubmit');
+
+    if (input) {
+        input.addEventListener('change', handleCertificateChange);
+    }
+    if (dropzone) {
+        ;['dragover','dragenter'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('border-purple-400','bg-purple-50'); }));
+        ;['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('border-purple-400','bg-purple-50'); }));
+        dropzone.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) { input.files = e.dataTransfer.files; handleCertificateChange(); } });
+    }
+
+    function handleCertificateChange() {
+        const file = input.files && input.files[0] ? input.files[0] : null;
+        if (!file) { preview.container.classList.add('hidden'); submitBtn.disabled = true; return; }
+        submitBtn.disabled = false;
+        preview.container.classList.remove('hidden');
+        preview.name.textContent = file.name;
+        preview.meta.textContent = `${(file.size/1024/1024).toFixed(2)} MB • ${file.type || 'file'}`;
+        preview.embedWrap.classList.add('hidden');
+        preview.thumb.innerHTML = '';
+        const url = URL.createObjectURL(file);
+        if (file.type && file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'max-w-full max-h-full object-contain';
+            preview.thumb.appendChild(img);
+        } else if (file.type === 'application/pdf') {
+            preview.thumb.innerHTML = '<i class="fas fa-file-pdf text-red-600 text-2xl"></i>';
+            preview.embedWrap.classList.remove('hidden');
+            preview.pdf.src = url;
+        } else {
+            preview.thumb.innerHTML = '<i class="fas fa-file text-gray-500 text-2xl"></i>';
+        }
+    }
+});
+
+function togglePriestField() {
+    const approvedRadio = document.querySelector('input[name="verification_status"][value="approved"]');
+    const priestSelect = document.getElementById('priest_id');
+    const wrapper = document.getElementById('priestSelectWrapper');
+    if (!approvedRadio || !priestSelect || !wrapper) return;
+    const onChange = () => {
+        const isApproved = approvedRadio.checked;
+        priestSelect.disabled = !isApproved;
+        priestSelect.required = isApproved;
+        wrapper.style.opacity = isApproved ? '1' : '0.6';
+    };
+    approvedRadio.addEventListener('change', onChange);
+    const rejectedRadio = document.querySelector('input[name="verification_status"][value="rejected"]');
+    if (rejectedRadio) rejectedRadio.addEventListener('change', onChange);
+    onChange();
+}
+</script>
+
+<script>
+// Auto-open modals based on URL hash from index actions
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location && window.location.hash === '#payment-verification') {
+        if (typeof openPaymentVerificationModal === 'function') {
+            openPaymentVerificationModal();
+        }
+    }
 });
 </script>
 @endsection

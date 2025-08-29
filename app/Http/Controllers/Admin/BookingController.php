@@ -341,5 +341,63 @@ class BookingController extends Controller
         return Storage::disk('public')->download($booking->payment->payment_proof);
     }
 
+    public function uploadCertificate(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:8192',
+        ]);
 
+        if ($booking->certificate_path && Storage::disk('public')->exists($booking->certificate_path)) {
+            Storage::disk('public')->delete($booking->certificate_path);
+        }
+
+        $file = $request->file('certificate');
+        $path = $file->store('certificates', 'public');
+        $booking->update(['certificate_path' => $path]);
+
+        // Notify admin/staff and user
+        NotificationService::certificateUploaded($booking, $file->getClientOriginalName());
+
+        return back()->with('success', 'Certificate uploaded successfully.');
+    }
+
+    public function deleteCertificate(Booking $booking)
+    {
+        if ($booking->certificate_path && Storage::disk('public')->exists($booking->certificate_path)) {
+            Storage::disk('public')->delete($booking->certificate_path);
+        }
+        $booking->update(['certificate_path' => null]);
+
+        return back()->with('success', 'Certificate removed successfully.');
+    }
+
+    public function print(Booking $booking)
+    {
+        $booking->load(['user', 'service', 'payment']);
+
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $html = view('admin.bookings.pdf', compact('booking'))->render();
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('A4');
+            return $pdf->stream('booking-' . $booking->id . '-receipt.pdf', ['Attachment' => false]);
+        }
+
+        abort(500, 'PDF engine not installed. Please install barryvdh/laravel-dompdf.');
+    }
+
+    public function certificate(Booking $booking)
+    {
+        $booking->load(['user', 'service', 'payment']);
+
+        if (!class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            abort(500, 'PDF engine not installed. Please install barryvdh/laravel-dompdf.');
+        }
+
+        $serviceType = $booking->service->service_type ?? 'general';
+        $view = 'admin.bookings.certificates.baptism';
+
+        // In future, you can switch on $serviceType for other certificates
+        $html = view($view, compact('booking'))->render();
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('letter', 'portrait');
+        return $pdf->stream('booking-' . $booking->id . '-certificate.pdf', ['Attachment' => false]);
+    }
 } 

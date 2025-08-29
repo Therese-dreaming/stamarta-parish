@@ -46,6 +46,7 @@ class ParochialActivity extends Model
         'formatted_time',
         'formatted_datetime',
         'is_blocking_bookings',
+        'block_type_label',
     ];
 
     // Status constants

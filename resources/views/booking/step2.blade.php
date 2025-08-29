@@ -129,7 +129,7 @@
                 <div class="mb-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Select Date</h3>
                     <div class="max-w-4xl mx-auto">
-                        <x-calendar :activeBookings="$activeBookings" :selectedDate="$selectedDate" :service="$service" />
+                        <x-calendar :activeBookings="$activeBookings" :selectedDate="$selectedDate" :service="$service" :parochialActivities="$parochialActivities" />
                     </div>
                     <input type="hidden" name="selected_date" value="{{ $selectedDate }}">
                 </div>

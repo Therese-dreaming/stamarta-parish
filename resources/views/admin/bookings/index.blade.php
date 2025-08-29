@@ -4,151 +4,138 @@
 
 @section('content')
 @include('components.toast')
-<div class="space-y-6">
+<div class="space-y-4">
     
     <!-- Header with colored background -->
-    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-xl shadow-sm">
-        <div class="px-6 py-8">
-            <div class="flex justify-between items-center">
+    <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-lg shadow-md overflow-hidden">
+        <div class="px-4 py-4 relative">
+            <div class="absolute right-0 top-0 w-16 h-16 bg-white/5 rounded-bl-full"></div>
+            <div class="flex justify-between items-center relative z-10">
                 <div>
-                    <h1 class="text-3xl font-bold text-white">Bookings Management</h1>
-                    <p class="text-white/80 mt-1">Manage all service bookings and their status</p>
+                    <h1 class="text-xl font-bold text-white">Bookings Management</h1>
+                    <p class="text-white/80 mt-1 text-xs">Manage all service bookings and their status</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <div class="text-right text-white">
-                        <div class="text-2xl font-bold">{{ $stats['total'] ?? 0 }}</div>
-                        <div class="text-sm opacity-80">Total Bookings</div>
-                    </div>
+                <div class="text-right text-white">
+                    <div class="text-lg font-bold">{{ $stats['total'] ?? 0 }}</div>
+                    <div class="text-xs opacity-80">Total Bookings</div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
             <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-clock text-yellow-600"></i>
-                    </div>
+                <div class="w-6 h-6 bg-yellow-100 rounded-md flex items-center justify-center mr-2">
+                    <i class="fas fa-clock text-yellow-600 text-xs"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Pending</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['pending'] }}</p>
+                <div>
+                    <p class="text-xs font-medium text-gray-500">Pending</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $stats['pending'] }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
             <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-check text-blue-600"></i>
-                    </div>
+                <div class="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center mr-2">
+                    <i class="fas fa-check text-blue-600 text-xs"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Acknowledged</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['acknowledged'] }}</p>
+                <div>
+                    <p class="text-xs font-medium text-gray-500">Acknowledged</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $stats['acknowledged'] }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
             <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-clock text-orange-600"></i>
-                    </div>
+                <div class="w-6 h-6 bg-orange-100 rounded-md flex items-center justify-center mr-2">
+                    <i class="fas fa-clock text-orange-600 text-xs"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Payment Hold</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['payment_hold'] }}</p>
+                <div>
+                    <p class="text-xs font-medium text-gray-500">Payment Hold</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $stats['payment_hold'] }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
             <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-check-circle text-green-600"></i>
-                    </div>
+                <div class="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center mr-2">
+                    <i class="fas fa-check-circle text-green-600 text-xs"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Approved</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['approved'] }}</p>
+                <div>
+                    <p class="text-xs font-medium text-gray-500">Approved</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $stats['approved'] }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
             <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-times text-red-600"></i>
-                    </div>
+                <div class="w-6 h-6 bg-red-100 rounded-md flex items-center justify-center mr-2">
+                    <i class="fas fa-times text-red-600 text-xs"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Rejected</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['rejected'] }}</p>
+                <div>
+                    <p class="text-xs font-medium text-gray-500">Rejected</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $stats['rejected'] }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
             <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-flag-checkered text-green-600"></i>
-                    </div>
+                <div class="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center mr-2">
+                    <i class="fas fa-flag-checkered text-green-600 text-xs"></i>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Completed</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['completed'] }}</p>
+                <div>
+                    <p class="text-xs font-medium text-gray-500">Completed</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ $stats['completed'] }}</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Status Tabs Filter -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
         <div class="grid grid-cols-7 border-b border-gray-200">
-            <button id="tab-all" class="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
-                <i class="fas fa-list mr-2"></i> All
+            <button id="tab-all" class="px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
+                <i class="fas fa-list mr-1"></i> All
             </button>
-            <button id="tab-pending" class="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
-                <i class="fas fa-clock mr-2"></i> Pending
+            <button id="tab-pending" class="px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
+                <i class="fas fa-clock mr-1"></i> Pending
             </button>
-            <button id="tab-acknowledged" class="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
-                <i class="fas fa-check mr-2"></i> Acknowledged
+            <button id="tab-acknowledged" class="px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
+                <i class="fas fa-check mr-1"></i> Acknowledged
             </button>
-            <button id="tab-payment_hold" class="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
-                <i class="fas fa-clock mr-2"></i> Payment Hold
+            <button id="tab-payment_hold" class="px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
+                <i class="fas fa-clock mr-1"></i> Payment Hold
             </button>
-            <button id="tab-approved" class="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
-                <i class="fas fa-check-circle mr-2"></i> Approved
+            <button id="tab-approved" class="px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
+                <i class="fas fa-check-circle mr-1"></i> Approved
             </button>
-            <button id="tab-rejected" class="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
-                <i class="fas fa-times mr-2"></i> Rejected
+            <button id="tab-rejected" class="px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
+                <i class="fas fa-times mr-1"></i> Rejected
             </button>
-            <button id="tab-completed" class="px-6 py-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
-                <i class="fas fa-flag-checkered mr-2"></i> Completed
+            <button id="tab-completed" class="px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border-b-2 border-transparent">
+                <i class="fas fa-flag-checkered mr-1"></i> Completed
             </button>
         </div>
         
-        <div class="p-6">
+        <div class="p-4">
             <!-- View Toggle -->
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center space-x-2">
-                    <button id="table-view-btn" class="px-4 py-2 text-sm font-medium text-[#0d5c2f] bg-[#0d5c2f]/10 rounded-lg border border-[#0d5c2f]/20">
-                        <i class="fas fa-table mr-2"></i> Table View
+                    <button id="table-view-btn" class="px-3 py-1.5 text-xs font-medium text-[#0d5c2f] bg-[#0d5c2f]/10 rounded-md border border-[#0d5c2f]/20">
+                        <i class="fas fa-table mr-1.5"></i> Table View
                     </button>
-                    <button id="card-view-btn" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors">
-                        <i class="fas fa-th-large mr-2"></i> Card View
+                    <button id="card-view-btn" class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-md border border-gray-200 hover:bg-gray-200 transition-colors">
+                        <i class="fas fa-th-large mr-1.5"></i> Card View
                     </button>
                 </div>
-                <div class="text-sm text-gray-500">
+                <div class="text-xs text-gray-500">
                     <span id="filtered-count">{{ $bookings->count() }}</span> bookings found
                 </div>
             </div>
@@ -158,54 +145,37 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Booking
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Service
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Date & Time
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Service Fee
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Created
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Fee</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($bookings as $booking)
-                            <tr class="hover:bg-gray-50 booking-row" 
+                            <tr class="hover:bg-gray-50 booking-row transition-colors duration-200" 
                                 data-booking-id="{{ is_array($booking->id) ? 0 : ($booking->id ?? 0) }}" 
                                 data-service-fee="{{ $booking->service ? ($booking->service->getFeeForDate($booking->service_date)['amount'] ?? 0) : 0 }}"
-                                data-status="{{ $booking->status }}">
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                data-status="{{ $booking->status }}"
+                                data-total-fee="{{ $booking->payment ? $booking->payment->total_fee : '' }}">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div>
-                                        <div class="text-sm font-medium text-gray-900">
-                                            #{{ $booking->id }}
-                                        </div>
-                                        <div class="text-sm text-gray-500">
-                                            {{ $booking->user->name ?? 'Unknown User' }}
-                                        </div>
+                                        <div class="text-sm font-medium text-gray-900">#{{ $booking->id }}</div>
+                                        <div class="text-xs text-gray-500">{{ $booking->user->name ?? 'Unknown User' }}</div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ $booking->service->name ?? 'Unknown Service' }}</div>
-                                    <div class="text-sm text-gray-500">{{ $booking->contact_phone ?? 'No phone' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $booking->contact_phone ?? 'No phone' }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ $booking->formatted_date ?? 'No date' }}</div>
-                                    <div class="text-sm text-gray-500">{{ $booking->formatted_time ?? 'No time' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $booking->formatted_time ?? 'No time' }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm text-gray-900 font-medium">
                                         @if($booking->service)
                                             @php
@@ -223,8 +193,8 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium 
                                         @if($booking->status === 'pending') bg-yellow-100 text-yellow-800
                                         @elseif($booking->status === 'acknowledged') bg-blue-100 text-blue-800
                                         @elseif($booking->status === 'payment_hold') bg-orange-100 text-orange-800
@@ -235,43 +205,43 @@
                                         {{ ucfirst(str_replace('_', ' ', $booking->status)) }}
                                     </span>
                                     @if($booking->payment && $booking->payment->payment_status)
-                                        <span class="ml-2 text-sm text-gray-500">
+                                        <span class="ml-1 text-xs text-gray-500">
                                             ({{ ucfirst($booking->payment->payment_status) }})
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
                                     {{ $booking->created_at->format('M d, Y g:i A') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex items-center space-x-2">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex items-center space-x-1">
                                         <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}" 
-                                           class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" title="View">
-                                            <i class="fas fa-eye text-sm"></i>
+                                           class="w-6 h-6 rounded-md bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" title="View">
+                                            <i class="fas fa-eye text-xs"></i>
                                         </a>
                                         
                                         @if($booking->status === 'pending')
-                                            <button onclick="openAcknowledgeModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Acknowledge">
-                                                <i class="fas fa-check text-sm"></i>
+                                            <button onclick="openAcknowledgeModal({{ $booking->id }})" class="w-6 h-6 rounded-md bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Acknowledge">
+                                                <i class="fas fa-check text-xs"></i>
                                             </button>
                                         @endif
 
                                         @if($booking->status === 'payment_hold')
                                             <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}#payment-verification" 
-                                               class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Verify Payment">
-                                                <i class="fas fa-check-circle text-sm"></i>
+                                               class="w-6 h-6 rounded-md bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Verify Payment">
+                                                <i class="fas fa-check-circle text-xs"></i>
                                             </a>
                                         @endif
 
                                         @if($booking->status === 'approved')
-                                            <button onclick="openCompleteModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Mark Complete">
-                                                <i class="fas fa-flag-checkered text-sm"></i>
+                                            <button onclick="openCompleteModal({{ $booking->id }})" class="w-6 h-6 rounded-md bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Mark Complete">
+                                                <i class="fas fa-flag-checkered text-xs"></i>
                                             </button>
                                         @endif
 
                                         @if(in_array($booking->status, ['pending', 'acknowledged', 'payment_hold']))
-                                            <button onclick="openRejectModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-colors" title="Reject">
-                                                <i class="fas fa-times text-sm"></i>
+                                            <button onclick="openRejectModal({{ $booking->id }})" class="w-6 h-6 rounded-md bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-colors" title="Cancel Booking">
+                                                <i class="fas fa-times text-xs"></i>
                                             </button>
                                         @endif
                                     </div>
@@ -283,86 +253,124 @@
             </div>
 
             <!-- Card View -->
-            <div id="card-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <div id="card-view" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
                 @foreach($bookings as $booking)
-                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow booking-card" data-status="{{ $booking->status }}">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-4">
+                    @php
+                        $statusColor = match($booking->status) {
+                            'pending' => 'bg-yellow-500',
+                            'acknowledged' => 'bg-blue-500',
+                            'payment_hold' => 'bg-orange-500',
+                            'approved' => 'bg-green-500',
+                            'rejected' => 'bg-red-500',
+                            'completed' => 'bg-green-600',
+                            default => 'bg-gray-400'
+                        };
+                        $paymentStatus = $booking->payment->payment_status ?? null;
+                    @endphp
+                    <div class="relative bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition transform hover:-translate-y-0.5 booking-card" data-status="{{ $booking->status }}">
+                        <div class="absolute inset-x-0 top-0 h-1.5 {{ $statusColor }}"></div>
+                        <div class="p-4">
+                            <div class="flex items-start justify-between mb-2.5">
                                 <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">#{{ $booking->id }}</h3>
-                                    <p class="text-sm text-gray-500">{{ $booking->user->name ?? 'Unknown User' }}</p>
+                                    <div class="flex items-center space-x-2">
+                                        <h3 class="text-sm font-semibold text-gray-900">#{{ $booking->id }}</h3>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium 
+                                            @if($booking->status === 'pending') bg-yellow-100 text-yellow-800
+                                            @elseif($booking->status === 'acknowledged') bg-blue-100 text-blue-800
+                                            @elseif($booking->status === 'payment_hold') bg-orange-100 text-orange-800
+                                            @elseif($booking->status === 'approved') bg-green-100 text-green-800
+                                            @elseif($booking->status === 'rejected') bg-red-100 text-red-800
+                                            @elseif($booking->status === 'completed') bg-green-100 text-green-800
+                                            @else bg-gray-100 text-gray-800 @endif">
+                                            {{ ucfirst(str_replace('_', ' ', $booking->status)) }}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500 mt-1">{{ $booking->user->name ?? 'Unknown User' }}</p>
                                 </div>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    @if($booking->status === 'pending') bg-yellow-100 text-yellow-800
-                                    @elseif($booking->status === 'acknowledged') bg-blue-100 text-blue-800
-                                    @elseif($booking->status === 'payment_hold') bg-orange-100 text-orange-800
-                                    @elseif($booking->status === 'approved') bg-green-100 text-green-800
-                                    @elseif($booking->status === 'rejected') bg-red-100 text-red-800
-                                    @elseif($booking->status === 'completed') bg-green-100 text-green-800
-                                    @else bg-gray-100 text-gray-800 @endif">
-                                    {{ ucfirst(str_replace('_', ' ', $booking->status)) }}
-                                </span>
+                                <div class="text-right">
+                                    <div class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-[11px]">
+                                        <i class="fas fa-clock mr-1"></i>{{ $booking->created_at->format('M d, Y') }}
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <div class="space-y-3">
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500">Service:</span>
-                                    <p class="text-sm text-gray-900">{{ $booking->service->name ?? 'Unknown Service' }}</p>
+
+                            <div class="space-y-2">
+                                <div class="flex items-center text-sm text-gray-900">
+                                    <i class="fas fa-concierge-bell text-gray-400 mr-2"></i>
+                                    <span class="font-medium">{{ $booking->service->name ?? 'Unknown Service' }}</span>
                                 </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500">Date & Time:</span>
-                                    <p class="text-sm text-gray-900">{{ $booking->formatted_date ?? 'No date' }} at {{ $booking->formatted_time ?? 'No time' }}</p>
+                                <div class="flex items-center text-sm text-gray-900">
+                                    <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                    <span>{{ $booking->formatted_date ?? 'No date' }} <span class="text-gray-500">at</span> {{ $booking->formatted_time ?? 'No time' }}</span>
                                 </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500">Fee:</span>
-                                    <p class="text-sm text-gray-900 font-medium">
-                                        @if($booking->service)
-                                            @php
-                                                $feeInfo = $booking->service->getFeeForDate($booking->service_date);
-                                                $feeAmount = $feeInfo['amount'] ?? 0;
-                                            @endphp
-                                            ₱{{ number_format($feeAmount, 2) }}
-                                        @else
-                                            ₱0.00
-                                        @endif
-                                    </p>
+                                <div class="flex items-center text-sm text-gray-900">
+                                    <i class="fas fa-phone text-gray-400 mr-2"></i>
+                                    <span>{{ $booking->contact_phone ?? 'No phone' }}</span>
                                 </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-500">Created:</span>
-                                    <p class="text-sm text-gray-900">{{ $booking->created_at->format('M d, Y g:i A') }}</p>
+
+                                <div class="flex items-center flex-wrap gap-2 pt-1">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                        <i class="fas fa-money-bill-wave mr-1"></i>
+                                        @php
+                                            $feeInfo = $booking->service ? $booking->service->getFeeForDate($booking->service_date) : ['amount' => 0];
+                                            $feeAmount = $feeInfo['amount'] ?? 0;
+                                        @endphp
+                                        ₱{{ number_format($feeAmount, 2) }}
+                                    </span>
+                                    @if($booking->payment && $booking->payment->total_fee)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] bg-gray-50 text-gray-700 border border-gray-200">
+                                            Set: ₱{{ number_format($booking->payment->total_fee, 2) }}
+                                        </span>
+                                    @endif
+                                    @if($paymentStatus)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] border 
+                                            @class([
+                                                'bg-blue-50 text-blue-700 border-blue-200' => $paymentStatus === 'pending',
+                                                'bg-green-50 text-green-700 border-green-200' => $paymentStatus === 'verified',
+                                                'bg-red-50 text-red-700 border-red-200' => $paymentStatus === 'rejected',
+                                                'bg-gray-50 text-gray-700 border-gray-200' => !in_array($paymentStatus, ['pending','verified','rejected'])
+                                            ])>
+                                            <i class="fas fa-receipt mr-1"></i>{{ ucfirst($paymentStatus) }}
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="bg-gray-50 px-6 py-4 flex justify-between items-center">
-                            <div class="flex space-x-2">
+                        <div class="bg-gray-50 px-4 py-3 flex justify-between items-center">
+                            <div class="text-[11px] text-gray-500">
+                                <span class="inline-flex items-center">
+                                    <i class="fas fa-id-badge mr-1"></i>Booking ID: #{{ $booking->id }}
+                                </span>
+                            </div>
+                            <div class="flex space-x-1">
                                 <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}" 
-                                   class="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors" title="View">
-                                    <i class="fas fa-eye text-sm"></i>
+                                   class="px-2.5 py-1.5 rounded-md bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs transition-colors" title="View">
+                                    <i class="fas fa-eye mr-1"></i> View
                                 </a>
-                                
+
                                 @if($booking->status === 'pending')
-                                    <button onclick="openAcknowledgeModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Acknowledge">
-                                        <i class="fas fa-check text-sm"></i>
+                                    <button onclick="openAcknowledgeModal({{ $booking->id }})" class="px-2.5 py-1.5 rounded-md bg-green-100 hover:bg-green-200 text-green-700 text-xs transition-colors" title="Acknowledge">
+                                        <i class="fas fa-check mr-1"></i> Ack
                                     </button>
                                 @endif
 
                                 @if($booking->status === 'payment_hold')
                                     <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.show', $booking) : route('admin.bookings.show', $booking) }}#payment-verification" 
-                                       class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Verify Payment">
-                                        <i class="fas fa-check-circle text-sm"></i>
+                                       class="px-2.5 py-1.5 rounded-md bg-green-100 hover:bg-green-200 text-green-700 text-xs transition-colors" title="Verify Payment">
+                                        <i class="fas fa-check-circle mr-1"></i> Verify
                                     </a>
                                 @endif
 
                                 @if($booking->status === 'approved')
-                                    <button onclick="openCompleteModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-colors" title="Mark Complete">
-                                        <i class="fas fa-flag-checkered text-sm"></i>
+                                    <button onclick="openCompleteModal({{ $booking->id }})" class="px-2.5 py-1.5 rounded-md bg-green-100 hover:bg-green-200 text-green-700 text-xs transition-colors" title="Mark Complete">
+                                        <i class="fas fa-flag-checkered mr-1"></i> Complete
                                     </button>
                                 @endif
 
                                 @if(in_array($booking->status, ['pending', 'acknowledged', 'payment_hold']))
-                                    <button onclick="openRejectModal({{ $booking->id }})" class="w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-colors" title="Reject">
-                                        <i class="fas fa-times text-sm"></i>
+                                    <button onclick="openRejectModal({{ $booking->id }})" class="px-2.5 py-1.5 rounded-md bg-red-100 hover:bg-red-200 text-red-700 text-xs transition-colors" title="Reject">
+                                        <i class="fas fa-times mr-1"></i> Reject
                                     </button>
                                 @endif
                             </div>
@@ -372,22 +380,22 @@
             </div>
 
             <!-- Empty State -->
-            <div id="empty-state" class="text-center py-12 hidden">
+            <div id="empty-state" class="text-center py-8 hidden">
                 <div class="max-w-md mx-auto">
-                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-calendar-times text-3xl text-gray-400"></i>
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-calendar-times text-2xl text-gray-400"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No Bookings Found</h3>
-                    <p class="text-gray-600 mb-4">There are no bookings matching the selected filter.</p>
-                    <button onclick="resetFilter()" class="px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-                        <i class="fas fa-refresh mr-2"></i>Show All Bookings
+                    <h3 class="text-base font-semibold text-gray-900 mb-2">No Bookings Found</h3>
+                    <p class="text-sm text-gray-600 mb-3">There are no bookings matching the selected filter.</p>
+                    <button onclick="resetFilter()" class="px-3 py-1.5 bg-[#0d5c2f] text-white rounded-md hover:bg-[#0d5c2f]/90 transition-colors text-xs">
+                        <i class="fas fa-refresh mr-1.5"></i>Show All Bookings
                     </button>
                 </div>
             </div>
 
             <!-- Pagination -->
             @if($bookings->hasPages())
-                <div class="mt-6 border-t border-gray-200 pt-4">
+                <div class="mt-4 border-t border-gray-200 pt-3">
                     {{ $bookings->links() }}
                 </div>
             @endif
@@ -398,63 +406,61 @@
 <!-- Acknowledge Modal -->
 <div id="acknowledgeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-xl shadow-lg max-w-lg w-full">
-            <div class="p-6">
-                <div class="flex items-center mb-6">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-blue-600"></i>
-                        </div>
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="p-4">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-check text-blue-600 text-sm"></i>
                     </div>
-                    <div class="ml-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Acknowledge Booking</h3>
-                        <p class="text-sm text-gray-600">Set payment details and acknowledge the booking</p>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Acknowledge Booking</h3>
+                        <p class="text-xs text-gray-600">Set payment details and acknowledge the booking</p>
                     </div>
                 </div>
                 
                 <form id="acknowledgeForm" method="POST">
                     @csrf
                     
-                    <div class="space-y-4">
+                    <div class="space-y-3">
                         <div>
-                            <label for="total_fee" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="total_fee" class="block text-xs font-medium text-gray-700 mb-1">
                                 Total Fee (₱) *
                             </label>
                             <div class="relative">
-                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₱</span>
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₱</span>
                                 <input type="number" 
                                        id="total_fee" 
                                        name="total_fee" 
                                        step="0.01" 
                                        min="0"
                                        required
-                                       class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                       class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm"
                                        placeholder="0.00">
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Enter the total amount the user needs to pay</p>
                         </div>
                         
                         <div>
-                            <label for="acknowledge_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="acknowledge_notes" class="block text-xs font-medium text-gray-700 mb-1">
                                 Notes (Optional)
                             </label>
                             <textarea id="acknowledge_notes" 
                                       name="notes" 
-                                      rows="3"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                      rows="2"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm"
                                       placeholder="Add any notes about the acknowledgment or payment instructions"></textarea>
                         </div>
                     </div>
                     
-                    <div class="flex items-center justify-end space-x-3 mt-6">
+                    <div class="flex items-center justify-end space-x-2 mt-4">
                         <button type="button" 
                                 onclick="closeModal('acknowledgeModal')"
-                                class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                class="px-3 py-1.5 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-xs">
                             Cancel
                         </button>
                         <button type="submit" 
-                                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                            <i class="fas fa-check mr-2"></i>Acknowledge Booking
+                                class="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-xs">
+                            <i class="fas fa-check mr-1.5"></i>Acknowledge Booking
                         </button>
                     </div>
                 </form>
@@ -463,34 +469,55 @@
     </div>
 </div>
 
-<!-- Reject Modal -->
+<!-- Cancel Booking Modal (copied design from show page) -->
 <div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-xl shadow-lg max-w-md w-full">
             <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Reject Booking</h3>
+                <div class="flex items-center mb-6">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-ban text-red-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Cancel Booking</h3>
+                        <p class="text-sm text-gray-600">Are you sure you want to cancel this booking?</p>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 rounded-lg p-4 mb-6 border border-yellow-200">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5 mr-2"></i>
+                        <p class="text-sm text-yellow-700">
+                            This action will cancel the booking and notify the user. This cannot be undone.
+                        </p>
+                    </div>
+                </div>
+                
                 <form id="rejectForm" method="POST">
                     @csrf
                     <div class="mb-4">
                         <label for="reject_notes" class="block text-sm font-medium text-gray-700 mb-2">
-                            Reason for Rejection *
+                            Reason for Cancellation *
                         </label>
                         <textarea id="reject_notes" 
                                   name="notes" 
                                   rows="3"
                                   required
                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
-                                  placeholder="Please provide a reason for rejecting this booking"></textarea>
+                                  placeholder="Please provide a reason for cancelling this booking"></textarea>
                     </div>
+                    
                     <div class="flex items-center justify-end space-x-3">
                         <button type="button" 
                                 onclick="closeModal('rejectModal')"
                                 class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                            Cancel
+                            Go Back
                         </button>
                         <button type="submit" 
-                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                            Reject Booking
+                                class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                            <i class="fas fa-ban mr-2"></i>Cancel Booking
                         </button>
                     </div>
                 </form>
@@ -502,43 +529,41 @@
 <!-- Complete Modal -->
 <div id="completeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-xl shadow-lg max-w-md w-full">
-            <div class="p-6">
-                <div class="flex items-center mb-6">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-flag-checkered text-green-600"></i>
-                        </div>
+        <div class="bg-white rounded-lg shadow-lg max-w-sm w-full">
+            <div class="p-4">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-flag-checkered text-green-600 text-sm"></i>
                     </div>
-                    <div class="ml-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Complete Booking</h3>
-                        <p class="text-sm text-gray-600">Mark this booking as completed</p>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Complete Booking</h3>
+                        <p class="text-xs text-gray-600">Mark this booking as completed</p>
                     </div>
                 </div>
                 
                 <form id="completeForm" method="POST">
                     @csrf
                     
-                    <div class="mb-4">
-                        <label for="complete_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                    <div class="mb-3">
+                        <label for="complete_notes" class="block text-xs font-medium text-gray-700 mb-1">
                             Completion Notes (Optional)
                         </label>
                         <textarea id="complete_notes" 
                                   name="notes" 
-                                  rows="3"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                  rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm"
                                   placeholder="Add any notes about the completion"></textarea>
                     </div>
                     
-                    <div class="flex items-center justify-end space-x-3">
+                    <div class="flex items-center justify-end space-x-2">
                         <button type="button" 
                                 onclick="closeModal('completeModal')"
-                                class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                class="px-3 py-1.5 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-xs">
                             Cancel
                         </button>
                         <button type="submit" 
-                                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                            <i class="fas fa-flag-checkered mr-2"></i>Complete Booking
+                                class="px-4 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium text-xs">
+                            <i class="fas fa-flag-checkered mr-1.5"></i>Complete Booking
                         </button>
                     </div>
                 </form>
@@ -671,9 +696,11 @@ function openAcknowledgeModal(bookingId) {
     const bookingRow = document.querySelector(`tr[data-booking-id="${bookingId}"]`);
     if (bookingRow) {
         const serviceFee = bookingRow.getAttribute('data-service-fee');
+        const existingTotalFee = bookingRow.getAttribute('data-total-fee');
         const totalFeeInput = document.getElementById('total_fee');
-        if (totalFeeInput && serviceFee) {
-            totalFeeInput.value = serviceFee;
+        if (totalFeeInput) {
+            // Use existing total fee if available, otherwise use service fee
+            totalFeeInput.value = existingTotalFee || serviceFee || '';
         }
     }
     
