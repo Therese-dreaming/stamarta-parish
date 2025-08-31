@@ -153,15 +153,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	// CMS Routes
 	Route::prefix('cms')->name('cms.')->group(function () {
 		// Pages
-		Route::resource('pages', AdminPageController::class);
-		Route::post('pages/{page}/toggle-publish', [AdminPageController::class, 'togglePublish'])->name('pages.toggle-publish');
-		Route::get('pages/{page}/preview', [AdminPageController::class, 'preview'])->name('pages.preview');
+		Route::resource('pages', AdminPageController::class)->except(['destroy']);
+		Route::delete('pages/{pageId}', [AdminPageController::class, 'destroy'])->name('pages.destroy');
+		Route::post('pages/{pageId}/toggle-publish', [AdminPageController::class, 'togglePublish'])->name('pages.toggle-publish');
+		Route::get('pages/{pageId}/preview', [AdminPageController::class, 'preview'])->name('pages.preview');
 		
 		// Media
-		Route::resource('media', MediaController::class);
+		Route::resource('media', MediaController::class)->except(['destroy']);
+		Route::delete('media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
 		Route::get('media/{media}/edit', [MediaController::class, 'edit'])->name('media.edit');
 		Route::put('media/{media}', [MediaController::class, 'update'])->name('media.update');
-		Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
 	});
 	
 	// Priest Management
@@ -235,15 +236,16 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
 	// CMS Routes (using admin controllers)
 	Route::prefix('cms')->name('cms.')->group(function () {
 		// Pages
-		Route::resource('pages', AdminPageController::class);
-		Route::post('pages/{page}/toggle-publish', [AdminPageController::class, 'togglePublish'])->name('pages.toggle-publish');
-		Route::get('pages/{page}/preview', [AdminPageController::class, 'preview'])->name('pages.preview');
+		Route::resource('pages', AdminPageController::class)->except(['destroy']);
+		Route::delete('pages/{pageId}', [AdminPageController::class, 'destroy'])->name('pages.destroy');
+		Route::post('pages/{pageId}/toggle-publish', [AdminPageController::class, 'togglePublish'])->name('pages.toggle-publish');
+		Route::get('pages/{pageId}/preview', [AdminPageController::class, 'preview'])->name('pages.preview');
 		
 		// Media
-		Route::resource('media', MediaController::class);
+		Route::resource('media', MediaController::class)->except(['destroy']);
+		Route::delete('media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
 		Route::get('media/{media}/edit', [MediaController::class, 'edit'])->name('media.edit');
 		Route::put('media/{media}', [MediaController::class, 'update'])->name('media.update');
-		Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
 	});
 	
 	// Direct CMS routes for easier access
@@ -253,7 +255,9 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
 	Route::get('pages/{page}', [AdminPageController::class, 'show'])->name('pages.show');
 	Route::get('pages/{page}/edit', [AdminPageController::class, 'edit'])->name('pages.edit');
 	Route::put('pages/{page}', [AdminPageController::class, 'update'])->name('pages.update');
-	Route::delete('pages/{page}', [AdminPageController::class, 'destroy'])->name('pages.destroy');
+	Route::delete('pages/{pageId}', [AdminPageController::class, 'destroy'])->name('pages.destroy');
+	Route::post('pages/{page}/toggle-publish', [AdminPageController::class, 'togglePublish'])->name('pages.toggle-publish');
+	Route::get('pages/{page}/preview', [AdminPageController::class, 'preview'])->name('pages.preview');
 	
 	// View Only Routes (using admin controllers)
 	Route::get('priests', [PriestController::class, 'index'])->name('priests.index');

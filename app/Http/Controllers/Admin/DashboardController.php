@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\BookingPayment;
 use App\Models\Priest;
 use App\Models\Service;
+use App\Models\ServiceRating;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -45,8 +46,47 @@ class DashboardController extends Controller
             ];
         }
 
-        // Service popularity
-        $serviceStats = Service::withCount('bookings')->orderBy('bookings_count', 'desc')->take(5)->get();
+        // Service popularity with ratings
+        $serviceStats = Service::withCount('bookings')
+            ->withCount('ratings')
+            ->withAvg('ratings', 'rating')
+            ->orderBy('bookings_count', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function ($service) {
+                $service->average_rating = $service->ratings_avg_rating ? round($service->ratings_avg_rating, 1) : 0;
+                $service->total_ratings = $service->ratings_count;
+                return $service;
+            });
+
+        // Service rating statistics
+        $ratingStats = [
+            'total_ratings' => ServiceRating::count(),
+            'average_rating' => ServiceRating::avg('rating') ? round(ServiceRating::avg('rating'), 1) : 0,
+            'rated_services' => Service::whereHas('ratings')->count(),
+            'unrated_services' => Service::whereDoesntHave('ratings')->count(),
+            'top_rated_services' => Service::withCount('ratings')
+                ->withAvg('ratings', 'rating')
+                ->having('ratings_count', '>', 0)
+                ->orderBy('ratings_avg_rating', 'desc')
+                ->take(3)
+                ->get()
+                ->map(function ($service) {
+                    $service->average_rating = round($service->ratings_avg_rating, 1);
+                    return $service;
+                }),
+            'recent_ratings' => ServiceRating::with(['user', 'service'])
+                ->latest()
+                ->take(5)
+                ->get(),
+            'rating_distribution' => [
+                '1_star' => ServiceRating::where('rating', 1)->count(),
+                '2_star' => ServiceRating::where('rating', 2)->count(),
+                '3_star' => ServiceRating::where('rating', 3)->count(),
+                '4_star' => ServiceRating::where('rating', 4)->count(),
+                '5_star' => ServiceRating::where('rating', 5)->count(),
+            ],
+        ];
 
         // Finance statistics
         $financeStats = [
@@ -124,9 +164,10 @@ class DashboardController extends Controller
             'new_revenue' => BookingPayment::where('payment_status', 'verified')
                 ->whereDate('created_at', Carbon::today())
                 ->sum('total_fee'),
+            'new_ratings' => ServiceRating::whereDate('created_at', Carbon::today())->count(),
         ];
 
-        $stats = array_merge($bookingStats, $financeStats, $userStats, $systemStats, $todayStats);
+        $stats = array_merge($bookingStats, $financeStats, $userStats, $systemStats, $todayStats, $ratingStats);
 
         return view('admin.dashboard', compact(
             'stats', 

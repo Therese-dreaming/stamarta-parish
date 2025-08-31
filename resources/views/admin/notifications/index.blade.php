@@ -151,7 +151,7 @@
                                             </h3>
                                             
                                             <p class="text-sm text-gray-600 leading-relaxed">
-                                                {{ $notification->message }}
+                                                {{ $notification->display_message }}
                                             </p>
                                             
                                             @if($notification->type === 'admin_staff' && $notification->createdBy)
@@ -385,7 +385,7 @@ function renderNotifications(notifications, type) {
         const isRead = notification.read_at || notification.is_read || false;
         const notificationType = notification.type || 'unknown';
         const title = notification.title || 'Notification';
-        const message = notification.message || 'No message available';
+        const message = notification.display_message || notification.message || 'No message available';
         const createdAt = notification.created_at || new Date().toISOString();
         const notificationId = notification.id || 'unknown';
         

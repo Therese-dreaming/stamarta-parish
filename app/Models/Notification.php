@@ -194,4 +194,52 @@ class Notification extends Model
             default => 'bg-gray-100 text-gray-800'
         };
     }
+
+    /**
+     * Get the appropriate message based on user role
+     * Admins see specific staff names, users see generic "parish staff"
+     */
+    public function getMessageForRole($userRole = null)
+    {
+        // If no user role provided, return the original message
+        if (!$userRole) {
+            return $this->message;
+        }
+
+        // For admin users, show the original message (which includes staff names)
+        if ($userRole === 'admin') {
+            return $this->message;
+        }
+
+        // For non-admin users, replace specific staff names with "parish staff"
+        $message = $this->message;
+        
+        // Replace specific staff names with generic "parish staff" for user notifications
+        if ($this->type === 'user') {
+            // Check if this is a staff action notification
+            if (in_array($this->action, [
+                self::ACTION_BOOKING_ACKNOWLEDGED,
+                self::ACTION_BOOKING_APPROVED,
+                self::ACTION_BOOKING_REJECTED,
+                self::ACTION_BOOKING_COMPLETED,
+                self::ACTION_PAYMENT_VERIFIED,
+                self::ACTION_PAYMENT_REJECTED
+            ])) {
+                // Extract staff name from data if available
+                $staffName = $this->data['acknowledged_by'] ?? 
+                             $this->data['approved_by'] ?? 
+                             $this->data['rejected_by'] ?? 
+                             $this->data['completed_by'] ?? 
+                             $this->data['verified_by'] ?? 
+                             null;
+                
+                if ($staffName && $staffName !== 'Parish Staff') {
+                    // Replace the staff name with "parish staff"
+                    $message = str_replace(" by {$staffName}", " by parish staff", $message);
+                }
+            }
+        }
+        
+        return $message;
+    }
 }

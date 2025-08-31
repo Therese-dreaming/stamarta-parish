@@ -9,6 +9,7 @@ use App\Models\Page;
 use App\Models\Media;
 use App\Models\Priest;
 use App\Models\Service;
+use App\Models\ServiceRating;
 use App\Models\ParochialActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +48,6 @@ class DashboardController extends Controller
             'processed_last_month' => BookingAction::where('performed_by', $user->id)
                 ->whereMonth('created_at', $lastMonth->month)
                 ->whereYear('created_at', $lastMonth->year)->count(),
-            // Monthly-specific statistics
             'acknowledged_this_month' => BookingAction::where('performed_by', $user->id)
                 ->where('action_type', 'acknowledged')
                 ->whereMonth('created_at', $thisMonth->month)
@@ -127,11 +127,48 @@ class DashboardController extends Controller
                 ->get(),
         ];
 
-        // Service popularity (for reference)
+        // Service popularity with ratings (for services this staff has processed)
         $serviceStats = Service::withCount('bookings')
+            ->withCount('ratings')
+            ->withAvg('ratings', 'rating')
             ->orderBy('bookings_count', 'desc')
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(function ($service) {
+                $service->average_rating = $service->ratings_avg_rating ? round($service->ratings_avg_rating, 1) : 0;
+                $service->total_ratings = $service->ratings_count;
+                return $service;
+            });
+
+        // Rating statistics for services this staff has processed
+        $ratingStats = [
+            'total_ratings' => ServiceRating::count(),
+            'average_rating' => ServiceRating::avg('rating') ? round(ServiceRating::avg('rating'), 1) : 0,
+            'rated_services' => Service::whereHas('ratings')->count(),
+            'unrated_services' => Service::whereDoesntHave('ratings')->count(),
+            'top_rated_services' => Service::withCount('ratings')
+                ->withAvg('ratings', 'rating')
+                ->having('ratings_count', '>', 0)
+                ->orderBy('ratings_avg_rating', 'desc')
+                ->take(3)
+                ->get()
+                ->map(function ($service) {
+                    $service->average_rating = round($service->ratings_avg_rating, 1);
+                    return $service;
+                }),
+            'recent_ratings' => ServiceRating::with(['user', 'service'])
+                ->latest()
+                ->take(5)
+                ->get(),
+            'rating_distribution' => [
+                '1_star' => ServiceRating::where('rating', 1)->count(),
+                '2_star' => ServiceRating::where('rating', 2)->count(),
+                '3_star' => ServiceRating::where('rating', 3)->count(),
+                '4_star' => ServiceRating::where('rating', 4)->count(),
+                '5_star' => ServiceRating::where('rating', 5)->count(),
+            ],
+            'new_ratings_today' => ServiceRating::whereDate('created_at', $today)->count(),
+        ];
 
         // Monthly activity trends for this staff member (last 6 months)
         $monthlyActivity = [];
@@ -170,20 +207,6 @@ class DashboardController extends Controller
                 ->where('action_type', 'completed')->count(),
         ];
 
-        // Performance metrics
-        $performanceMetrics = [
-            'avg_processing_time' => $this->calculateAverageProcessingTime($user->id),
-            'efficiency_rating' => $this->calculateEfficiencyRating($user->id),
-            'accuracy_rate' => $this->calculateAccuracyRate($user->id),
-            'success_rate' => $this->calculateSuccessRate($user->id),
-            'fastest_processing' => $this->calculateFastestProcessingTime($user->id),
-            'monthly_avg_time' => $this->calculateMonthlyAverageTime($user->id),
-            'time_improvement' => $this->calculateTimeImprovement($user->id),
-            'speed_score' => $this->calculateSpeedScore($user->id),
-            'quality_score' => $this->calculateQualityScore($user->id),
-            'consistency_score' => $this->calculateConsistencyScore($user->id),
-        ];
-
         // Weekly activity for the last 7 days
         $weeklyActivity = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -211,250 +234,10 @@ class DashboardController extends Controller
             'dailyActivity',
             'weeklyActivity',
             'actionDistribution',
-            'performanceMetrics',
             'serviceDistribution',
+            'ratingStats',
             'user'
         ));
-    }
-
-    private function calculateAverageProcessingTime($userId)
-    {
-        // Calculate average time between booking creation and first action by this staff member
-        $actions = BookingAction::where('performed_by', $userId)
-            ->with('booking')
-            ->get();
-
-        if ($actions->isEmpty()) {
-            return 0;
-        }
-
-        $totalTime = 0;
-        $count = 0;
-
-        foreach ($actions as $action) {
-            if ($action->booking) {
-                $timeDiff = $action->created_at->diffInMinutes($action->booking->created_at);
-                $totalTime += $timeDiff;
-                $count++;
-            }
-        }
-
-        return $count > 0 ? round($totalTime / $count, 1) : 0;
-    }
-
-    private function calculateEfficiencyRating($userId)
-    {
-        // Calculate efficiency based on actions per day
-        $actionsThisMonth = BookingAction::where('performed_by', $userId)
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->count();
-
-        $daysInMonth = Carbon::now()->daysInMonth;
-        $actionsPerDay = $actionsThisMonth / $daysInMonth;
-
-        // Simple rating system: 0-5 actions/day = 1-5 stars
-        if ($actionsPerDay >= 5) return 5;
-        if ($actionsPerDay >= 4) return 4;
-        if ($actionsPerDay >= 3) return 3;
-        if ($actionsPerDay >= 2) return 2;
-        if ($actionsPerDay >= 1) return 1;
-        return 0;
-    }
-
-    private function calculateAccuracyRate($userId)
-    {
-        // Calculate accuracy based on ratio of approved vs rejected bookings
-        $approved = BookingAction::where('performed_by', $userId)
-            ->where('action_type', 'approved')->count();
-        $rejected = BookingAction::where('performed_by', $userId)
-            ->where('action_type', 'rejected')->count();
-
-        $total = $approved + $rejected;
-        
-        if ($total === 0) {
-            return 100; // No decisions made yet
-        }
-
-        // Higher approval rate might indicate better accuracy (assuming most bookings should be approved)
-        return round(($approved / $total) * 100, 1);
-    }
-
-    private function calculateSuccessRate($userId)
-    {
-        // Calculate success rate based on completed vs total processed
-        $completed = BookingAction::where('performed_by', $userId)
-            ->where('action_type', 'completed')->count();
-        $total = BookingAction::where('performed_by', $userId)->count();
-        
-        if ($total === 0) {
-            return 100;
-        }
-
-        return round(($completed / $total) * 100, 1);
-    }
-
-    private function calculateFastestProcessingTime($userId)
-    {
-        $actions = BookingAction::where('performed_by', $userId)
-            ->with('booking')
-            ->get();
-
-        if ($actions->isEmpty()) {
-            return 0;
-        }
-
-        $fastestTime = PHP_INT_MAX;
-        foreach ($actions as $action) {
-            if ($action->booking) {
-                $timeDiff = $action->created_at->diffInMinutes($action->booking->created_at);
-                if ($timeDiff < $fastestTime) {
-                    $fastestTime = $timeDiff;
-                }
-            }
-        }
-
-        return $fastestTime === PHP_INT_MAX ? 0 : $fastestTime;
-    }
-
-    private function calculateMonthlyAverageTime($userId)
-    {
-        $thisMonth = Carbon::now()->startOfMonth();
-        
-        $actions = BookingAction::where('performed_by', $userId)
-            ->whereMonth('created_at', $thisMonth->month)
-            ->whereYear('created_at', $thisMonth->year)
-            ->with('booking')
-            ->get();
-
-        if ($actions->isEmpty()) {
-            return 0;
-        }
-
-        $totalTime = 0;
-        $count = 0;
-
-        foreach ($actions as $action) {
-            if ($action->booking) {
-                $timeDiff = $action->created_at->diffInMinutes($action->booking->created_at);
-                $totalTime += $timeDiff;
-                $count++;
-            }
-        }
-
-        return $count > 0 ? round($totalTime / $count, 1) : 0;
-    }
-
-    private function calculateTimeImprovement($userId)
-    {
-        $thisMonth = Carbon::now()->startOfMonth();
-        $lastMonth = Carbon::now()->subMonth();
-        
-        $thisMonthAvg = $this->calculateMonthlyAverageTime($userId);
-        
-        // Calculate last month's average
-        $lastMonthActions = BookingAction::where('performed_by', $userId)
-            ->whereMonth('created_at', $lastMonth->month)
-            ->whereYear('created_at', $lastMonth->year)
-            ->with('booking')
-            ->get();
-
-        if ($lastMonthActions->isEmpty()) {
-            return 0;
-        }
-
-        $lastMonthTotalTime = 0;
-        $lastMonthCount = 0;
-
-        foreach ($lastMonthActions as $action) {
-            if ($action->booking) {
-                $timeDiff = $action->created_at->diffInMinutes($action->booking->created_at);
-                $lastMonthTotalTime += $timeDiff;
-                $lastMonthCount++;
-            }
-        }
-
-        $lastMonthAvg = $lastMonthCount > 0 ? $lastMonthTotalTime / $lastMonthCount : 0;
-        
-        if ($lastMonthAvg === 0) {
-            return 0;
-        }
-
-        return round((($lastMonthAvg - $thisMonthAvg) / $lastMonthAvg) * 100, 1);
-    }
-
-    private function calculateSpeedScore($userId)
-    {
-        $avgTime = $this->calculateAverageProcessingTime($userId);
-        
-        // Score based on processing time (lower is better)
-        if ($avgTime <= 30) return 100;
-        if ($avgTime <= 60) return 85;
-        if ($avgTime <= 120) return 70;
-        if ($avgTime <= 240) return 55;
-        if ($avgTime <= 480) return 40;
-        return 25;
-    }
-
-    private function calculateQualityScore($userId)
-    {
-        // Quality based on low rejection rate and high completion rate
-        $total = BookingAction::where('performed_by', $userId)->count();
-        $rejected = BookingAction::where('performed_by', $userId)
-            ->where('action_type', 'rejected')->count();
-        $completed = BookingAction::where('performed_by', $userId)
-            ->where('action_type', 'completed')->count();
-        
-        if ($total === 0) {
-            return 100;
-        }
-
-        $rejectionRate = ($rejected / $total) * 100;
-        $completionRate = ($completed / $total) * 100;
-        
-        // Quality score: high completion rate and low rejection rate
-        $qualityScore = ($completionRate * 0.7) + ((100 - $rejectionRate) * 0.3);
-        
-        return round($qualityScore, 1);
-    }
-
-    private function calculateConsistencyScore($userId)
-    {
-        // Consistency based on daily activity patterns
-        $dailyActivity = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            $dailyActivity[] = BookingAction::where('performed_by', $userId)
-                ->whereDate('created_at', $date)
-                ->count();
-        }
-
-        if (empty($dailyActivity)) {
-            return 100;
-        }
-
-        $avgActions = array_sum($dailyActivity) / count($dailyActivity);
-        $variance = 0;
-        
-        foreach ($dailyActivity as $actions) {
-            $variance += pow($actions - $avgActions, 2);
-        }
-        
-        $variance = $variance / count($dailyActivity);
-        $stdDev = sqrt($variance);
-        
-        // Consistency score: lower standard deviation = higher consistency
-        if ($avgActions === 0) {
-            return 100;
-        }
-        
-        $coefficientOfVariation = ($stdDev / $avgActions) * 100;
-        
-        if ($coefficientOfVariation <= 20) return 100;
-        if ($coefficientOfVariation <= 40) return 85;
-        if ($coefficientOfVariation <= 60) return 70;
-        if ($coefficientOfVariation <= 80) return 55;
-        if ($coefficientOfVariation <= 100) return 40;
-        return 25;
     }
 
     private function calculateServiceDistribution($userId)

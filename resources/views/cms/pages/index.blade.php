@@ -121,7 +121,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end space-x-2">
-                                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.preview', $page) : route('admin.cms.pages.preview', $page) }}" 
+                                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.preview', ['pageId' => $page->id]) : route('admin.cms.pages.preview', ['pageId' => $page->id]) }}" 
                                                class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 transition-colors" title="Preview">
                                                 <i class="fas fa-eye text-sm"></i>
                                             </a>
@@ -189,7 +189,7 @@
                                     @endif
 
                                     <div class="flex items-center space-x-2">
-                                        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.preview', $page) : route('admin.cms.pages.preview', $page) }}" 
+                                        <a href="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.preview', ['pageId' => $page->id]) : route('admin.cms.pages.preview', ['pageId' => $page->id]) }}" 
                                            class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 transition-colors" title="Preview">
                                             <i class="fas fa-eye text-sm"></i>
                                         </a>
@@ -255,7 +255,7 @@
         message="Are you sure you want to {{ $page->is_published ? 'unpublish' : 'publish' }} '{{ $page->title }}'? {{ $page->is_published ? 'This will make the page unavailable to visitors.' : 'This will make the page visible to visitors.' }}"
         confirmText="{{ $page->is_published ? 'Unpublish' : 'Publish' }}"
         confirmClass="{{ $page->is_published ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700' }}">
-        <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.toggle-publish', $page) : route('admin.cms.pages.toggle-publish', $page) }}" method="POST">
+        <form action="{{ $isStaff ? route('staff.cms.pages.toggle-publish', ['pageId' => $page->id]) : route('admin.cms.pages.toggle-publish', ['pageId' => $page->id]) }}" method="POST">
             @csrf
         </form>
     </x-modal>
@@ -267,7 +267,7 @@
         message="Are you sure you want to delete '{{ $page->title }}'? This action cannot be undone and will permanently remove the page and all its content."
         confirmText="Delete Page"
         confirmClass="bg-red-600 hover:bg-red-700">
-        <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.pages.destroy', $page) : route('admin.cms.pages.destroy', $page) }}" method="POST">
+        <form action="{{ $isStaff ? route('staff.cms.pages.destroy', ['pageId' => $page->id]) : route('admin.cms.pages.destroy', ['pageId' => $page->id]) }}" method="POST">
             @csrf
             @method('DELETE')
         </form>
@@ -360,6 +360,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// Debug: Add global modal functions if they don't exist
+if (typeof window.openModal === 'undefined') {
+    window.openModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+}
+
+if (typeof window.closeModal === 'undefined') {
+    window.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+    };
+}
+
+if (typeof window.confirmAction === 'undefined') {
+    window.confirmAction = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            const form = modal.querySelector('form');
+            if (form) {
+                form.submit();
+            }
+        }
+        closeModal(modalId);
+    };
+}
 </script>
 
 <style>

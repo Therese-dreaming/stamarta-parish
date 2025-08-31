@@ -91,7 +91,7 @@
                     @foreach($media as $file)
                     <div class="group relative bg-gray-50 rounded-lg p-3 hover:shadow-lg transition-all duration-200 border border-gray-100 hover:border-gray-200">
                         <div class="relative">
-                            @if($file->is_image)
+                            @if($file->is_image && $file->url)
                                 <img src="{{ $file->url }}" alt="{{ $file->alt_text }}" 
                                      class="w-full h-24 bg-gray-200 rounded-lg mb-2 object-cover">
                             @else
@@ -102,11 +102,7 @@
                             
                             <!-- Overlay Actions -->
                             <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center space-x-2">
-                                <button onclick="editMedia({{ $file->id }}, '{{ $file->original_name }}', '{{ $file->alt_text }}', '{{ $file->description }}', '{{ $file->folder }}')" 
-                                        class="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Edit">
-                                    <i class="fas fa-edit text-sm"></i>
-                                </button>
-                                <button onclick="openDeleteModal({{ $file->id }}, '{{ $file->original_name }}')"
+                                <button onclick="openModal('delete-modal-{{ $file->id }}')"
                                         class="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors" title="Delete">
                                     <i class="fas fa-trash text-sm"></i>
                                 </button>
@@ -145,102 +141,22 @@
     </div>
 </div>
 
-<!-- Edit Modal -->
-<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-xl max-w-md w-full shadow-2xl">
-            <div class="p-4 border-b border-gray-200 bg-gray-50">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-edit mr-2 text-[#0d5c2f]"></i>
-                    Edit Media File
-                </h3>
-            </div>
-            <form id="editForm" method="POST" class="p-4 space-y-4">
-                @csrf
-                @method('PUT')
-                
-                <div>
-                    <label for="alt_text" class="block text-sm font-medium text-gray-700 mb-1">Alt Text</label>
-                    <input type="text" id="alt_text" name="alt_text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
-                </div>
-                
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="description" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm resize-y"></textarea>
-                </div>
-                
-                <div>
-                    <label for="folder" class="block text-sm font-medium text-gray-700 mb-1">Folder</label>
-                    <input type="text" id="folder" name="folder" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0a4a26] transition-colors text-sm">
-                        Update
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Modal -->
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-xl max-w-md w-full shadow-2xl">
-            <div class="p-4 border-b border-gray-200 bg-gray-50">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <i class="fas fa-trash mr-2 text-red-600"></i>
-                    Delete Media File
-                </h3>
-            </div>
-            <div class="p-4">
-                <p class="text-gray-600 mb-4">Are you sure you want to delete "<span id="deleteFileName" class="font-medium"></span>"? This action cannot be undone.</p>
-                <form id="deleteForm" method="POST" class="inline">
-                    @csrf
-                    @method('DELETE')
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
-                            Delete File
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Delete Modals for each media file -->
+@foreach($media as $file)
+    <x-modal 
+        id="delete-modal-{{ $file->id }}"
+        title="Delete Media File"
+        message="Are you sure you want to delete '{{ $file->original_name }}'? This action cannot be undone and will permanently remove the file from the server."
+        confirmText="Delete File"
+        confirmClass="bg-red-600 hover:bg-red-700">
+        <form action="{{ isset($isStaff) && $isStaff ? route('staff.cms.media.destroy', $file) : route('admin.cms.media.destroy', $file) }}" method="POST">
+            @csrf
+            @method('DELETE')
+        </form>
+    </x-modal>
+@endforeach
 
 <script>
-function editMedia(id, name, altText, description, folder) {
-    const isStaff = {{ isset($isStaff) && $isStaff ? 'true' : 'false' }};
-    const baseUrl = isStaff ? '/staff/cms/media' : '/admin/cms/media';
-    document.getElementById('editForm').action = `${baseUrl}/${id}`;
-    document.getElementById('alt_text').value = altText || '';
-    document.getElementById('description').value = description || '';
-    document.getElementById('folder').value = folder || '';
-    document.getElementById('editModal').classList.remove('hidden');
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-}
-
-function openDeleteModal(id, fileName) {
-    const isStaff = {{ isset($isStaff) && $isStaff ? 'true' : 'false' }};
-    const baseUrl = isStaff ? '/staff/cms/media' : '/admin/cms/media';
-    document.getElementById('deleteForm').action = `${baseUrl}/${id}`;
-    document.getElementById('deleteFileName').textContent = fileName;
-    document.getElementById('deleteModal').classList.remove('hidden');
-}
-
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
-}
+// No custom JavaScript needed - using the modal component
 </script>
 @endsection 

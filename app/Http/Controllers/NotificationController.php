@@ -59,6 +59,12 @@ class NotificationController extends Controller
         
         $notifications = $query->paginate(20);
         
+        // Pre-process notification messages based on user role
+        $notifications->getCollection()->transform(function ($notification) use ($user) {
+            $notification->display_message = $notification->getMessageForRole($user->role);
+            return $notification;
+        });
+        
         // Get counts for tabs based on role
         $counts = $this->getNotificationCounts($user);
         
@@ -71,7 +77,7 @@ class NotificationController extends Controller
             default => 'notifications.index'
         };
         
-        return view($viewPath, compact('notifications', 'type', 'counts'));
+        return view($viewPath, compact('notifications', 'type', 'counts', 'user'));
     }
     
     private function getNotificationCounts($user)
@@ -298,10 +304,10 @@ class NotificationController extends Controller
                     break;
             }
             
-            $notifications = $query->limit($limit)->get()->map(function($notification) {
+            $notifications = $query->limit($limit)->get()->map(function($notification) use ($user) {
                 return [
                     'id' => $notification->id,
-                    'message' => $notification->message,
+                    'message' => $notification->getMessageForRole($user->role),
                     'is_read' => $notification->is_read,
                     'created_at' => $notification->created_at->diffForHumans(),
                     'type' => $notification->type,

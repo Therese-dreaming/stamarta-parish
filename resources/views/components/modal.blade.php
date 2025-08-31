@@ -39,29 +39,43 @@
                     {{ $confirmText }}
                 </button>
             </div>
+            
+            <!-- Hidden Form Content -->
+            <div class="hidden">
+                {{ $slot }}
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-function openModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
-    document.body.style.overflow = 'auto';
-}
-
-function confirmAction(modalId) {
+// Ensure these functions are globally available
+window.openModal = function(modalId) {
     const modal = document.getElementById(modalId);
-    const form = modal.querySelector('form');
-    if (form) {
-        form.submit();
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+};
+
+window.confirmAction = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        const form = modal.querySelector('form');
+        if (form) {
+            form.submit();
+        }
     }
     closeModal(modalId);
-}
+};
 
 // Close modal when clicking backdrop
 document.addEventListener('DOMContentLoaded', function() {

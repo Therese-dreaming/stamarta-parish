@@ -64,7 +64,7 @@ class PageController extends Controller
             $validated['content'] = $this->generateContentFromBlocks($validated['content_blocks']);
         }
 
-        Page::create($validated);
+        $page = Page::create($validated);
 
         return redirect()->route('admin.cms.pages.index')
             ->with('success', 'Page created successfully.');
@@ -115,28 +115,33 @@ class PageController extends Controller
             ->with('success', 'Page updated successfully.');
     }
 
-    public function destroy(Page $page)
+    public function destroy($pageId)
     {
+        $page = Page::findOrFail($pageId);
         $page->delete();
 
         return redirect()->route('admin.cms.pages.index')
             ->with('success', 'Page deleted successfully.');
     }
 
-    public function togglePublish(Page $page)
+    public function togglePublish($pageId)
     {
+        $page = Page::findOrFail($pageId);
+        
         $page->update([
             'is_published' => !$page->is_published,
             'updated_by' => Auth::id(),
         ]);
 
         $status = $page->is_published ? 'published' : 'unpublished';
+        
         return redirect()->route('admin.cms.pages.index')
             ->with('success', "Page {$status} successfully.");
     }
 
-    public function preview(Page $page)
+    public function preview($pageId)
     {
+        $page = Page::findOrFail($pageId);
         return view('cms.pages.preview', compact('page'));
     }
 

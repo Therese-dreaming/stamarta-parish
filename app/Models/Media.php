@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'original_name',
@@ -36,6 +35,9 @@ class Media extends Model
 
     public function getUrlAttribute()
     {
+        if (!$this->file_path || empty($this->file_path)) {
+            return null;
+        }
         return Storage::url($this->file_path);
     }
 
@@ -69,5 +71,13 @@ class Media extends Model
     public function scopeInFolder($query, $folder)
     {
         return $query->where('folder', $folder);
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName()
+    {
+        return 'id';
     }
 } 

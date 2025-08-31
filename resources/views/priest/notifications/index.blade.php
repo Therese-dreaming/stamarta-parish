@@ -56,7 +56,7 @@
                                     <div class="flex items-start justify-between">
                                         <div class="flex-1">
                                             <p class="text-sm text-gray-900 font-medium leading-5 mb-1">{{ $notification->title }}</p>
-                                            <p class="text-sm text-gray-600">{{ $notification->message }}</p>
+                                            <p class="text-sm text-gray-600">{{ $notification->display_message }}</p>
                                             <div class="flex items-center space-x-2 mt-2">
                                                 <p class="text-xs text-gray-500">{{ $notification->created_at->diffForHumans() }}</p>
                                                 @if(!$notification->read_at)

@@ -82,7 +82,7 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
-        // Notify user about their booking being acknowledged
+        // Notify user about their booking being acknowledged (generic message)
         self::createUserNotification(
             Notification::ACTION_BOOKING_ACKNOWLEDGED,
             "Your booking #{$booking->id} has been acknowledged by parish staff",
@@ -95,7 +95,7 @@ class NotificationService
             $booking->id
         );
 
-        // Notify admin about staff action
+        // Notify admin about staff action (specific staff name)
         self::createAdminStaffNotification(
             Notification::ACTION_STAFF_ACKNOWLEDGED,
             "Staff member {$userName} acknowledged booking #{$booking->id} for {$booking->user->name}",
@@ -118,10 +118,10 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
-        // Notify user about their booking being approved
+        // Notify user about their booking being approved (generic message)
         self::createUserNotification(
             Notification::ACTION_BOOKING_APPROVED,
-            "Your booking #{$booking->id} has been approved!",
+            "Your booking #{$booking->id} has been approved by parish staff",
             [
                 'booking_id' => $booking->id,
                 'service_name' => $booking->service->name,
@@ -131,7 +131,7 @@ class NotificationService
             $booking->id
         );
 
-        // Notify admin about staff action
+        // Notify admin about staff action (specific staff name)
         self::createAdminStaffNotification(
             Notification::ACTION_STAFF_APPROVED,
             "Staff member {$userName} approved booking #{$booking->id} for {$booking->user->name}",
@@ -154,10 +154,10 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
-        // Notify user about their booking being rejected
+        // Notify user about their booking being rejected (generic message)
         self::createUserNotification(
             Notification::ACTION_BOOKING_REJECTED,
-            "Your booking #{$booking->id} has been rejected" . ($reason ? ": {$reason}" : ""),
+            "Your booking #{$booking->id} has been rejected by parish staff" . ($reason ? ": {$reason}" : ""),
             [
                 'booking_id' => $booking->id,
                 'service_name' => $booking->service->name,
@@ -168,7 +168,7 @@ class NotificationService
             $booking->id
         );
 
-        // Notify admin about staff action
+        // Notify admin about staff action (specific staff name)
         self::createAdminStaffNotification(
             Notification::ACTION_STAFF_REJECTED,
             "Staff member {$userName} rejected booking #{$booking->id} for {$booking->user->name}" . ($reason ? ": {$reason}" : ""),
@@ -192,10 +192,10 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
-        // Notify user about their booking being completed
+        // Notify user about their booking being completed (generic message)
         self::createUserNotification(
             Notification::ACTION_BOOKING_COMPLETED,
-            "Your booking #{$booking->id} has been completed successfully",
+            "Your booking #{$booking->id} has been completed by parish staff",
             [
                 'booking_id' => $booking->id,
                 'service_name' => $booking->service->name,
@@ -205,7 +205,7 @@ class NotificationService
             $booking->id
         );
 
-        // Notify admin about staff action
+        // Notify admin about staff action (specific staff name)
         self::createAdminStaffNotification(
             Notification::ACTION_STAFF_COMPLETED,
             "Staff member {$userName} marked booking #{$booking->id} as completed for {$booking->user->name}",
@@ -228,10 +228,10 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
-        // Notify user about their payment being verified
+        // Notify user about their payment being verified (generic message)
         self::createUserNotification(
             Notification::ACTION_PAYMENT_VERIFIED,
-            "Payment for booking #{$booking->id} has been verified",
+            "Payment for booking #{$booking->id} has been verified by parish staff",
             [
                 'booking_id' => $booking->id,
                 'service_name' => $booking->service->name,
@@ -242,7 +242,7 @@ class NotificationService
             $booking->id
         );
 
-        // Notify admin about staff action
+        // Notify admin about staff action (specific staff name)
         self::createAdminStaffNotification(
             Notification::ACTION_STAFF_PAYMENT_VERIFIED,
             "Staff member {$userName} verified payment for booking #{$booking->id} ({$booking->user->name})",
@@ -266,10 +266,10 @@ class NotificationService
     {
         $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
         
-        // Notify user about their payment being rejected
+        // Notify user about their payment being rejected (generic message)
         self::createUserNotification(
             Notification::ACTION_PAYMENT_REJECTED,
-            "Payment for booking #{$booking->id} has been rejected" . ($reason ? ": {$reason}" : ""),
+            "Payment for booking #{$booking->id} has been rejected by parish staff" . ($reason ? ": {$reason}" : ""),
             [
                 'booking_id' => $booking->id,
                 'service_name' => $booking->service->name,
@@ -280,7 +280,7 @@ class NotificationService
             $booking->id
         );
 
-        // Notify admin about staff action
+        // Notify admin about staff action (specific staff name)
         self::createAdminStaffNotification(
             Notification::ACTION_STAFF_PAYMENT_REJECTED,
             "Staff member {$userName} rejected payment for booking #{$booking->id} ({$booking->user->name})" . ($reason ? ": {$reason}" : ""),

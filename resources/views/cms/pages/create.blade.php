@@ -147,7 +147,52 @@
                         </label>
                     </div>
                 </div>
+
+                <!-- Page Layout and Image -->
+                <div class="border-t border-gray-200 pt-4">
+                    <h3 class="text-base font-medium text-gray-900 mb-3 flex items-center">
+                        <i class="fas fa-palette mr-2 text-[#0d5c2f]"></i>
+                        Page Layout & Image
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="layout" class="block text-sm font-medium text-gray-700 mb-1">Page Layout</label>
+                            <select id="layout" name="layout" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] transition-colors text-sm">
+                                <option value="one_column" {{ old('layout') == 'one_column' ? 'selected' : '' }}>Single Column</option>
+                                <option value="image_left_text_right" {{ old('layout') == 'image_left_text_right' ? 'selected' : '' }}>Image Left, Text Right</option>
+                                <option value="image_right_text_left" {{ old('layout') == 'image_right_text_left' ? 'selected' : '' }}>Image Right, Text Left</option>
+                                <option value="image_top_text_bottom" {{ old('layout') == 'image_top_text_bottom' ? 'selected' : '' }}>Image Top, Text Bottom</option>
+                                <option value="text_top_image_bottom" {{ old('layout') == 'text_top_image_bottom' ? 'selected' : '' }}>Text Top, Image Bottom</option>
+                            </select>
+                            <p class="mt-1 text-sm text-gray-500">Choose how your page content will be displayed</p>
+                        </div>
+                        
+                        <div>
+                            <label for="page_image" class="block text-sm font-medium text-gray-700 mb-1">Page Image (Optional)</label>
+                            <div class="flex items-center space-x-2">
+                                <button type="button" onclick="openPageImagePicker()" 
+                                        class="px-3 py-2 bg-[#0d5c2f] hover:bg-[#0a4a26] text-white rounded-lg text-sm transition-colors flex items-center">
+                                    <i class="fas fa-image mr-2"></i>Choose Image
+                                </button>
+                                <button type="button" onclick="clearPageImage()" 
+                                        class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors flex items-center hidden" 
+                                        id="clear_page_image">
+                                    <i class="fas fa-times mr-2"></i>Clear
+                                </button>
+                            </div>
+                            <div id="page_image_preview" class="mt-2 hidden">
+                                <img id="page_image_display" src="" alt="Page Image" class="w-full h-32 object-cover rounded-lg border border-gray-200 shadow-sm">
+                            </div>
+                            <input type="hidden" id="image_media_id" name="image_media_id" value="{{ old('image_media_id') }}">
+                        </div>
+                    </div>
+                </div>
             </div>
+            
+            <!-- Hidden input for storing block data -->
+            <input type="hidden" id="content_blocks_data" name="content_blocks_data" value="">
+            <input type="hidden" id="content" name="content" value="">
         </form>
     </div>
 
@@ -218,10 +263,6 @@
                     <p>Click "Add Block" to start building your page</p>
                 </div>
             </div>
-
-            <!-- Hidden input for storing block data -->
-            <input type="hidden" id="content_blocks_data" name="content_blocks_data" value="">
-            <input type="hidden" id="content" name="content" value="">
         </div>
     </div>
 
@@ -307,6 +348,7 @@
 let blockCounter = 0;
 let currentBlockId = null;
 let blocks = [];
+let pageImageData = null;
 
 // Auto-generate slug from title
 document.getElementById('title').addEventListener('input', function() {
@@ -322,6 +364,51 @@ document.getElementById('title').addEventListener('input', function() {
 });
 
 document.getElementById('meta_description').addEventListener('input', updateLivePreview);
+
+// Add layout change listener
+document.getElementById('layout').addEventListener('change', updateLivePreview);
+
+// Page image picker functions
+function openPageImagePicker() {
+    currentBlockId = 'page_image';
+    document.getElementById('mediaPickerModal').classList.remove('hidden');
+}
+
+function clearPageImage() {
+    pageImageData = null;
+    document.getElementById('image_media_id').value = '';
+    document.getElementById('page_image_preview').classList.add('hidden');
+    document.getElementById('clear_page_image').classList.add('hidden');
+    updateLivePreview();
+}
+
+function selectMediaForBlock(id, url, name) {
+    if (currentBlockId === 'page_image') {
+        // Handle page image selection
+        pageImageData = { id, url, name };
+        document.getElementById('image_media_id').value = id;
+        document.getElementById('page_image_display').src = url;
+        document.getElementById('page_image_preview').classList.remove('hidden');
+        document.getElementById('clear_page_image').classList.remove('hidden');
+    } else if (currentBlockId) {
+        // Handle block image selection
+        const block = blocks.find(b => b.id === currentBlockId);
+        if (block) {
+            if (block.type === 'gallery') {
+                if (!block.data.images) block.data.images = [];
+                block.data.images.push({ id, url, name });
+                updateGalleryPreview(currentBlockId);
+            } else {
+                block.data.image_id = id;
+                block.data.image_url = url;
+                block.data.image_name = name;
+                updateImagePreview(currentBlockId, url);
+            }
+        }
+    }
+    closeMediaPicker();
+    updateLivePreview();
+}
 
 function addBlock(type) {
     blockCounter++;
@@ -642,26 +729,6 @@ function closeMediaPicker() {
     currentBlockId = null;
 }
 
-function selectMediaForBlock(id, url, name) {
-    if (currentBlockId) {
-        const block = blocks.find(b => b.id === currentBlockId);
-        if (block) {
-            if (block.type === 'gallery') {
-                if (!block.data.images) block.data.images = [];
-                block.data.images.push({ id, url, name });
-                updateGalleryPreview(currentBlockId);
-            } else {
-                block.data.image_id = id;
-                block.data.image_url = url;
-                block.data.image_name = name;
-                updateImagePreview(currentBlockId, url);
-            }
-        }
-    }
-    closeMediaPicker();
-    updateLivePreview();
-}
-
 function updateImagePreview(blockId, url) {
     const preview = document.getElementById(`preview_${blockId}`);
     const img = document.getElementById(`img_${blockId}`);
@@ -720,18 +787,52 @@ function clearBlockImage(blockId) {
 function updateLivePreview() {
     const title = document.getElementById('title').value;
     const meta = document.getElementById('meta_description').value;
+    const layout = document.getElementById('layout').value;
     
     document.getElementById('previewTitle').textContent = title || 'Untitled Page';
     
     const container = document.getElementById('livePreviewContainer');
     let html = '';
     
+    // Add page image if selected
+    if (pageImageData && pageImageData.url) {
+        const imageHtml = `<div class="mb-6"><img src="${pageImageData.url}" alt="${pageImageData.name}" class="w-full h-64 object-cover rounded-lg shadow-sm"></div>`;
+        
+        if (layout === 'image_top_text_bottom') {
+            html += imageHtml;
+        } else if (layout === 'text_top_image_bottom') {
+            // Image will be added after content
+        } else if (layout === 'image_left_text_right' || layout === 'image_right_text_left') {
+            // Image will be handled in layout
+        } else {
+            html += imageHtml;
+        }
+    }
+    
+    // Add content blocks
     if (blocks.length === 0) {
-        html = '<p class="text-gray-500 italic text-center py-8">Add content blocks to see the preview...</p>';
+        html += '<p class="text-gray-500 italic text-center py-8">Add content blocks to see the preview...</p>';
     } else {
         blocks.forEach(block => {
             html += renderBlockPreview(block);
         });
+    }
+    
+    // Add page image at bottom if layout requires it
+    if (pageImageData && pageImageData.url && layout === 'text_top_image_bottom') {
+        html += `<div class="mt-6"><img src="${pageImageData.url}" alt="${pageImageData.name}" class="w-full h-64 object-cover rounded-lg shadow-sm"></div>`;
+    }
+    
+    // Handle left/right image layouts
+    if (pageImageData && pageImageData.url && (layout === 'image_left_text_right' || layout === 'image_right_text_left')) {
+        const imageHtml = `<img src="${pageImageData.url}" alt="${pageImageData.name}" class="w-full h-64 object-cover rounded-lg shadow-sm">`;
+        const contentHtml = blocks.length > 0 ? blocks.map(block => renderBlockPreview(block)).join('') : '<p class="text-gray-500 italic">No content yet...</p>';
+        
+        if (layout === 'image_left_text_right') {
+            html = `<div class="grid md:grid-cols-2 gap-6"><div>${imageHtml}</div><div>${contentHtml}</div></div>`;
+        } else {
+            html = `<div class="grid md:grid-cols-2 gap-6"><div>${contentHtml}</div><div>${imageHtml}</div></div>`;
+        }
     }
     
     container.innerHTML = html;
@@ -825,15 +926,110 @@ function renderBlockPreview(block) {
 }
 
 function savePage() {
-    // Update the hidden input with block data
-    document.getElementById('content_blocks_data').value = JSON.stringify(blocks);
-    
-    // Submit the form
-    document.getElementById('pageForm').submit();
+    try {
+        // Validate required fields
+        const title = document.getElementById('title').value.trim();
+        if (!title) {
+            alert('Please enter a page title.');
+            document.getElementById('title').focus();
+            return;
+        }
+
+        // Validate that we have at least some content
+        if (blocks.length === 0) {
+            alert('Please add at least one content block before creating the page.');
+            return;
+        }
+
+        // Prepare the content data
+        const contentData = {
+            blocks: blocks,
+            raw_content: blocks.map(block => {
+                switch (block.type) {
+                    case 'text':
+                        return block.data.content || '';
+                    case 'image':
+                        return block.data.caption || '';
+                    case 'gallery':
+                        return block.data.images ? block.data.images.map(img => img.name).join(', ') : '';
+                    case 'columns':
+                        return Object.keys(block.data).filter(key => key.startsWith('column')).map(key => block.data[key]).join(' ');
+                    case 'image_text':
+                        return block.data.content || '';
+                    case 'divider':
+                        return block.data.text || '';
+                    case 'button':
+                        return block.data.text || '';
+                    default:
+                        return '';
+                }
+            }).filter(text => text.trim()).join(' ')
+        };
+        
+        // Update the hidden inputs with block data
+        document.getElementById('content_blocks_data').value = JSON.stringify(blocks);
+        document.getElementById('content').value = contentData.raw_content;
+        
+        // Ensure layout is set
+        const layout = document.getElementById('layout').value;
+        if (!layout) {
+            document.getElementById('layout').value = 'one_column';
+        }
+        
+        // Show loading state
+        const submitBtn = document.querySelector('button[onclick="savePage()"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+        submitBtn.disabled = true;
+        
+        // Submit the form
+        document.getElementById('pageForm').submit();
+        
+    } catch (error) {
+        console.error('Error saving page:', error);
+        alert('An error occurred while saving the page. Please check the console for details.');
+        
+        // Reset button state
+        const submitBtn = document.querySelector('button[onclick="savePage()"]');
+        submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Create Page';
+        submitBtn.disabled = false;
+    }
 }
 
 // Initialize preview on load
 window.addEventListener('load', updateLivePreview);
+
+// Add form submit validation
+document.getElementById('pageForm').addEventListener('submit', function(e) {
+    // Check if all required data is present
+    const title = document.getElementById('title').value.trim();
+    const contentBlocksData = document.getElementById('content_blocks_data').value;
+    const content = document.getElementById('content').value;
+    
+    if (!title) {
+        e.preventDefault();
+        alert('Please enter a page title.');
+        return false;
+    }
+    
+    if (blocks.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one content block before creating the page.');
+        return false;
+    }
+    
+    if (!contentBlocksData || contentBlocksData === '[]') {
+        e.preventDefault();
+        alert('Content blocks data is missing. Please try refreshing the page and adding content blocks again.');
+        return false;
+    }
+    
+    if (!content) {
+        e.preventDefault();
+        alert('Content field is missing. Please try refreshing the page and adding content blocks again.');
+        return false;
+    }
+});
 
 // Prevent header scrolling issues
 document.addEventListener('DOMContentLoaded', function() {

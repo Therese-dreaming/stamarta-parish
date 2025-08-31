@@ -38,12 +38,14 @@ class MediaController extends Controller
 
         $media = $query->orderBy('created_at', 'desc')->paginate(24);
 
-        // Get unique types and folders for filters
+        // Get unique types and folders for filters (exclude soft-deleted records)
         $types = Media::selectRaw('CASE WHEN mime_type LIKE "image/%" THEN "image" ELSE "document" END as type')
             ->distinct()
             ->pluck('type');
 
-        $folders = Media::distinct()->pluck('folder');
+        $folders = Media::select('folder')
+            ->distinct()
+            ->pluck('folder');
 
         // Check if user is staff
         $isStaff = auth()->user()->role === 'staff';
@@ -92,7 +94,10 @@ class MediaController extends Controller
 
     public function edit(Media $media)
     {
-        return response()->json($media);
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+        
+        return view('cms.media.edit', compact('media', 'isStaff'));
     }
 
     public function update(Request $request, Media $media)
@@ -105,18 +110,34 @@ class MediaController extends Controller
 
         $media->update($validated);
 
-        return response()->json(['success' => true]);
+        $redirectRoute = auth()->user()->role === 'staff' ? 'staff.cms.media.index' : 'admin.cms.media.index';
+        return redirect()->route($redirectRoute)
+            ->with('success', 'Media file updated successfully.');
     }
 
-    public function destroy(Media $media)
+    public function destroy($id)
     {
-        // Delete file from storage
-        if (Storage::disk('public')->exists($media->file_path)) {
-            Storage::disk('public')->delete($media->file_path);
+        try {
+            // Find the media record manually
+            $media = Media::findOrFail($id);
+
+            // Delete file from storage only if file_path exists and is not null
+            if ($media->file_path && !empty($media->file_path)) {
+                if (Storage::disk('public')->exists($media->file_path)) {
+                    Storage::disk('public')->delete($media->file_path);
+                }
+            }
+
+            // Permanently delete the media record from database
+            $media->delete();
+
+            $redirectRoute = auth()->user()->role === 'staff' ? 'staff.cms.media.index' : 'admin.cms.media.index';
+            return redirect()->route($redirectRoute)
+                ->with('success', 'Media file deleted successfully.');
+        } catch (\Exception $e) {
+            $redirectRoute = auth()->user()->role === 'staff' ? 'staff.cms.media.index' : 'admin.cms.media.index';
+            return redirect()->route($redirectRoute)
+                ->with('error', 'Error deleting media file. Please try again.');
         }
-
-        $media->delete();
-
-        return response()->json(['success' => true]);
     }
 } 

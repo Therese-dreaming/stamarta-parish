@@ -38,6 +38,9 @@
                 <button onclick="showTab('trends')" id="tab-trends" class="tab-button flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800">
                     <i class="fas fa-users mr-2"></i>User Trends
                 </button>
+                <button onclick="showTab('ratings')" id="tab-ratings" class="tab-button flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800">
+                    <i class="fas fa-star mr-2"></i>Ratings
+                </button>
                 <button onclick="showTab('actions')" id="tab-actions" class="tab-button flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-200 bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800">
                     <i class="fas fa-bolt mr-2"></i>Quick Actions
                 </button>
@@ -50,7 +53,7 @@
         <!-- Bookings Tab -->
         <div id="bookings-tab" class="tab-content">
             <!-- Today's Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-blue-500/30 rounded-xl shadow-sm border-2 border-blue-500 p-4">
                     <div class="flex items-center">
                         <div class="p-2.5 bg-blue-500 rounded-lg">
@@ -83,6 +86,18 @@
                         <div class="ml-4">
                             <p class="text-sm font-medium text-orange-800">Pending Review</p>
                             <p class="text-2xl font-bold text-orange-900">{{ $stats['payment_hold_bookings'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-500/30 rounded-xl shadow-sm border-2 border-yellow-500 p-4">
+                    <div class="flex items-center">
+                        <div class="p-2.5 bg-yellow-500 rounded-lg">
+                            <i class="fas fa-star text-white text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-yellow-800">New Ratings</p>
+                            <p class="text-2xl font-bold text-yellow-900">{{ $stats['new_ratings'] ?? 0 }}</p>
                         </div>
                     </div>
                 </div>
@@ -189,6 +204,103 @@
                 </div>
             </div>
 
+            <!-- Service Ratings Overview -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">Service Ratings Overview</h2>
+                        <div class="flex items-center space-x-4 text-sm text-gray-600">
+                            <span class="flex items-center">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                Overall: {{ $stats['average_rating'] ?? 0 }}/5
+                            </span>
+                            <span class="flex items-center">
+                                <i class="fas fa-thumbs-up text-green-500 mr-1"></i>
+                                {{ $stats['rated_services'] ?? 0 }} rated
+                            </span>
+                            <span class="flex items-center">
+                                <i class="fas fa-clock text-orange-500 mr-1"></i>
+                                {{ $stats['unrated_services'] ?? 0 }} unrated
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    @if($serviceStats->count() > 0)
+                        <div class="space-y-4">
+                            @foreach($serviceStats as $service)
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 rounded-full bg-[#0d5c2f] flex items-center justify-center">
+                                        <i class="fas fa-church text-white text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium text-gray-900">{{ $service->name }}</h3>
+                                        <p class="text-sm text-gray-600">{{ $service->bookings_count }} bookings</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-4">
+                                    @if($service->total_ratings > 0)
+                                        <!-- Rated Service -->
+                                        <div class="text-center">
+                                            <div class="flex items-center justify-center space-x-1 mb-1">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= $service->average_rating)
+                                                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                                    @elseif($i - $service->average_rating < 1)
+                                                        <i class="fas fa-star-half-alt text-yellow-400 text-sm"></i>
+                                                    @else
+                                                        <i class="far fa-star text-gray-300 text-sm"></i>
+                                                    @endif
+                                                @endfor
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-lg font-bold text-gray-900">{{ $service->average_rating }}</span>
+                                                <span class="text-sm text-gray-600">/5</span>
+                                                <span class="text-xs text-gray-500">({{ $service->total_ratings }})</span>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <!-- Unrated Service -->
+                                        <div class="text-center">
+                                            <div class="flex items-center justify-center space-x-1 mb-1">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="far fa-star text-gray-300 text-sm"></i>
+                                                @endfor
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-lg font-bold text-gray-400">--</span>
+                                                <span class="text-sm text-gray-400">/5</span>
+                                                <span class="text-xs text-gray-400">(0)</span>
+                                            </div>
+                                            <div class="mt-1">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                    <i class="fas fa-clock mr-1"></i>
+                                                    No ratings yet
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="text-center">
+                                <a href="#" onclick="showTab('ratings')" class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                                    <i class="fas fa-star mr-2"></i>
+                                    View Detailed Rating Analytics
+                                </a>
+                            </div>
+                        </div>
+                    @else
+                        <p class="text-gray-500 text-center py-4">No service data available</p>
+                    @endif
+                </div>
+            </div>
+
             <!-- Recent Bookings -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div class="p-4 border-b border-gray-200">
@@ -244,7 +356,7 @@
                     </div>
                 </div>
 
-                <div class="bg-blue-500/30 rounded-xl shadow-sm border-2 border-blue-500 p-6">
+                <div class="bg-blue-500/30 rounded-xl shadow-sm border-2 border-blue-500 p-4">
                     <div class="flex items-center">
                         <div class="p-3 bg-blue-500 rounded-lg">
                             <i class="fas fa-calendar-alt text-white text-xl"></i>
@@ -256,7 +368,7 @@
                     </div>
                 </div>
 
-                <div class="bg-purple-500/30 rounded-xl shadow-sm border-2 border-purple-500 p-6">
+                <div class="bg-purple-500/30 rounded-xl shadow-sm border-2 border-purple-500 p-4">
                     <div class="flex items-center">
                         <div class="p-3 bg-purple-500 rounded-lg">
                             <i class="fas fa-chart-line text-white text-xl"></i>
@@ -347,56 +459,30 @@
                 </div>
             </div>
 
-            <!-- Payment Methods Chart -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">Payment Methods</h2>
-                    </div>
-                    <div class="p-6">
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <img src="{{ asset('images/gcash-logo.png') }}" alt="GCash" class="h-6 w-auto mr-3">
-                                    <span class="text-sm font-medium text-gray-900">GCash</span>
-                                </div>
-                                <span class="text-sm text-gray-600">{{ $stats['gcash_payments'] ?? 0 }} payments</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <img src="{{ asset('images/metrobank-logo.png') }}" alt="Metrobank" class="h-6 w-auto mr-3">
-                                    <span class="text-sm font-medium text-gray-900">Metrobank</span>
-                                </div>
-                                <span class="text-sm text-gray-600">{{ $stats['metrobank_payments'] ?? 0 }} payments</span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Recent Transactions -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Recent Transactions</h2>
                 </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-900">Recent Transactions</h2>
-                    </div>
-                    <div class="p-6">
-                        @if(isset($stats['recent_transactions']) && $stats['recent_transactions']->count() > 0)
-                            <div class="space-y-3">
-                                @foreach($stats['recent_transactions'] as $transaction)
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900">Booking #{{ $transaction->booking_id }}</p>
-                                        <p class="text-xs text-gray-600">{{ $transaction->payment_method_label }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-sm font-medium text-gray-900">₱{{ number_format($transaction->total_fee, 2) }}</p>
-                                        <p class="text-xs text-gray-500">{{ $transaction->created_at->diffForHumans() }}</p>
-                                    </div>
+                <div class="p-6">
+                    @if(isset($stats['recent_transactions']) && $stats['recent_transactions']->count() > 0)
+                        <div class="space-y-3">
+                            @foreach($stats['recent_transactions'] as $transaction)
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Booking #{{ $transaction->booking_id }}</p>
+                                    <p class="text-xs text-gray-600">{{ $transaction->payment_method_label }}</p>
                                 </div>
-                                @endforeach
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-gray-900">₱{{ number_format($transaction->total_fee, 2) }}</p>
+                                    <p class="text-xs text-gray-500">{{ $transaction->created_at->diffForHumans() }}</p>
+                                </div>
                             </div>
-                        @else
-                            <p class="text-gray-500 text-center py-4">No recent transactions</p>
-                        @endif
-                    </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-gray-500 text-center py-4">No recent transactions</p>
+                    @endif
                 </div>
             </div>
         </div>
@@ -536,7 +622,6 @@
                     <div class="p-6">
                         <div class="space-y-3">
                             @php
-                                // Expecting $monthlyUsers: array of ['month' => 'Jan 2025', 'count' => 12]
                                 $monthlyData = isset($monthlyUsers) ? $monthlyUsers : [];
                                 $counts = array_map(fn($m) => $m['count'], $monthlyData);
                                 $maxCount = count($counts) ? max($counts) : 0;
@@ -606,6 +691,213 @@
                             <p class="text-gray-500 text-center py-4">No recent user activity</p>
                         @endif
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ratings Tab -->
+        <div id="ratings-tab" class="tab-content hidden">
+            <!-- Today's Rating Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-yellow-500/30 rounded-xl shadow-sm border-2 border-yellow-500 p-4">
+                    <div class="flex items-center">
+                        <div class="p-2.5 bg-yellow-500 rounded-lg">
+                            <i class="fas fa-star text-white text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-yellow-800">New Ratings Today</p>
+                            <p class="text-2xl font-bold text-yellow-900">{{ $stats['new_ratings'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-500/30 rounded-xl shadow-sm border-2 border-blue-500 p-4">
+                    <div class="flex items-center">
+                        <div class="p-2.5 bg-blue-500 rounded-lg">
+                            <i class="fas fa-thumbs-up text-white text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-blue-800">Rated Services</p>
+                            <p class="text-2xl font-bold text-blue-900">{{ $stats['rated_services'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-orange-500/30 rounded-xl shadow-sm border-2 border-orange-500 p-4">
+                    <div class="flex items-center">
+                        <div class="p-2.5 bg-orange-500 rounded-lg">
+                            <i class="fas fa-clock text-white text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-orange-800">Unrated Services</p>
+                            <p class="text-2xl font-bold text-orange-900">{{ $stats['unrated_services'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-green-500/30 rounded-xl shadow-sm border-2 border-green-500 p-4">
+                    <div class="flex items-center">
+                        <div class="p-2.5 bg-green-500 rounded-lg">
+                            <i class="fas fa-chart-line text-white text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-green-800">Overall Average</p>
+                            <p class="text-2xl font-bold text-green-900">{{ $stats['average_rating'] ?? 0 }}/5</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Statistics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Total Ratings -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-yellow-100 rounded-lg">
+                            <i class="fas fa-star text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Ratings</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $stats['total_ratings'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average Rating -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Average Rating</p>
+                            <div class="flex items-center space-x-1">
+                                <p class="text-2xl font-bold text-gray-900">{{ $stats['average_rating'] ?? 0 }}</p>
+                                <span class="text-sm text-gray-600">/5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rated Services -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-blue-100 rounded-lg">
+                            <i class="fas fa-thumbs-up text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Rated Services</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $stats['rated_services'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unrated Services -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-orange-100 rounded-lg">
+                            <i class="fas fa-clock text-orange-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Unrated Services</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $stats['unrated_services'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Analytics -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Rating Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Rating Distribution</h2>
+                    </div>
+                    <div class="p-6">
+                        <canvas id="ratingDistributionChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Service Rating Comparison -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Top Rated Services</h2>
+                    </div>
+                    <div class="p-6">
+                        @if(isset($stats['top_rated_services']) && $stats['top_rated_services']->count() > 0)
+                            <div class="space-y-4">
+                                @foreach($stats['top_rated_services'] as $topService)
+                                <div class="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center">
+                                            <i class="fas fa-trophy text-white text-sm"></i>
+                                        </div>
+                                        <span class="text-sm font-medium text-gray-900">{{ $topService->name }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="flex items-center justify-center space-x-1 mb-1">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                @if($i <= $topService->average_rating)
+                                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                                @else
+                                                    <i class="far fa-star text-gray-300 text-xs"></i>
+                                                @endif
+                                            @endfor
+                                        </div>
+                                        <span class="text-lg font-bold text-yellow-600">{{ $topService->average_rating }}/5</span>
+                                        <p class="text-xs text-gray-600">{{ $topService->ratings_count }} ratings</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-gray-500 text-center py-4">No rating data available</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Ratings -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Recent Ratings</h2>
+                </div>
+                <div class="p-6">
+                    @if(isset($stats['recent_ratings']) && $stats['recent_ratings']->count() > 0)
+                        <div class="space-y-4">
+                            @foreach($stats['recent_ratings'] as $rating)
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
+                                        <i class="fas fa-user text-white text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium text-gray-900">{{ $rating->user->name ?? 'Unknown User' }}</h3>
+                                        <p class="text-sm text-gray-600">{{ $rating->service->name ?? 'Unknown Service' }}</p>
+                                        @if($rating->comment)
+                                            <p class="text-xs text-gray-500 mt-1 italic">"{{ Str::limit($rating->comment, 100) }}"</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center justify-center space-x-1 mb-2">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            @if($i <= $rating->rating)
+                                                <i class="fas fa-star text-yellow-400 text-lg"></i>
+                                            @else
+                                                <i class="far fa-star text-gray-300 text-lg"></i>
+                                            @endif
+                                        @endfor
+                                    </div>
+                                    <span class="text-xl font-bold text-gray-900">{{ $rating->rating }}/5</span>
+                                    <p class="text-xs text-gray-500">{{ $rating->created_at->diffForHumans() }}</p>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-gray-500 text-center py-4">No recent ratings found</p>
+                    @endif
                 </div>
             </div>
         </div>
@@ -1114,6 +1406,99 @@ function initializeCharts() {
             }
         });
     }
+
+    // Rating Distribution Chart
+    const ratingDistributionCtx = document.getElementById('ratingDistributionChart');
+    if (ratingDistributionCtx) {
+        // Get rating distribution data from the controller
+        const ratingData = {
+            '1_star': {{ $stats['rating_distribution']['1_star'] ?? 0 }},
+            '2_star': {{ $stats['rating_distribution']['2_star'] ?? 0 }},
+            '3_star': {{ $stats['rating_distribution']['3_star'] ?? 0 }},
+            '4_star': {{ $stats['rating_distribution']['4_star'] ?? 0 }},
+            '5_star': {{ $stats['rating_distribution']['5_star'] ?? 0 }}
+        };
+
+        new Chart(ratingDistributionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+                datasets: [{
+                    label: 'Number of Ratings',
+                    data: [
+                        ratingData['1_star'],
+                        ratingData['2_star'],
+                        ratingData['3_star'],
+                        ratingData['4_star'],
+                        ratingData['5_star']
+                    ],
+                    backgroundColor: chartColors.warning,
+                    borderColor: chartColors.warning,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: chartColors.warning,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' ratings';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f3f4f6',
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8,
+                            callback: function(value) {
+                                return value + ' ratings';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            font: {
+                                size: 12
+                            },
+                            padding: 8
+                        }
+                    }
+                },
+                elements: {
+                    bar: {
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }
+                }
+            }
+        });
+    }
 }
 </script>
-@endsection 
+@endsection

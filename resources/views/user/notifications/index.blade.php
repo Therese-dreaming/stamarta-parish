@@ -109,7 +109,7 @@
                                             </h3>
                                             
                                             <p class="text-sm text-gray-600 leading-relaxed">
-                                                {{ $notification->message }}
+                                                {{ $notification->display_message }}
                                             </p>
                                             
                                             @if($notification->type === 'user')
