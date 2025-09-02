@@ -175,6 +175,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	
 	// User Management
 	Route::resource('users', UserController::class);
+	Route::get('users-search', [UserController::class, 'search'])->name('users.search');
 	Route::post('users/{user}/promote-ministry-head', [UserController::class, 'promoteToMinistryHead'])->name('users.promote-ministry-head');
 	Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 	
@@ -339,18 +340,17 @@ Route::prefix('ministry')->name('ministry.')->middleware(['auth', 'ministry_head
     Route::put('members/{member}', [\App\Http\Controllers\Ministry\MemberController::class, 'update'])->name('members.update');
     Route::delete('members/{member}', [\App\Http\Controllers\Ministry\MemberController::class, 'destroy'])->name('members.destroy');
 
-    // Budget Requests
-    Route::get('budget-requests', [\App\Http\Controllers\Ministry\BudgetRequestController::class, 'index'])->name('budget-requests.index');
-    Route::get('budget-requests/create', [\App\Http\Controllers\Ministry\BudgetRequestController::class, 'create'])->name('budget-requests.create');
-    Route::post('budget-requests', [\App\Http\Controllers\Ministry\BudgetRequestController::class, 'store'])->name('budget-requests.store');
-
-    // Activities
+    // Activities (with integrated budget requests)
     Route::get('activities', [\App\Http\Controllers\Ministry\ActivityController::class, 'index'])->name('activities.index');
     Route::get('activities/create', [\App\Http\Controllers\Ministry\ActivityController::class, 'create'])->name('activities.create');
     Route::post('activities', [\App\Http\Controllers\Ministry\ActivityController::class, 'store'])->name('activities.store');
+    Route::get('activities/{activity}', [\App\Http\Controllers\Ministry\ActivityController::class, 'show'])->name('activities.show');
     Route::get('activities/{activity}/edit', [\App\Http\Controllers\Ministry\ActivityController::class, 'edit'])->name('activities.edit');
     Route::put('activities/{activity}', [\App\Http\Controllers\Ministry\ActivityController::class, 'update'])->name('activities.update');
     Route::delete('activities/{activity}', [\App\Http\Controllers\Ministry\ActivityController::class, 'destroy'])->name('activities.destroy');
+    Route::post('activities/{activity}/request-budget', [\App\Http\Controllers\Ministry\ActivityController::class, 'requestBudget'])->name('activities.request-budget');
+    Route::post('activities/check-conflicts', [\App\Http\Controllers\Ministry\ActivityController::class, 'checkConflicts'])->name('activities.check-conflicts');
+    Route::get('activities/test-conflicts', [\App\Http\Controllers\Ministry\ActivityController::class, 'testConflicts'])->name('activities.test-conflicts');
 });
 
 // Fallback route for admin pages

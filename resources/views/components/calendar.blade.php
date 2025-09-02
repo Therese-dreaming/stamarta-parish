@@ -1,4 +1,4 @@
-@props(['activeBookings', 'selectedDate', 'service', 'parochialActivities'])
+@props(['activeBookings', 'selectedDate', 'service', 'parochialActivities', 'ministryActivities'])
 
 <div class="calendar-container bg-white rounded-lg shadow-sm border border-gray-200 p-8">
     <div class="calendar-header flex items-center justify-between mb-8">
@@ -49,33 +49,36 @@
                 <div class="w-5 h-5 bg-blue-200 border-2 border-blue-400 rounded mr-3"></div>
                 <span class="text-gray-600">Full Day Activity</span>
             </div>
+            <div class="flex items-center">
+                <div class="w-5 h-5 bg-purple-200 border-2 border-purple-400 rounded mr-3"></div>
+                <span class="text-gray-600">Ministry Activity</span>
+            </div>
+        </div>
+        <div class="mt-4 text-xs text-gray-500">
+            <p><i class="fas fa-info-circle mr-1"></i>Time slots may be blocked by existing bookings, ministry activities, or parochial activities. Check the information banner below the calendar for details.</p>
         </div>
     </div>
 </div>
 
 <script>
 class Calendar {
-    constructor(container, activeBookings, selectedDate, service, parochialActivities) {
-        console.log('Calendar constructor called');
-        console.log('Container:', container);
-        console.log('Active bookings:', activeBookings);
-        console.log('Selected date:', selectedDate);
-        console.log('Service:', service);
-        console.log('Parochial activities:', parochialActivities);
-        
+    constructor(container, service, activeBookings, selectedDate, parochialActivities, ministryActivities) {
         this.container = container;
-        this.activeBookings = activeBookings;
-        this.selectedDate = selectedDate;
         this.service = service;
+        this.activeBookings = activeBookings || [];
+        this.selectedDate = selectedDate;
         this.parochialActivities = parochialActivities || [];
-        this.currentDate = new Date();
-        this.displayedMonth = new Date();
+        this.ministryActivities = ministryActivities || [];
+        
+        this.currentMonth = new Date();
+        if (this.selectedDate) {
+            this.currentMonth = new Date(this.selectedDate);
+        }
         
         this.init();
     }
 
     init() {
-        console.log('Calendar init called');
         
         // Ensure selected date is in local timezone format
         if (this.selectedDate) {
@@ -92,21 +95,73 @@ class Calendar {
     }
 
     renderCalendar() {
-        console.log('renderCalendar called');
-        const year = this.displayedMonth.getFullYear();
-        const month = this.displayedMonth.getMonth();
         
-        console.log('Year:', year, 'Month:', month);
+        const year = this.currentMonth.getFullYear();
+        const month = this.currentMonth.getMonth();
         
-        // Update header
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                           'July', 'August', 'September', 'October', 'November', 'December'];
-        const currentMonthElement = document.getElementById('currentMonth');
-        if (currentMonthElement) {
-            currentMonthElement.textContent = `${monthNames[month]} ${year}`;
-        } else {
-            console.error('currentMonth element not found');
-        }
+        
+        // Clear previous calendar
+        this.container.innerHTML = '';
+        
+        // Create calendar header
+        const header = document.createElement('div');
+        header.className = 'calendar-header flex justify-between items-center mb-4';
+        header.innerHTML = `
+            <button id="prevMonth" class="p-2 hover:bg-gray-100 rounded">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h2 class="text-xl font-bold">${this.getMonthName(month)} ${year}</h2>
+            <button id="nextMonth" class="p-2 hover:bg-gray-100 rounded">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        `;
+        this.container.appendChild(header);
+
+        // Create calendar legend
+        const legend = document.createElement('div');
+        legend.className = 'calendar-legend mb-4 text-sm text-gray-600';
+        legend.innerHTML = `
+            <div class="flex flex-wrap gap-4">
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-white border-2 border-gray-300 mr-2"></div>
+                    <span>Available</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-purple-200 border-2 border-purple-400 mr-2"></div>
+                    <span>Ministry Activity</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-blue-200 border-2 border-blue-400 mr-2"></div>
+                    <span>Parochial Activity</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-red-200 border-2 border-red-400 mr-2"></div>
+                    <span>Fully Booked</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-gray-100 text-gray-400 mr-2"></div>
+                    <span>Not Available</span>
+                </div>
+            </div>
+        `;
+        this.container.appendChild(legend);
+
+        // Create days of week header
+        const daysHeader = document.createElement('div');
+        daysHeader.className = 'grid grid-cols-7 gap-1 mb-2';
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        dayNames.forEach(day => {
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'text-center font-semibold text-gray-700 py-2';
+            dayHeader.textContent = day;
+            daysHeader.appendChild(dayHeader);
+        });
+        this.container.appendChild(daysHeader);
+
+        // Create calendar days container
+        const daysContainer = document.createElement('div');
+        daysContainer.className = 'grid grid-cols-7 gap-1';
+        this.container.appendChild(daysContainer);
 
         // Get first day of month and number of days
         const firstDay = new Date(year, month, 1);
@@ -114,25 +169,22 @@ class Calendar {
         const startDate = new Date(firstDay);
         startDate.setDate(startDate.getDate() - firstDay.getDay());
 
-        const daysContainer = document.getElementById('calendarDays');
-        if (!daysContainer) {
-            console.error('calendarDays element not found');
-            return;
-        }
         
-        daysContainer.innerHTML = '';
-        console.log('Generating calendar days...');
 
         // Generate calendar days
         for (let i = 0; i < 42; i++) {
             const currentDate = new Date(startDate);
             currentDate.setDate(startDate.getDate() + i);
             
+            
             const dayElement = this.createDayElement(currentDate, year, month);
             daysContainer.appendChild(dayElement);
         }
         
-        console.log('Calendar rendering complete');
+        // Attach event listeners for month navigation
+        this.attachEventListeners();
+        
+        
     }
 
     createDayElement(date, targetYear, targetMonth) {
@@ -171,14 +223,19 @@ class Calendar {
                     const availability = this.getDateAvailability(dateString);
                     this.updateDayClasses(dayDiv, availability);
                     
-                    // Add click handler for available dates
-                    if (availability.status === 'available') {
+                    // Add click handler for available dates (including those with ministry activity notes)
+                    // But don't allow clicking on dates completely blocked by ministry activities
+                    if (availability.status === 'available' || availability.status === 'available-with-notes') {
                         dayDiv.addEventListener('click', () => this.selectDate(dateString));
                     }
                     
                     // Add tooltip
                     if (availability.available_slots !== undefined) {
-                        dayDiv.title = `${availability.available_slots} of ${availability.total_slots} slots available`;
+                        if (availability.status === 'available-with-notes') {
+                            dayDiv.title = `${availability.available_slots} of ${availability.total_slots} slots available. ${availability.note}`;
+                        } else {
+                            dayDiv.title = `${availability.available_slots} of ${availability.total_slots} slots available`;
+                        }
                     }
                 }
             }
@@ -200,11 +257,25 @@ class Calendar {
         const [year, month, day] = dateString.split('-').map(Number);
         const date = new Date(year, month - 1, day); // month is 0-indexed in JavaScript
         
+        
         // Check if date is blocked by parochial activities
         if (this.isDateBlockedByParochialActivity(dateString)) {
+            
             return {
                 status: 'parochial-activity',
                 reason: 'Date blocked by parochial activity'
+            };
+        }
+
+        // Check if date has ministry activities (but don't block entire day for time-specific ones)
+        const hasMinistryActivities = this.hasMinistryActivitiesOnDate(dateString);
+        
+        // Check if date is blocked by existing bookings (all-day events or full-day coverage)
+        if (this.isDateBlockedByExistingBookings(dateString)) {
+            
+            return {
+                status: 'fully-booked',
+                reason: 'Date blocked by existing bookings'
             };
         }
         
@@ -213,7 +284,9 @@ class Calendar {
         const serviceSchedules = this.service.schedules || {};
         const allTimeSlots = serviceSchedules[dayOfWeek] ?? [];
         
+        
         if (allTimeSlots.length === 0) {
+            
             return {
                 status: 'not-available',
                 reason: 'Service not offered on this day'
@@ -230,8 +303,10 @@ class Calendar {
         ).length;
 
         const availableSlots = totalSlots - bookedSlots;
-
+        
+        
         if (availableSlots <= 0) {
+            
             return {
                 status: 'fully-booked',
                 total_slots: totalSlots,
@@ -239,12 +314,51 @@ class Calendar {
                 booked_slots: bookedSlots
             };
         } else {
-            return {
-                status: 'available',
-                total_slots: totalSlots,
-                available_slots: availableSlots,
-                booked_slots: bookedSlots
-            };
+            // Check if ALL time slots are blocked by either ministry activities OR existing bookings
+            const allTimeSlotsBlocked = this.areAllTimeSlotsBlocked(dateString, allTimeSlots);
+            
+            if (allTimeSlotsBlocked) {
+                // Determine the blocking reason
+                if (hasMinistryActivities) {
+                    
+                    return {
+                        status: 'ministry-activity',
+                        reason: 'All time slots blocked by ministry activities'
+                    };
+                } else if (this.hasParochialActivitiesOnDate(dateString)) {
+                    
+                    return {
+                        status: 'parochial-activity',
+                        reason: 'All time slots blocked by parochial activities'
+                    };
+                } else {
+                    
+                    return {
+                        status: 'fully-booked',
+                        reason: 'All time slots blocked by existing bookings'
+                    };
+                }
+            } else {
+                // Some time slots are available
+                if (hasMinistryActivities) {
+                    
+                    return {
+                        status: 'available-with-notes',
+                        total_slots: totalSlots,
+                        available_slots: availableSlots,
+                        booked_slots: bookedSlots,
+                        note: 'Some time slots may be blocked by ministry activities'
+                    };
+                } else {
+                    
+                    return {
+                        status: 'available',
+                        total_slots: totalSlots,
+                        available_slots: availableSlots,
+                        booked_slots: bookedSlots
+                    };
+                }
+            }
         }
     }
 
@@ -279,6 +393,349 @@ class Calendar {
         });
     }
 
+    isDateBlockedByMinistryActivity(dateString) {
+        if (!this.ministryActivities || this.ministryActivities.length === 0) {
+            return false;
+        }
+
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const dateStringFormatted = this.formatDateToLocal(date); // Use our local timezone method instead of toISOString()
+
+        return this.ministryActivities.some(activity => {
+            // Parse dates without timezone conversion to avoid off-by-one errors
+            const activityStart = new Date(activity.start_at);
+            const activityStartDate = this.formatDateToLocal(activityStart);
+            
+            // Check if this is an all-day event that blocks the entire day
+            if (activity.is_all_day) {
+                // If activity starts on this date, it blocks the entire day
+                if (activityStartDate === dateStringFormatted) {
+                    return true;
+                }
+                
+                // If activity has an end date, check if this date falls within the range
+                if (activity.end_at) {
+                    const activityEnd = new Date(activity.end_at);
+                    const activityEndDate = this.formatDateToLocal(activityEnd);
+                    
+                    if (dateStringFormatted >= activityStartDate && dateStringFormatted <= activityEndDate) {
+                        return true;
+                    }
+                }
+            } else {
+                // For time-specific activities, we don't block entire days
+                // Instead, we'll handle time slot conflicts at the time slot level
+                // This allows for more granular blocking (e.g., 10AM-2PM blocks 10AM, 11AM, 1PM, but not 5PM)
+                return false;
+            }
+            
+            return false;
+        });
+    }
+
+    // Helper method to check if all time slots are blocked by either ministry activities OR existing bookings OR parochial activities
+    areAllTimeSlotsBlocked(dateString, timeSlots) {
+        
+        // Check each time slot to see if it's blocked by ministry activities OR existing bookings OR parochial activities
+        for (const timeSlot of timeSlots) {
+            let isBlocked = false;
+            
+            // Check if blocked by parochial activities
+            for (const activity of this.parochialActivities || []) {
+                const parochialConflict = this.parochialActivityConflictsWithTimeSlot(activity, dateString, timeSlot);
+                if (parochialConflict) {
+                    isBlocked = true;
+                    break;
+                }
+            }
+            
+            // Check if blocked by ministry activities
+            if (!isBlocked) {
+                for (const activity of this.ministryActivities || []) {
+                    const ministryConflict = this.ministryActivityConflictsWithTimeSlot(activity, dateString, timeSlot);
+                    if (ministryConflict) {
+                        isBlocked = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Check if blocked by existing bookings
+            if (!isBlocked) {
+                for (const booking of this.activeBookings || []) {
+                    const bookingConflict = this.bookingConflictsWithTimeSlot(booking, dateString, timeSlot);
+                    if (bookingConflict) {
+                        isBlocked = true;
+                        break;
+                    }
+                }
+            }
+            
+            
+            // If any time slot is available, return false (not all blocked)
+            if (!isBlocked) {
+                return false;
+            }
+        }
+        
+        // All time slots are blocked
+        return true;
+    }
+
+    // Helper method to check if an existing booking conflicts with a specific time slot
+    bookingConflictsWithTimeSlot(booking, dateString, timeSlot) {
+        
+        // Convert booking service_date to local date string format
+        const bookingDate = new Date(booking.service_date);
+        const bookingDateString = this.formatDateToLocal(bookingDate);
+        
+        
+        if (bookingDateString !== dateString) {
+            return false;
+        }
+        
+        if (!['pending', 'acknowledged', 'payment_hold', 'approved'].includes(booking.status)) {
+            return false;
+        }
+        
+        // Parse the time slot to get the hour (handle "10:00 AM" format)
+        const timeSlotHour = this.parseTimeSlotToHour(timeSlot);
+        const timeSlotMinute = parseInt(timeSlot.split(' ')[0].split(':')[1]);
+        const timeSlotTime = timeSlotHour * 60 + timeSlotMinute; // Convert to minutes
+        
+        // Parse the booking time - handle "10:00 AM" format
+        let bookingHour, bookingMinute;
+        if (booking.service_time.includes(' ')) {
+            // Format: "10:00 AM"
+            const [time, period] = booking.service_time.split(' ');
+            const [hour, minute] = time.split(':').map(Number);
+            
+            if (period === 'AM') {
+                bookingHour = hour === 12 ? 0 : hour;
+            } else if (period === 'PM') {
+                bookingHour = hour === 12 ? 12 : hour + 12;
+            }
+            bookingMinute = minute;
+        } else {
+            // Format: "10:00" (24-hour)
+            [bookingHour, bookingMinute] = booking.service_time.split(':').map(Number);
+        }
+        
+        const bookingStartTime = bookingHour * 60 + bookingMinute; // Convert to minutes
+        
+        // Calculate booking end time based on service duration
+        const serviceDuration = booking.service?.duration_minutes || 60; // Default to 60 minutes
+        const bookingEndTime = bookingStartTime + serviceDuration;
+        
+        
+        // Check if the time slot conflicts with the booking
+        // A time slot conflicts if it starts during an existing booking
+        if (timeSlotTime >= bookingStartTime && timeSlotTime < bookingEndTime) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    // Helper method to check if a ministry activity conflicts with a specific time slot
+    ministryActivityConflictsWithTimeSlot(activity, dateString, timeSlot) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const dateStringFormatted = this.formatDateToLocal(date);
+        
+        const activityStart = new Date(activity.start_at);
+        const activityStartDate = this.formatDateToLocal(activityStart);
+        
+        // Check if this is an all-day event
+        if (activity.is_all_day) {
+            if (activityStartDate === dateStringFormatted) {
+                return true;
+            }
+            
+            // If activity has an end date, check if this date falls within the range
+            if (activity.end_at) {
+                const activityEnd = new Date(activity.end_at);
+                const activityEndDate = this.formatDateToLocal(activityEnd);
+                
+                if (dateStringFormatted >= activityStartDate && dateStringFormatted <= activityEndDate) {
+                    return true;
+                }
+            }
+        } else {
+            // For time-specific activities, check if the time slot conflicts
+            if (activityStartDate === dateStringFormatted) {
+                // Parse the time slot to get the hour (handle "10:00 AM" format)
+                const timeSlotHour = this.parseTimeSlotToHour(timeSlot);
+                const activityStartHour = activityStart.getHours();
+                
+                if (activity.end_at) {
+                    const activityEnd = new Date(activity.end_at);
+                    const activityEndHour = activityEnd.getHours();
+                    
+                    
+                    // Check if the time slot falls within the activity's time range
+                    if (timeSlotHour >= activityStartHour && timeSlotHour < activityEndHour) {
+                        return true;
+                    }
+                } else {
+                    // If no end time, check if it's exactly at the start time
+                    if (timeSlotHour === activityStartHour) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    // Helper method to check if a parochial activity conflicts with a specific time slot
+    parochialActivityConflictsWithTimeSlot(activity, dateString, timeSlot) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const dayOfWeek = date.getDay();
+        
+        // Only full_day activities block time slots
+        if (activity.block_type !== 'full_day') {
+            return false;
+        }
+        
+        if (activity.is_recurring) {
+            // For recurring activities, check if the day of week matches
+            const recurringPattern = activity.recurring_pattern || {};
+            if (recurringPattern.type === 'weekly') {
+                return recurringPattern.day_of_week === dayOfWeek;
+            }
+            // Add more recurring pattern types as needed
+        } else {
+            // For one-time activities, check if the date matches
+            const activityDate = new Date(activity.event_date);
+            return activityDate.toDateString() === date.toDateString();
+        }
+        
+        return false;
+    }
+
+    // Helper method to parse time slot format "10:00 AM" to hour number
+    parseTimeSlotToHour(timeSlot) {
+        // Handle formats like "10:00 AM", "2:00 PM", "5:00 PM"
+        const [time, period] = timeSlot.split(' ');
+        const [hour, minute] = time.split(':').map(Number);
+        
+        if (period === 'AM') {
+            return hour === 12 ? 0 : hour; // 12:00 AM = 0, 1:00 AM = 1, etc.
+        } else if (period === 'PM') {
+            return hour === 12 ? 12 : hour + 12; // 12:00 PM = 12, 1:00 PM = 13, etc.
+        }
+        
+        // Fallback for 24-hour format
+        return hour;
+    }
+
+    // Helper method to check if there are ministry activities on a specific date
+    hasMinistryActivitiesOnDate(dateString) {
+        if (!this.ministryActivities || this.ministryActivities.length === 0) {
+            return false;
+        }
+
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const dateStringFormatted = this.formatDateToLocal(date);
+
+        return this.ministryActivities.some(activity => {
+            const activityStart = new Date(activity.start_at);
+            const activityStartDate = this.formatDateToLocal(activityStart);
+            
+            // Check if this is an all-day event on this date
+            if (activity.is_all_day) {
+                if (activityStartDate === dateStringFormatted) {
+                    return true;
+                }
+                
+                // If activity has an end date, check if this date falls within the range
+                if (activity.end_at) {
+                    const activityEnd = new Date(activity.end_at);
+                    const activityEndDate = this.formatDateToLocal(activityEnd);
+                    
+                    if (dateStringFormatted >= activityStartDate && dateStringFormatted <= activityEndDate) {
+                        return true;
+                    }
+                }
+            } else {
+                // For time-specific activities, check if they occur on this date
+                if (activityStartDate === dateStringFormatted) {
+                    return true;
+                }
+                
+                // If activity has an end date, check if it spans to this date
+                if (activity.end_at) {
+                    const activityEnd = new Date(activity.end_at);
+                    const activityEndDate = this.formatDateToLocal(activityEnd);
+                    
+                    if (dateStringFormatted >= activityStartDate && dateStringFormatted <= activityEndDate) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        });
+    }
+
+    // Helper method to check if there are parochial activities on a specific date
+    hasParochialActivitiesOnDate(dateString) {
+        if (!this.parochialActivities || this.parochialActivities.length === 0) {
+            return false;
+        }
+
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        const dayOfWeek = date.getDay();
+
+        return this.parochialActivities.some(activity => {
+            // Only full_day activities block dates
+            if (activity.block_type !== 'full_day') {
+                return false;
+            }
+
+            if (activity.is_recurring) {
+                // For recurring activities, check if the day of week matches
+                const recurringPattern = activity.recurring_pattern || {};
+                if (recurringPattern.type === 'weekly') {
+                    return recurringPattern.day_of_week === dayOfWeek;
+                }
+            } else {
+                // For one-time activities, check if the date matches
+                const activityDate = new Date(activity.event_date);
+                return activityDate.toDateString() === date.toDateString();
+            }
+            
+            return false;
+        });
+    }
+
+    // Helper method to format dates to local timezone YYYY-MM-DD format
+    formatDateToLocal(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Helper method to get month name
+    getMonthName(monthIndex) {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        return monthNames[monthIndex];
+    }
+
+    isDateBlockedByExistingBookings(dateString) {
+        // We don't block entire dates for existing bookings
+        // Instead, we show conflicts at the time slot level
+        return false;
+    }
+
     updateDayClasses(dayElement, availability) {
         const baseClasses = 'calendar-day text-center py-4 px-2 cursor-pointer transition-colors text-lg font-medium';
         
@@ -286,15 +743,19 @@ class Calendar {
             dayElement.className = baseClasses + ' text-gray-400 cursor-not-allowed bg-gray-100';
         } else if (availability.status === 'parochial-activity') {
             dayElement.className = baseClasses + ' text-white bg-blue-200 border-2 border-blue-400 cursor-not-allowed';
+        } else if (availability.status === 'ministry-activity') {
+            dayElement.className = baseClasses + ' text-white bg-purple-200 border-2 border-purple-400 cursor-not-allowed';
         } else if (availability.status === 'fully-booked') {
             dayElement.className = baseClasses + ' text-white bg-red-200 border-2 border-red-400 cursor-not-allowed';
         } else if (availability.status === 'available') {
             dayElement.className = baseClasses + ' text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-[#0d5c2f]';
+        } else if (availability.status === 'available-with-notes') {
+            dayElement.className = baseClasses + ' text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-[#0d5c2f]';
+            dayElement.title = `${availability.available_slots} of ${availability.total_slots} slots available. ${availability.note}`;
         }
     }
 
     selectDate(dateString) {
-        console.log('Selecting date:', dateString);
         
         // Remove previous selection
         const previousSelected = document.querySelector('.calendar-day.bg-\\[\\#0d5c2f\\]');
@@ -367,9 +828,25 @@ class Calendar {
             bannerHTML += '<div class="font-semibold text-yellow-800 mb-2"><i class="fas fa-info-circle mr-2"></i>This date has blocking activities:</div>';
             bannerHTML += '<ul class="list-disc pl-5 text-sm text-yellow-900">';
             data.blockingActivities.forEach(act => {
-                const who = act.type === 'ministry' ? (act.ministry ? ` (${act.ministry})` : '') : '';
-                const range = act.end ? `${act.start} - ${act.end}` : act.start;
-                bannerHTML += `<li><span class="font-medium">${act.title}</span>${who} — ${range}${act.location ? ` @ ${act.location}` : ''}</li>`;
+                let displayText = '';
+                
+                if (act.type === 'existing_booking') {
+                    const startTime = act.start.split(' ')[1]; // Extract time part
+                    const endTime = act.end.split(' ')[1]; // Extract time part
+                    displayText = `${act.title} (${act.user}) — ${startTime} - ${endTime} (${act.duration} min)`;
+                } else {
+                    const who = act.type === 'ministry' ? (act.ministry ? ` (${act.ministry})` : '') : '';
+                    let range = '';
+                    if (act.type === 'ministry' && act.is_all_day) {
+                        range = 'All Day';
+                    } else {
+                        range = act.end ? `${act.start} - ${act.end}` : act.start;
+                    }
+                    const location = act.location ? ` @ ${act.location}` : '';
+                    displayText = `${act.title}${who} — ${range}${location}`;
+                }
+                
+                bannerHTML += `<li>${displayText}</li>`;
             });
             bannerHTML += '</ul></div>';
         }
@@ -385,16 +862,37 @@ class Calendar {
                 : (isAvailable ? 'border-gray-300 hover:border-[#0d5c2f] hover:bg-gray-50' : 'border-red-300 bg-red-50 text-gray-500 cursor-not-allowed');
             const title = isBlocked ? (slot.reason || 'Blocked by activity') : (isAvailable ? '' : 'Fully booked');
 
+            let slotContent = '';
+            if (isBlocked) {
+                slotContent = `
+                    <div class="font-semibold text-yellow-800">${slot.time}</div>
+                    <div class="text-sm text-yellow-700">
+                        <i class="fas fa-ban mr-1"></i>${slot.reason}
+                    </div>
+                `;
+            } else if (isAvailable) {
+                slotContent = `
+                    <div class="font-semibold">${slot.time}</div>
+                    <div class="text-sm text-gray-600">
+                        ${slot.available_slots} of ${slot.total_slots} slots available
+                    </div>
+                `;
+            } else {
+                slotContent = `
+                    <div class="font-semibold">${slot.time}</div>
+                    <div class="text-sm text-gray-600">
+                        Fully booked
+                    </div>
+                `;
+            }
+
             timeSlotsHTML += `
                 <button type="button" 
                         class="${baseClasses} ${cls}"
                         data-time="${slot.time}"
                         ${(!isAvailable) ? 'disabled' : ''}
                         ${title ? `title="${title}"` : ''}>
-                    <div class="font-semibold">${slot.time}</div>
-                    <div class="text-sm text-gray-600">
-                        ${isBlocked ? 'Blocked by activity' : (isAvailable ? `${slot.available_slots} of ${slot.total_slots} slots available` : 'Fully booked')}
-                    </div>
+                    ${slotContent}
                 </button>
             `;
         });
@@ -442,7 +940,7 @@ class Calendar {
             prevButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.displayedMonth.setMonth(this.displayedMonth.getMonth() - 1);
+                this.currentMonth.setMonth(this.currentMonth.getMonth() - 1);
                 this.renderCalendar();
             });
         }
@@ -451,7 +949,7 @@ class Calendar {
             nextButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.displayedMonth.setMonth(this.displayedMonth.getMonth() + 1);
+                this.currentMonth.setMonth(this.currentMonth.getMonth() + 1);
                 this.renderCalendar();
             });
         }
@@ -460,21 +958,18 @@ class Calendar {
 
 // Initialize calendar when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Calendar initialization started');
+    
     const calendarContainer = document.querySelector('.calendar-container');
-    console.log('Calendar container:', calendarContainer);
     
     if (calendarContainer) {
-        console.log('Active bookings:', @json($activeBookings));
-        console.log('Selected date:', @json($selectedDate));
-        console.log('Service:', @json($service));
         
         const calendar = new Calendar(
             calendarContainer,
+            @json($service),
             @json($activeBookings),
             @json($selectedDate),
-            @json($service),
-            @json($parochialActivities ?? [])
+            @json($parochialActivities ?? []),
+            @json($ministryActivities ?? [])
         );
         
         // Attach time slot listeners if there are existing time slots
@@ -483,4 +978,4 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Calendar container not found');
     }
 });
-</script> 
+</script>

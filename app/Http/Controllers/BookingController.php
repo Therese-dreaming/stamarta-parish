@@ -63,17 +63,12 @@ class BookingController extends Controller
             ->where('block_type', 'full_day')
             ->get();
 
-        // Debug information
-        \Log::info('Step2 Debug Info', [
-            'service_id' => $service->id,
-            'service_schedules' => $service->schedules,
-            'active_bookings_count' => $activeBookings->count(),
-            'active_bookings' => $activeBookings->toArray(),
-            'selected_date' => $selectedDate,
-            'parochial_activities_count' => $parochialActivities->count()
-        ]);
+        // Get ministry activities that could block this service
+        $ministryActivities = \App\Models\MinistryActivity::query()
+            ->where('is_public', true) // Only public ministry activities block bookings
+            ->get();
 
-        return view('booking.step2', compact('service', 'step1Data', 'activeBookings', 'selectedDate', 'parochialActivities'));
+        return view('booking.step2', compact('service', 'step1Data', 'activeBookings', 'selectedDate', 'parochialActivities', 'ministryActivities'));
     }
 
     public function step2Store(Request $request, Service $service)
@@ -420,11 +415,23 @@ class BookingController extends Controller
 
         // Check for parochial activities that block bookings on this date
         $blockingActivities = \App\Models\ParochialActivity::active()->onDate($date)->get();
+        
+        // Check for ministry activities that block bookings on this date
         $ministryActivities = \App\Models\MinistryActivity::query()
-            ->whereDate('start_at', '<=', $date)
+            ->where('is_public', true) // Only public ministry activities block bookings
             ->where(function($q) use ($date) {
-                $q->whereDate('end_at', '>=', $date)->orWhereNull('end_at');
+                $q->whereDate('start_at', '<=', $date)
+                  ->where(function($subQ) use ($date) {
+                      $subQ->whereDate('end_at', '>=', $date)
+                           ->orWhereNull('end_at');
+                  });
             })
+            ->get();
+
+        // Get all existing bookings for this date (across all services) to check for time conflicts
+        $existingBookings = Booking::where('service_date', $date)
+            ->whereIn('status', ['pending', 'acknowledged', 'payment_hold', 'approved'])
+            ->with(['service']) // Load the service relationship to get duration_minutes
             ->get();
 
         $availableSlots = [];
@@ -432,17 +439,32 @@ class BookingController extends Controller
         foreach ($allTimeSlots as $timeSlot) {
             // Check if this time slot conflicts with any parochial or ministry activity
             $hasConflict = false;
+            $conflictReason = '';
+            
             foreach ($blockingActivities as $activity) {
                 if ($activity->conflictsWithBooking($date, $timeSlot)) {
                     $hasConflict = true;
+                    $conflictReason = 'Conflicts with parochial activity';
                     break;
                 }
             }
 
             if (!$hasConflict) {
                 foreach ($ministryActivities as $mAct) {
-                    if ($mAct->conflictsWith($date, $timeSlot)) {
+                    if ($this->ministryActivityConflictsWithTimeSlot($mAct, $date, $timeSlot)) {
                         $hasConflict = true;
+                        $conflictReason = 'Conflicts with ministry activity';
+                        break;
+                    }
+                }
+            }
+
+            // Check if this time slot conflicts with existing bookings based on duration
+            if (!$hasConflict) {
+                foreach ($existingBookings as $booking) {
+                    if ($this->existingBookingConflictsWithTimeSlot($booking, $date, $timeSlot)) {
+                        $hasConflict = true;
+                        $conflictReason = 'Conflicts with existing booking';
                         break;
                     }
                 }
@@ -456,15 +478,15 @@ class BookingController extends Controller
                     'total_slots' => $service->max_slots,
                     'booked_slots' => 0,
                     'blocked' => true,
-                    'reason' => 'Conflicts with ministry/parochial activity',
+                    'reason' => $conflictReason,
                 ];
                 continue;
             }
 
-            $bookedCount = Booking::where('service_id', $service->id)
-                ->where('service_date', $date)
+            // Check if this specific service has available slots at this time
+            $bookedCount = $existingBookings
+                ->where('service_id', $service->id)
                 ->where('service_time', $timeSlot)
-                ->whereIn('status', ['pending', 'acknowledged', 'payment_hold', 'approved'])
                 ->count();
 
             $availableCount = $service->max_slots - $bookedCount;
@@ -480,6 +502,58 @@ class BookingController extends Controller
         }
 
         return $availableSlots;
+    }
+
+    /**
+     * Check if a ministry activity conflicts with a specific time slot
+     */
+    private function ministryActivityConflictsWithTimeSlot($ministryActivity, $date, $timeSlot)
+    {
+        // If it's an all-day event, it blocks the entire day
+        if ($ministryActivity->is_all_day) {
+            $activityStartDate = $ministryActivity->start_at->format('Y-m-d');
+            $activityEndDate = $ministryActivity->end_at ? $ministryActivity->end_at->format('Y-m-d') : $activityStartDate;
+            
+            // Check if the requested date falls within the activity range
+            if ($date >= $activityStartDate && $date <= $activityEndDate) {
+                return true;
+            }
+        } else {
+            // For time-specific activities, check if the time slots overlap
+            $requestedDateTime = Carbon::parse($date . ' ' . $timeSlot);
+            $activityStart = Carbon::parse($ministryActivity->start_at);
+            $activityEnd = $ministryActivity->end_at ? Carbon::parse($ministryActivity->end_at) : $activityStart->copy()->addHours(2);
+            
+            // Check if the requested time falls within the activity time range
+            if ($requestedDateTime >= $activityStart && $requestedDateTime < $activityEnd) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Check if an existing booking conflicts with a specific time slot based on its duration
+     */
+    private function existingBookingConflictsWithTimeSlot($booking, $date, $timeSlot)
+    {
+        // Parse the existing booking's start time
+        $existingStart = Carbon::parse($date . ' ' . $booking->service_time);
+        
+        // Calculate the existing booking's end time based on duration_minutes
+        $existingEnd = $existingStart->copy()->addMinutes($booking->service->duration_minutes ?? 120);
+        
+        // Parse the requested time slot
+        $requestedTime = Carbon::parse($date . ' ' . $timeSlot);
+        
+        // Check if the requested time falls within the existing booking's time range
+        // The requested time conflicts if it's >= existing start AND < existing end
+        if ($requestedTime >= $existingStart && $requestedTime < $existingEnd) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -499,10 +573,20 @@ class BookingController extends Controller
             // Compose blocking activities summary for banner
             $parochial = \App\Models\ParochialActivity::active()->onDate($date)->get();
             $ministry = \App\Models\MinistryActivity::query()
-                ->whereDate('start_at', '<=', $date)
+                ->where('is_public', true) // Only public ministry activities block bookings
                 ->where(function($q) use ($date) {
-                    $q->whereDate('end_at', '>=', $date)->orWhereNull('end_at');
+                    $q->whereDate('start_at', '<=', $date)
+                      ->where(function($subQ) use ($date) {
+                          $subQ->whereDate('end_at', '>=', $date)
+                               ->orWhereNull('end_at');
+                      });
                 })
+                ->get();
+
+            // Get existing bookings for this date to show in the banner
+            $existingBookings = Booking::where('service_date', $date)
+                ->whereIn('status', ['pending', 'acknowledged', 'payment_hold', 'approved'])
+                ->with(['service', 'user'])
                 ->get();
 
             $blockingSummaries = [];
@@ -523,6 +607,23 @@ class BookingController extends Controller
                     'end' => $m->end_at ? $m->end_at->format('Y-m-d H:i') : null,
                     'location' => $m->location,
                     'ministry' => optional($m->ministry)->name,
+                    'is_all_day' => $m->is_all_day,
+                ];
+            }
+            foreach ($existingBookings as $booking) {
+                $startTime = $booking->service_time;
+                $endTime = Carbon::parse($date . ' ' . $startTime)
+                    ->addMinutes($booking->service->duration_minutes ?? 120)
+                    ->format('H:i');
+                
+                $blockingSummaries[] = [
+                    'type' => 'existing_booking',
+                    'title' => $booking->service->name,
+                    'start' => $date . ' ' . $startTime,
+                    'end' => $date . ' ' . $endTime,
+                    'location' => 'Booked',
+                    'user' => optional($booking->user)->name ?? 'Unknown',
+                    'duration' => $booking->service->duration_minutes ?? 120,
                 ];
             }
 

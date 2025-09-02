@@ -28,12 +28,21 @@ class MinistryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:ministries,slug',
             'description' => 'nullable|string',
-            'head_user_id' => 'nullable|exists:users,id',
+            'head_user_id' => 'required|exists:users,id',
             'is_active' => 'sometimes|boolean',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
         $data['is_active'] = (bool)($data['is_active'] ?? true);
-        Ministry::create($data);
+        $ministry = Ministry::create($data);
+
+        // Ensure selected head is given the ministry_head role
+        if (!empty($data['head_user_id'])) {
+            $head = \App\Models\User::find($data['head_user_id']);
+            if ($head && $head->role !== 'ministry_head') {
+                $head->update(['role' => 'ministry_head']);
+            }
+        }
+
         return redirect()->route('admin.ministries.index')->with('success', 'Ministry created.');
     }
 
@@ -49,14 +58,29 @@ class MinistryController extends Controller
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:ministries,slug,' . $ministry->id,
             'description' => 'nullable|string',
-            'head_user_id' => 'nullable|exists:users,id',
+            'head_user_id' => 'required|exists:users,id',
             'is_active' => 'sometimes|boolean',
         ]);
         if (empty($data['slug'])) {
             $data['slug'] = Str::slug($data['name']);
         }
         $data['is_active'] = (bool)($data['is_active'] ?? $ministry->is_active);
+
+        $previousHeadId = $ministry->head_user_id;
         $ministry->update($data);
+
+        // If head changed or set, ensure role
+        if (!empty($data['head_user_id'])) {
+            if ($previousHeadId != $data['head_user_id']) {
+                $newHead = \App\Models\User::find($data['head_user_id']);
+                if ($newHead && $newHead->role !== 'ministry_head') {
+                    $newHead->update(['role' => 'ministry_head']);
+                }
+            }
+        }
+        // Optional: we could demote previous head if they no longer lead any ministry
+        // Skipping demotion to avoid unintended role changes across the system.
+
         return redirect()->route('admin.ministries.index')->with('success', 'Ministry updated.');
     }
 

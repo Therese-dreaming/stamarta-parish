@@ -7,53 +7,188 @@
 
     <title>@yield('title') - Ministry Panel</title>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.4.2/css/all.css">
+
+    <!-- Scripts -->
     @vite('resources/css/app.css')
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-50 font-['Poppins'] min-h-full flex flex-col">
     <div class="min-h-screen">
-        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg" id="sidebar">
-            <div class="h-16 px-6 flex items-center border-b">
-                <h1 class="text-lg font-bold text-[#0d5c2f]">Ministry Panel</h1>
+        <!-- Sidebar -->
+        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" id="sidebar">
+            <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+                <div class="flex items-center">
+                    <img src="{{ asset('images/church-logo.png') }}" alt="Logo" class="h-8 w-8">
+                    <h1 class="ml-3 text-lg font-bold text-[#0d5c2f]">Ministry Panel</h1>
+                </div>
+                <button id="closeSidebar" class="lg:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <nav class="mt-6 px-4 space-y-2">
-                <a href="{{ route('ministry.dashboard') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-gauge w-4 h-4 mr-2"></i>
-                    Dashboard
-                </a>
-                <a href="{{ route('ministry.members.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.members.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-users w-4 h-4 mr-2"></i>
-                    Members
-                </a>
-                <a href="{{ route('ministry.budget-requests.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.budget-requests.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-file-invoice-dollar w-4 h-4 mr-2"></i>
-                    Budget Requests
-                </a>
-                <a href="{{ route('ministry.activities.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
-                    <i class="fas fa-calendar-star w-4 h-4 mr-2"></i>
-                    Activities
-                </a>
+            
+            <nav class="mt-6 px-4">
+                <div class="space-y-2">
+                    <a href="{{ route('ministry.dashboard') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-tachometer-alt w-4 h-4 mr-2"></i>
+                        Dashboard
+                    </a>
+                    
+                    <div class="pt-4">
+                        <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Ministry Management</h3>
+                    </div>
+                    
+                    <a href="{{ route('ministry.members.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.members.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-users w-4 h-4 mr-2"></i>
+                        Members
+                    </a>
+                    
+                    <a href="{{ route('ministry.activities.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-calendar-star w-4 h-4 mr-2"></i>
+                        Activities
+                    </a>
+                </div>
             </nav>
         </div>
 
+        <!-- Main Content -->
         <div class="lg:ml-64">
+            <!-- Top Navigation -->
             <div class="bg-white shadow-sm border-b border-gray-200">
                 <div class="flex items-center justify-between h-16 px-6">
-                    <h2 class="text-lg font-semibold text-gray-900">@yield('title')</h2>
-                    <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">
-                        <i class="fas fa-home mr-2"></i>View Site
-                    </a>
+                    <div class="flex items-center">
+                        <button id="openSidebar" class="lg:hidden text-gray-500 hover:text-gray-700 mr-4">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h2 class="text-lg font-semibold text-gray-900">@yield('title')</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <a href="{{ route('home') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                            <i class="fas fa-home mr-2"></i>View Site
+                        </a>
+                        
+                        <!-- User Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                                <i class="fas fa-user-circle text-xl mr-2"></i>
+                                <span>{{ Auth::user()->name ?? 'User' }}</span>
+                                <i class="fas fa-chevron-down ml-2 text-sm"></i>
+                            </button>
+                            
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" @click.away="open = false" 
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                                
+                                <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                                    <div class="font-medium truncate">{{ Auth::user()->name }}</div>
+                                    <div class="text-gray-500 text-xs truncate" title="{{ Auth::user()->email }}">{{ Auth::user()->email }}</div>
+                                </div>
+                                
+                                <a href="{{ route('home') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-home mr-2"></i>View Site
+                                </a>
+                                
+                                <form method="POST" action="{{ route('logout') }}" class="block">
+                                    @csrf
+                                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Page Content -->
             <main class="p-6">
+                @if(session('success'))
+                    <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 @yield('content')
             </main>
         </div>
     </div>
 
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+
     @stack('scripts')
+    
+    <script>
+        // Sidebar toggle for mobile
+        document.getElementById('openSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.remove('hidden');
+        });
+
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
+        });
+
+        // Initialize sidebar state
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 1024) {
+                sidebar.classList.add('-translate-x-full');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (window.innerWidth >= 1024) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.bg-green-100.border-green-400, .bg-red-100.border-red-400');
+            messages.forEach(function(message) {
+                message.style.display = 'none';
+            });
+        }, 5000);
+    </script>
 </body>
 </html>
 

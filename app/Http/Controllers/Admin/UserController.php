@@ -79,6 +79,25 @@ class UserController extends Controller
         return redirect()->route('admin.users.show', $user)->with('success', 'User promoted to Ministry Head and assigned to ministry.');
     }
 
+    public function search(Request $request)
+    {
+        $request->validate([
+            'q' => 'required|string|min:2',
+        ]);
+
+        $q = $request->input('q');
+        $users = User::query()
+            ->where(function ($builder) use ($q) {
+                $builder->where('name', 'like', "%{$q}%")
+                        ->orWhere('email', 'like', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json($users);
+    }
+
     public function destroy(User $user)
     {
         // Prevent admin from deleting themselves
