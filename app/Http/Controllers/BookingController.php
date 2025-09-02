@@ -347,12 +347,23 @@ class BookingController extends Controller
         }
 
         // Check for parochial activities that block this time slot
-        $blockingActivities = \App\Models\ParochialActivity::active()
-            ->onDate($date)
+        $blockingActivities = \App\Models\ParochialActivity::active()->onDate($date)->get();
+        // Check for ministry activities that block this time slot
+        $ministryActivities = \App\Models\MinistryActivity::query()
+            ->whereDate('start_at', '<=', $date)
+            ->where(function($q) use ($date) {
+                $q->whereDate('end_at', '>=', $date)->orWhereNull('end_at');
+            })
             ->get();
 
         foreach ($blockingActivities as $activity) {
             if ($activity->conflictsWithBooking($date, $time)) {
+                return false;
+            }
+        }
+
+        foreach ($ministryActivities as $mAct) {
+            if ($mAct->conflictsWith($date, $time)) {
                 return false;
             }
         }
@@ -408,14 +419,18 @@ class BookingController extends Controller
         }
 
         // Check for parochial activities that block bookings on this date
-        $blockingActivities = \App\Models\ParochialActivity::active()
-            ->onDate($date)
+        $blockingActivities = \App\Models\ParochialActivity::active()->onDate($date)->get();
+        $ministryActivities = \App\Models\MinistryActivity::query()
+            ->whereDate('start_at', '<=', $date)
+            ->where(function($q) use ($date) {
+                $q->whereDate('end_at', '>=', $date)->orWhereNull('end_at');
+            })
             ->get();
 
         $availableSlots = [];
         
         foreach ($allTimeSlots as $timeSlot) {
-            // Check if this time slot conflicts with any parochial activity
+            // Check if this time slot conflicts with any parochial or ministry activity
             $hasConflict = false;
             foreach ($blockingActivities as $activity) {
                 if ($activity->conflictsWithBooking($date, $timeSlot)) {
@@ -424,8 +439,26 @@ class BookingController extends Controller
                 }
             }
 
+            if (!$hasConflict) {
+                foreach ($ministryActivities as $mAct) {
+                    if ($mAct->conflictsWith($date, $timeSlot)) {
+                        $hasConflict = true;
+                        break;
+                    }
+                }
+            }
+
             if ($hasConflict) {
-                continue; // Skip this time slot if it conflicts with an activity
+                // Indicate blocked by activity for UI
+                $availableSlots[] = [
+                    'time' => $timeSlot,
+                    'available_slots' => 0,
+                    'total_slots' => $service->max_slots,
+                    'booked_slots' => 0,
+                    'blocked' => true,
+                    'reason' => 'Conflicts with ministry/parochial activity',
+                ];
+                continue;
             }
 
             $bookedCount = Booking::where('service_id', $service->id)
@@ -462,7 +495,38 @@ class BookingController extends Controller
 
         try {
             $timeSlots = $this->getAvailableTimeSlots($service, $date);
-            return response()->json(['timeSlots' => $timeSlots]);
+
+            // Compose blocking activities summary for banner
+            $parochial = \App\Models\ParochialActivity::active()->onDate($date)->get();
+            $ministry = \App\Models\MinistryActivity::query()
+                ->whereDate('start_at', '<=', $date)
+                ->where(function($q) use ($date) {
+                    $q->whereDate('end_at', '>=', $date)->orWhereNull('end_at');
+                })
+                ->get();
+
+            $blockingSummaries = [];
+            foreach ($parochial as $a) {
+                $blockingSummaries[] = [
+                    'type' => 'parochial',
+                    'title' => $a->title,
+                    'start' => $a->event_date->format('Y-m-d') . ' ' . $a->start_time->format('H:i'),
+                    'end' => $a->event_date->format('Y-m-d') . ' ' . $a->end_time->format('H:i'),
+                    'location' => $a->location,
+                ];
+            }
+            foreach ($ministry as $m) {
+                $blockingSummaries[] = [
+                    'type' => 'ministry',
+                    'title' => $m->title,
+                    'start' => $m->start_at->format('Y-m-d H:i'),
+                    'end' => $m->end_at ? $m->end_at->format('Y-m-d H:i') : null,
+                    'location' => $m->location,
+                    'ministry' => optional($m->ministry)->name,
+                ];
+            }
+
+            return response()->json(['timeSlots' => $timeSlots, 'blockingActivities' => $blockingSummaries]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error loading time slots']);
         }

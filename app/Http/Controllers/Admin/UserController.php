@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Ministry;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -26,7 +27,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => ['required', Rule::in(['user', 'staff', 'priest', 'admin'])],
+            'role' => ['required', Rule::in(['user', 'staff', 'priest', 'ministry_head', 'admin'])],
         ]);
 
         $validated['password'] = bcrypt($validated['password']);
@@ -40,7 +41,8 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return view('admin.users.show', compact('user'));
+        $ministries = Ministry::orderBy('name')->get();
+        return view('admin.users.show', compact('user', 'ministries'));
     }
 
     public function edit(User $user)
@@ -53,13 +55,28 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', Rule::in(['user', 'staff', 'priest', 'admin'])],
+            'role' => ['required', Rule::in(['user', 'staff', 'priest', 'ministry_head', 'admin'])],
         ]);
 
         $user->update($validated);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');
+    }
+
+    public function promoteToMinistryHead(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'ministry_id' => ['required', 'exists:ministries,id'],
+        ]);
+
+        // Set role and assign as head of the ministry
+        $user->update(['role' => 'ministry_head']);
+
+        $ministry = Ministry::findOrFail($data['ministry_id']);
+        $ministry->update(['head_user_id' => $user->id]);
+
+        return redirect()->route('admin.users.show', $user)->with('success', 'User promoted to Ministry Head and assigned to ministry.');
     }
 
     public function destroy(User $user)

@@ -12,6 +12,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'service_id',
+        'ministry_id',
         'service_date',
         'service_time',
         'contact_phone',
@@ -50,6 +51,11 @@ class Booking extends Model
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function ministry()
+    {
+        return $this->belongsTo(Ministry::class);
     }
 
     public function priest()

@@ -85,6 +85,19 @@
                     Users
                 </a>
 
+                <!-- Ministries -->
+                <div class="pt-4">
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Ministries</h3>
+                </div>
+                <a href="{{ route('admin.ministries.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.ministries.index') || request()->routeIs('admin.ministries.create') || request()->routeIs('admin.ministries.edit') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-hand-holding-heart w-4 h-4 mr-2"></i>
+                    Ministries
+                </a>
+                <a href="{{ route('admin.ministries.budget-requests.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.ministries.budget-requests.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-file-invoice-dollar w-4 h-4 mr-2"></i>
+                    Budget Requests
+                </a>
+
                 <!-- Service Management -->
                 <div class="pt-4">
                     <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Service Management</h3>

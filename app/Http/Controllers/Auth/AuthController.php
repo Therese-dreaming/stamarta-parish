@@ -42,6 +42,8 @@ class AuthController extends Controller
                 return redirect()->intended('/staff');
             } elseif (Auth::user()->isPriest()) {
                 return redirect()->intended('/priest');
+            } elseif (Auth::user()->isMinistryHead()) {
+                return redirect()->intended('/ministry');
             } else {
                 return redirect()->intended('/');
             }

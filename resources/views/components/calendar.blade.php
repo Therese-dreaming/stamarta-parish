@@ -361,18 +361,39 @@ class Calendar {
             return;
         }
 
-        let timeSlotsHTML = '<div class="grid grid-cols-1 md:grid-cols-3 gap-4">';
+        let bannerHTML = '';
+        if (Array.isArray(data.blockingActivities) && data.blockingActivities.length > 0) {
+            bannerHTML += '<div class="mb-4 p-4 border border-yellow-300 bg-yellow-50 rounded">';
+            bannerHTML += '<div class="font-semibold text-yellow-800 mb-2"><i class="fas fa-info-circle mr-2"></i>This date has blocking activities:</div>';
+            bannerHTML += '<ul class="list-disc pl-5 text-sm text-yellow-900">';
+            data.blockingActivities.forEach(act => {
+                const who = act.type === 'ministry' ? (act.ministry ? ` (${act.ministry})` : '') : '';
+                const range = act.end ? `${act.start} - ${act.end}` : act.start;
+                bannerHTML += `<li><span class="font-medium">${act.title}</span>${who} — ${range}${act.location ? ` @ ${act.location}` : ''}</li>`;
+            });
+            bannerHTML += '</ul></div>';
+        }
+
+        let timeSlotsHTML = bannerHTML + '<div class="grid grid-cols-1 md:grid-cols-3 gap-4">';
         
         data.timeSlots.forEach(slot => {
-            const isAvailable = slot.available_slots > 0;
+            const isBlocked = !!slot.blocked;
+            const isAvailable = !isBlocked && slot.available_slots > 0;
+            const baseClasses = 'time-slot-btn p-4 text-center rounded-lg border transition-colors';
+            const cls = isBlocked
+                ? 'border-yellow-300 bg-yellow-50 text-gray-700 cursor-not-allowed'
+                : (isAvailable ? 'border-gray-300 hover:border-[#0d5c2f] hover:bg-gray-50' : 'border-red-300 bg-red-50 text-gray-500 cursor-not-allowed');
+            const title = isBlocked ? (slot.reason || 'Blocked by activity') : (isAvailable ? '' : 'Fully booked');
+
             timeSlotsHTML += `
                 <button type="button" 
-                        class="time-slot-btn p-4 text-center rounded-lg border transition-colors ${isAvailable ? 'border-gray-300 hover:border-[#0d5c2f] hover:bg-gray-50' : 'border-red-300 bg-red-50 text-gray-500 cursor-not-allowed'}"
+                        class="${baseClasses} ${cls}"
                         data-time="${slot.time}"
-                        ${!isAvailable ? 'disabled' : ''}>
+                        ${(!isAvailable) ? 'disabled' : ''}
+                        ${title ? `title="${title}"` : ''}>
                     <div class="font-semibold">${slot.time}</div>
                     <div class="text-sm text-gray-600">
-                        ${isAvailable ? `${slot.available_slots} of ${slot.total_slots} slots available` : 'Fully booked'}
+                        ${isBlocked ? 'Blocked by activity' : (isAvailable ? `${slot.available_slots} of ${slot.total_slots} slots available` : 'Fully booked')}
                     </div>
                 </button>
             `;

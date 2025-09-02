@@ -23,6 +23,7 @@ class Service extends Model
         'booking_restrictions',
         'custom_fields',
         'service_type',
+        'ministry_id',
     ];
 
     protected $casts = [
@@ -215,6 +216,11 @@ class Service extends Model
     public function ratings()
     {
         return $this->hasMany(ServiceRating::class);
+    }
+
+    public function ministry()
+    {
+        return $this->belongsTo(Ministry::class);
     }
 
     /**

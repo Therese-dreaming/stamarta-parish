@@ -8,6 +8,10 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\PriestController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\MinistryFundController;
+use App\Http\Controllers\Admin\MinistryBudgetRequestController;
+use App\Http\Controllers\Admin\MinistryMemberController;
+use App\Http\Controllers\Admin\MinistryController as AdminMinistryController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ServiceRatingController;
@@ -171,6 +175,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	
 	// User Management
 	Route::resource('users', UserController::class);
+	Route::post('users/{user}/promote-ministry-head', [UserController::class, 'promoteToMinistryHead'])->name('users.promote-ministry-head');
 	Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
 	
 	// Service Management
@@ -206,6 +211,31 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
 	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
 	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
+
+	// Ministries - Fund Overview (admin)
+	Route::get('ministries/{ministry}/fund', [MinistryFundController::class, 'index'])->name('ministries.fund');
+
+	// Ministries - CRUD (admin)
+	Route::get('ministries', [AdminMinistryController::class, 'index'])->name('ministries.index');
+	Route::get('ministries/create', [AdminMinistryController::class, 'create'])->name('ministries.create');
+	Route::post('ministries', [AdminMinistryController::class, 'store'])->name('ministries.store');
+	Route::get('ministries/{ministry}/edit', [AdminMinistryController::class, 'edit'])->name('ministries.edit');
+	Route::put('ministries/{ministry}', [AdminMinistryController::class, 'update'])->name('ministries.update');
+	Route::delete('ministries/{ministry}', [AdminMinistryController::class, 'destroy'])->name('ministries.destroy');
+
+	// Ministries - Budget Requests
+	Route::get('ministries/budget-requests', [MinistryBudgetRequestController::class, 'index'])->name('ministries.budget-requests.index');
+	Route::post('ministries/{ministry}/budget-requests', [MinistryBudgetRequestController::class, 'store'])->name('ministries.budget-requests.store');
+	Route::post('ministries/budget-requests/{requestModel}/approve', [MinistryBudgetRequestController::class, 'approve'])->name('ministries.budget-requests.approve');
+	Route::post('ministries/budget-requests/{requestModel}/reject', [MinistryBudgetRequestController::class, 'reject'])->name('ministries.budget-requests.reject');
+
+	// Ministries - Members CRUD
+	Route::get('ministries/{ministry}/members', [MinistryMemberController::class, 'index'])->name('ministries.members.index');
+	Route::get('ministries/{ministry}/members/create', [MinistryMemberController::class, 'create'])->name('ministries.members.create');
+	Route::post('ministries/{ministry}/members', [MinistryMemberController::class, 'store'])->name('ministries.members.store');
+	Route::get('ministries/{ministry}/members/{member}/edit', [MinistryMemberController::class, 'edit'])->name('ministries.members.edit');
+	Route::put('ministries/{ministry}/members/{member}', [MinistryMemberController::class, 'update'])->name('ministries.members.update');
+	Route::delete('ministries/{ministry}/members/{member}', [MinistryMemberController::class, 'destroy'])->name('ministries.members.destroy');
 });
 
 // Staff Routes
@@ -296,6 +326,31 @@ Route::prefix('priest')->name('priest.')->middleware(['auth', 'priest'])->group(
 	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
 	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
 	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
+});
+
+// Ministry Head Routes
+Route::prefix('ministry')->name('ministry.')->middleware(['auth', 'ministry_head'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\Ministry\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('members', [\App\Http\Controllers\Ministry\MemberController::class, 'index'])->name('members.index');
+    Route::get('members/create', [\App\Http\Controllers\Ministry\MemberController::class, 'create'])->name('members.create');
+    Route::post('members', [\App\Http\Controllers\Ministry\MemberController::class, 'store'])->name('members.store');
+    Route::get('members/search-users', [\App\Http\Controllers\Ministry\MemberController::class, 'searchUsers'])->name('members.search-users');
+    Route::get('members/{member}/edit', [\App\Http\Controllers\Ministry\MemberController::class, 'edit'])->name('members.edit');
+    Route::put('members/{member}', [\App\Http\Controllers\Ministry\MemberController::class, 'update'])->name('members.update');
+    Route::delete('members/{member}', [\App\Http\Controllers\Ministry\MemberController::class, 'destroy'])->name('members.destroy');
+
+    // Budget Requests
+    Route::get('budget-requests', [\App\Http\Controllers\Ministry\BudgetRequestController::class, 'index'])->name('budget-requests.index');
+    Route::get('budget-requests/create', [\App\Http\Controllers\Ministry\BudgetRequestController::class, 'create'])->name('budget-requests.create');
+    Route::post('budget-requests', [\App\Http\Controllers\Ministry\BudgetRequestController::class, 'store'])->name('budget-requests.store');
+
+    // Activities
+    Route::get('activities', [\App\Http\Controllers\Ministry\ActivityController::class, 'index'])->name('activities.index');
+    Route::get('activities/create', [\App\Http\Controllers\Ministry\ActivityController::class, 'create'])->name('activities.create');
+    Route::post('activities', [\App\Http\Controllers\Ministry\ActivityController::class, 'store'])->name('activities.store');
+    Route::get('activities/{activity}/edit', [\App\Http\Controllers\Ministry\ActivityController::class, 'edit'])->name('activities.edit');
+    Route::put('activities/{activity}', [\App\Http\Controllers\Ministry\ActivityController::class, 'update'])->name('activities.update');
+    Route::delete('activities/{activity}', [\App\Http\Controllers\Ministry\ActivityController::class, 'destroy'])->name('activities.destroy');
 });
 
 // Fallback route for admin pages

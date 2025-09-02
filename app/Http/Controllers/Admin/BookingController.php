@@ -44,8 +44,8 @@ class BookingController extends Controller
         $bookings = Booking::with(['user', 'service', 'payment'])
             ->get();
 
-        $parochialActivities = \App\Models\ParochialActivity::active()
-            ->get();
+        $parochialActivities = \App\Models\ParochialActivity::active()->get();
+        $ministryActivities = \App\Models\MinistryActivity::query()->get();
 
         $calendarEvents = [];
 
@@ -136,6 +136,27 @@ class BookingController extends Controller
                     ]
                 ];
             }
+        }
+
+        // Add ministry activities to calendar events
+        foreach ($ministryActivities as $mAct) {
+            $calendarEvents[] = [
+                'id' => 'ministry-activity-' . $mAct->id,
+                'title' => '[Ministry] ' . $mAct->title,
+                'start' => $mAct->start_at->format('Y-m-d\TH:i:s'),
+                'end' => $mAct->end_at ? $mAct->end_at->format('Y-m-d\TH:i:s') : null,
+                'type' => 'ministry_activity',
+                'activity_id' => $mAct->id,
+                'backgroundColor' => 'rgba(96, 165, 250, 0.25)',
+                'borderColor' => 'rgba(96, 165, 250, 0.6)',
+                'textColor' => '#ffffff',
+                'extendedProps' => [
+                    'description' => $mAct->description,
+                    'location' => $mAct->location,
+                    'ministry' => optional($mAct->ministry)->name,
+                    'is_all_day' => $mAct->is_all_day,
+                ]
+            ];
         }
 
         // Check if user is staff

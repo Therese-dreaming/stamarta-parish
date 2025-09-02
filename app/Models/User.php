@@ -87,6 +87,11 @@ class User extends Authenticatable
         return $this->hasRole('priest');
     }
 
+    public function isMinistryHead()
+    {
+        return $this->hasRole('ministry_head');
+    }
+
     public function isStaff()
     {
         return $this->hasRole('staff');

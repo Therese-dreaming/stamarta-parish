@@ -160,6 +160,22 @@
                             <i class="fas fa-edit mr-1.5 text-xs"></i>Edit User
                         </a>
                         @if($user->id !== auth()->id())
+                            <form action="{{ route('admin.users.promote-ministry-head', $user) }}" method="POST" class="space-y-2">
+                                @csrf
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Assign as Ministry Head</label>
+                                    <select name="ministry_id" class="w-full border rounded px-2 py-1.5 text-xs">
+                                        @foreach($ministries as $min)
+                                            <option value="{{ $min->id }}">{{ $min->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <button class="w-full flex items-center justify-center px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-all duration-200 hover:shadow-md hover:scale-105 text-xs" type="submit">
+                                    <i class="fas fa-user-shield mr-1.5 text-xs"></i>Promote to Ministry Head
+                                </button>
+                            </form>
+                        @endif
+                        @if($user->id !== auth()->id())
                             <button onclick="openDeleteModal()" 
                                     class="w-full flex items-center justify-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-200 hover:shadow-md hover:scale-105 text-xs">
                                 <i class="fas fa-trash mr-1.5 text-xs"></i>Delete User
