@@ -65,6 +65,19 @@
                     </a>
                 </div>
 
+                <div class="pt-4">
+                    <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Financial Management</h3>
+                </div>
+                
+                <a href="{{ route('admin.budget-management.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.budget-management.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-chart-line w-4 h-4 mr-2"></i>
+                    Budget Management
+                </a>
+                <a href="{{ route('admin.manual-cash-inflows.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.manual-cash-inflows.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                    <i class="fas fa-money-bill-wave w-4 h-4 mr-2"></i>
+                    Manual Cash Inflows
+                </a>
+
                 <!-- Priest Management -->
                 <div class="pt-4">
                     <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Priest Management</h3>
@@ -93,9 +106,9 @@
                     <i class="fas fa-hand-holding-heart w-4 h-4 mr-2"></i>
                     Ministries
                 </a>
-                <a href="{{ route('admin.ministries.budget-requests.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.ministries.budget-requests.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                <a href="{{ route('admin.ministries.ministry-activities.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.ministries.ministry-activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                     <i class="fas fa-file-invoice-dollar w-4 h-4 mr-2"></i>
-                    Budget Requests
+                    Ministry Activities
                 </a>
 
                 <!-- Service Management -->

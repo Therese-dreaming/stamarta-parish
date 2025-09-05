@@ -207,16 +207,13 @@
                     </div>
                 </div>
 
-                <!-- Budget Request Section -->
-                <div class="space-y-4 border-t border-gray-200 pt-6">
+                <!-- Ministry Activity Section -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center mb-4">
-                        <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                            <i class="fas fa-coins text-blue-600 text-lg"></i>
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-invoice-dollar text-blue-600"></i>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Budget Information</h3>
-                            <p class="text-sm text-gray-500">Update budget details for this activity</p>
-                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Ministry Activity</h3>
                     </div>
 
                     <!-- Budget Purpose -->
@@ -251,18 +248,10 @@
                                 @php
                                     $budgetItems = [];
                                     
-                                    // Try to parse the budget breakdown
-                                    $trimmedBreakdown = trim($activity->budget_breakdown);
-                                    
-                                    // Check if this contains multiple budget items (look for patterns like "Item: ₱X, Item: ₱Y")
-                                    if (preg_match_all('/([^,]+?):\s*₱?([\d,]+\.?\d*)(?=,|$)/', $trimmedBreakdown, $matches, PREG_SET_ORDER)) {
-                                        // Multiple items found
-                                        foreach ($matches as $match) {
-                                            $name = trim($match[1]);
-                                            $amountStr = $match[2];
-                                            // Remove commas and convert to float
-                                            $amount = (float)str_replace(',', '', $amountStr);
-                                            
+                                    // Handle both JSON array format and legacy string format
+                                    if (is_array($activity->budget_breakdown)) {
+                                        // New JSON format
+                                        foreach ($activity->budget_breakdown as $name => $amount) {
                                             if ($amount > 0) {
                                                 $budgetItems[] = [
                                                     'name' => $name,
@@ -271,18 +260,39 @@
                                             }
                                         }
                                     } else {
-                                        // Try parsing as a single item
-                                        if (preg_match('/^(.*?):\s*₱?([\d,]+\.?\d*)$/', $trimmedBreakdown, $matches)) {
-                                            $name = trim($matches[1]);
-                                            $amountStr = $matches[2];
-                                            // Remove commas and convert to float
-                                            $amount = (float)str_replace(',', '', $amountStr);
-                                            
-                                            if ($amount > 0) {
-                                                $budgetItems[] = [
-                                                    'name' => $name,
-                                                    'amount' => $amount
-                                                ];
+                                        // Legacy string format - try to parse
+                                        $trimmedBreakdown = trim($activity->budget_breakdown);
+                                        
+                                        // Check if this contains multiple budget items (look for patterns like "Item: ₱X, Item: ₱Y")
+                                        if (preg_match_all('/([^,]+?):\s*₱?([\d,]+\.?\d*)(?=,|$)/', $trimmedBreakdown, $matches, PREG_SET_ORDER)) {
+                                            // Multiple items found
+                                            foreach ($matches as $match) {
+                                                $name = trim($match[1]);
+                                                $amountStr = $match[2];
+                                                // Remove commas and convert to float
+                                                $amount = (float)str_replace(',', '', $amountStr);
+                                                
+                                                if ($amount > 0) {
+                                                    $budgetItems[] = [
+                                                        'name' => $name,
+                                                        'amount' => $amount
+                                                    ];
+                                                }
+                                            }
+                                        } else {
+                                            // Try parsing as a single item
+                                            if (preg_match('/^(.*?):\s*₱?([\d,]+\.?\d*)$/', $trimmedBreakdown, $matches)) {
+                                                $name = trim($matches[1]);
+                                                $amountStr = $matches[2];
+                                                // Remove commas and convert to float
+                                                $amount = (float)str_replace(',', '', $amountStr);
+                                                
+                                                if ($amount > 0) {
+                                                    $budgetItems[] = [
+                                                        'name' => $name,
+                                                        'amount' => $amount
+                                                    ];
+                                                }
                                             }
                                         }
                                     }
@@ -384,7 +394,7 @@
                             name="budget_details" 
                             rows="3" 
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none" 
-                            placeholder="Provide detailed justification for the budget request, including specific items and their purposes..."
+                            placeholder="Provide detailed justification for the ministry activity, including specific items and their purposes..."
                         >{{ old('budget_details', $activity->pendingBudgetRequest?->details ?? $activity->approvedBudgetRequest?->details ?? '') }}</textarea>
                         <p class="text-xs text-gray-500 mt-1">Optional: Detailed explanation of budget requirements</p>
                         @error('budget_details')
@@ -392,27 +402,6 @@
                                 <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
                             </p>
                         @enderror
-                    </div>
-
-                    <!-- Budget Request Toggle -->
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <label class="flex items-center cursor-pointer">
-                            <div class="relative">
-                                <input 
-                                    type="checkbox" 
-                                    name="request_budget" 
-                                    value="1" 
-                                    class="sr-only" 
-                                    {{ old('request_budget', $activity->has_budget_request ?? false) ? 'checked' : '' }}
-                                />
-                                <div class="w-10 h-6 bg-gray-300 rounded-full shadow-inner"></div>
-                                <div class="dot absolute w-4 h-4 bg-white rounded-full shadow -top-1 -left-1 transition-transform duration-200 ease-in-out"></div>
-                            </div>
-                            <div class="ml-3">
-                                <span class="text-sm font-medium text-gray-700">Request Budget Approval</span>
-                                <p class="text-xs text-gray-500">Submit this budget for approval by parish administration</p>
-                            </div>
-                        </label>
                     </div>
                 </div>
 

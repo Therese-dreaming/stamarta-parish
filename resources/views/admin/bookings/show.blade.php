@@ -33,27 +33,13 @@
         </div>
     </div>
  
-    <div x-data="{ tab: 'info' }" class="space-y-4">
-        <!-- Tabs Nav -->
-        <div class="bg-white border border-gray-200 rounded-xl p-2 sticky top-0 z-10 shadow-sm">
-            <div class="flex flex-wrap gap-2">
-                <button @click="tab='info'" :class="tab==='info' ? 'bg-[#0d5c2f] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-                    <i class="fas fa-info-circle mr-1.5"></i>Booking Info
-                </button>
-                <button @click="tab='docs'" :class="tab==='docs' ? 'bg-[#0d5c2f] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-                    <i class="fas fa-file-alt mr-1.5"></i>Documents
-                </button>
-                <button @click="tab='payment'" :class="tab==='payment' ? 'bg-[#0d5c2f] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-                    <i class="fas fa-money-bill-wave mr-1.5"></i>Payment
-                </button>
-            </div>
-        </div>
+    <div class="space-y-6">
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- Main Content -->
             <div class="lg:col-span-8 space-y-6">
-                <!-- Booking Information Card -->
-                <div x-show="tab==='info'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Booking Information Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-base font-semibold text-gray-900 flex items-center">
                             <i class="fas fa-info-circle mr-2 text-[#0d5c2f]"></i>
@@ -353,8 +339,8 @@
                     </div>
                 </div>
  
-                <!-- Documents -->
-                <div x-show="tab==='docs'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Documents -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-base font-semibold text-gray-900 flex items-center">
                             <i class="fas fa-file-alt mr-2 text-[#0d5c2f]"></i>
@@ -414,8 +400,8 @@
                     </div>
                 </div>
  
-                <!-- Payment Information -->
-                <div x-show="tab==='payment'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Payment Information -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-base font-semibold text-gray-900 flex items-center">
                             <i class="fas fa-money-bill-wave mr-2 text-[#0d5c2f]"></i>
@@ -534,7 +520,7 @@
             </div>
  
             <!-- Sidebar -->
-            <div class="lg:col-span-4 space-y-6">
+            <div class="lg:col-span-4 space-y-6 sticky top-6 h-fit">
                 <!-- Booking Summary -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="p-4 border-b border-gray-200 bg-gray-50">
@@ -715,16 +701,10 @@
                     </div>
                     <div class="p-4">
                         <div class="space-y-3">
-                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.print', $booking) : route('admin.bookings.print', $booking) }}" 
-                               target="_blank"
-                               class="w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors flex items-center justify-center">
-                                 <i class="fas fa-file-pdf mr-2"></i>
-                                 <span>Download as PDF</span>
-                             </a>
-
+                            <!-- Status-based Actions -->
                             @if($booking->status === 'pending')
                                 <button onclick="openAcknowledgeModal()" 
-                                        class="w-full px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors flex items-center justify-center">
+                                        class="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center font-medium">
                                     <i class="fas fa-check mr-2"></i>
                                     <span>Acknowledge Booking</span>
                                 </button>
@@ -732,7 +712,7 @@
 
                             @if($booking->status === 'payment_hold')
                                 <button onclick="openPaymentVerificationModal()" 
-                                        class="w-full px-4 py-2.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors flex items-center justify-center">
+                                        class="w-full px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center font-medium">
                                     <i class="fas fa-check-double mr-2"></i>
                                     <span>Verify Payment</span>
                                 </button>
@@ -740,37 +720,63 @@
 
                             @if($booking->status === 'approved')
                                 <button onclick="openCompleteModal()" 
-                                        class="w-full px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg transition-colors flex items-center justify-center">
+                                        class="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center font-medium">
                                     <i class="fas fa-flag-checkered mr-2"></i>
                                     <span>Mark as Completed</span>
                                 </button>
                             @endif
-                            
-                            <div class="space-y-2">
-                                <button onclick="openCertificateModal()" class="w-full px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors flex items-center justify-center">
-                                    <i class="fas fa-upload mr-2"></i>
-                                    <span>Upload Certificate</span>
-                                </button>
-                                @if($booking->certificate_path)
-                                    <div class="flex items-center gap-2">
-                                        <a href="{{ Storage::url($booking->certificate_path) }}" target="_blank" class="w-full px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors flex items-center justify-center">
-                                            <i class="fas fa-eye mr-2"></i>
-                                            <span>View Certificate</span>
-                                        </a>
-                                        <button onclick="openDeleteCertificateModal()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                            
+
                             @if(in_array($booking->status, ['pending', 'acknowledged', 'payment_hold']))
                                 <button onclick="openCancelModal()" 
-                                        class="w-full px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors flex items-center justify-center">
+                                        class="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center font-medium">
                                     <i class="fas fa-ban mr-2"></i>
-                                    <span>Cancel Booking</span>
+                                    <span>Cancel/Reject Booking</span>
                                 </button>
                             @endif
+
+                            <!-- Certificate Management -->
+                            <div class="pt-3 border-t border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Certificate Management</h4>
+                                <div class="space-y-2">
+                                    @if($booking->status === 'completed')
+                                        <button onclick="openCertificateModal()" class="w-full px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center justify-center font-medium">
+                                            <i class="fas fa-upload mr-2"></i>
+                                            <span>Upload Certificate</span>
+                                        </button>
+                                    @else
+                                        <div class="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                                            <div class="flex items-center text-gray-500">
+                                                <i class="fas fa-info-circle mr-2 text-gray-400"></i>
+                                                <span class="text-sm">Certificate upload available after completion</span>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                    @if($booking->certificate_path)
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <a href="{{ Storage::url($booking->certificate_path) }}" target="_blank" class="px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors flex items-center justify-center text-sm">
+                                                <i class="fas fa-eye mr-1"></i>
+                                                <span>View</span>
+                                            </a>
+                                            <button onclick="openDeleteCertificateModal()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm">
+                                                <i class="fas fa-trash mr-1"></i>
+                                                <span>Delete</span>
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Utility Actions -->
+                            <div class="pt-3 border-t border-gray-200">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Utilities</h4>
+                                <a href="{{ isset($isStaff) && $isStaff ? route('staff.bookings.print', $booking) : route('admin.bookings.print', $booking) }}" 
+                                   target="_blank"
+                                   class="w-full px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center justify-center font-medium">
+                                     <i class="fas fa-file-pdf mr-2"></i>
+                                     <span>Download as PDF</span>
+                                 </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1126,6 +1132,62 @@
             </div>
         </div>
     </div>
+
+    <!-- Mark as Completed Modal -->
+    <div id="completeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 animate-fade-in">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-lg max-w-md w-full animate-slide-up">
+                <div class="p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-flag-checkered text-emerald-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Mark as Completed</h3>
+                            <p class="text-sm text-gray-600">Confirm that this service has been completed</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-emerald-50 rounded-lg p-4 mb-6 border border-emerald-200">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-emerald-600 mt-0.5 mr-2"></i>
+                            <p class="text-sm text-emerald-700">
+                                This action will mark the booking as completed. The user will be notified and the booking will be moved to the completed status.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ isset($isStaff) && $isStaff ? route('staff.bookings.complete', $booking) : route('admin.bookings.complete', $booking) }}" method="POST">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="complete_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                                Completion Notes (Optional)
+                            </label>
+                            <textarea id="complete_notes" 
+                                      name="notes" 
+                                      rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                      placeholder="Add any notes about the completion of this service"></textarea>
+                        </div>
+                        
+                        <div class="flex items-center justify-end space-x-3">
+                            <button type="button" 
+                                    onclick="closeModal('completeModal')"
+                                    class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium">
+                                <i class="fas fa-flag-checkered mr-2"></i>Mark as Completed
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -1146,11 +1208,12 @@ function openAcknowledgeModal() { const el = document.getElementById('acknowledg
 function openRejectModal() { const el = document.getElementById('rejectModal'); if (el) el.classList.remove('hidden'); }
 function openPaymentVerificationModal() { const el = document.getElementById('paymentVerificationModal'); if (el) el.classList.remove('hidden'); setTimeout(togglePriestField, 0); }
 function openCancelModal() { const el = document.getElementById('cancelModal'); if (el) el.classList.remove('hidden'); }
+function openCompleteModal() { const el = document.getElementById('completeModal'); if (el) el.classList.remove('hidden'); }
 function openCertificateModal() { const el = document.getElementById('certificateModal'); if (el) el.classList.remove('hidden'); }
 function openDeleteCertificateModal() { const el = document.getElementById('deleteCertificateModal'); if (el) el.classList.remove('hidden'); }
 function closeModal(modalId) { const el = document.getElementById(modalId); if (el) el.classList.add('hidden'); }
 
-['acknowledgeModal','rejectModal','paymentVerificationModal','cancelModal','certificateModal','deleteCertificateModal'].forEach(id => {
+['acknowledgeModal','rejectModal','paymentVerificationModal','cancelModal','completeModal','certificateModal','deleteCertificateModal'].forEach(id => {
     const modal = document.getElementById(id);
     if (modal) {
         modal.addEventListener('click', function(e) { if (e.target === this) { closeModal(this.id); } });

@@ -216,6 +216,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	// Ministries - Fund Overview (admin)
 	Route::get('ministries/{ministry}/fund', [MinistryFundController::class, 'index'])->name('ministries.fund');
 
+	// Budget Management
+	Route::get('budget-management', [App\Http\Controllers\Admin\BudgetManagementController::class, 'index'])->name('budget-management.index');
+	Route::get('budget-management/{transaction}', [App\Http\Controllers\Admin\BudgetManagementController::class, 'show'])->name('budget-management.show');
+
+	// Manual Cash Inflows
+	Route::resource('manual-cash-inflows', App\Http\Controllers\Admin\ManualCashInflowController::class);
+	Route::post('manual-cash-inflows/{manual_cash_inflow}/approve', [App\Http\Controllers\Admin\ManualCashInflowController::class, 'approve'])->name('manual-cash-inflows.approve');
+	Route::post('manual-cash-inflows/{manual_cash_inflow}/reject', [App\Http\Controllers\Admin\ManualCashInflowController::class, 'reject'])->name('manual-cash-inflows.reject');
+
 	// Ministries - CRUD (admin)
 	Route::get('ministries', [AdminMinistryController::class, 'index'])->name('ministries.index');
 	Route::get('ministries/create', [AdminMinistryController::class, 'create'])->name('ministries.create');
@@ -224,11 +233,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	Route::put('ministries/{ministry}', [AdminMinistryController::class, 'update'])->name('ministries.update');
 	Route::delete('ministries/{ministry}', [AdminMinistryController::class, 'destroy'])->name('ministries.destroy');
 
-	// Ministries - Budget Requests
-	Route::get('ministries/budget-requests', [MinistryBudgetRequestController::class, 'index'])->name('ministries.budget-requests.index');
-	Route::post('ministries/{ministry}/budget-requests', [MinistryBudgetRequestController::class, 'store'])->name('ministries.budget-requests.store');
-	Route::post('ministries/budget-requests/{requestModel}/approve', [MinistryBudgetRequestController::class, 'approve'])->name('ministries.budget-requests.approve');
-	Route::post('ministries/budget-requests/{requestModel}/reject', [MinistryBudgetRequestController::class, 'reject'])->name('ministries.budget-requests.reject');
+	// Ministries - Ministry Activities
+	Route::get('ministries/ministry-activities', [MinistryBudgetRequestController::class, 'index'])->name('ministries.ministry-activities.index');
+	Route::get('ministries/ministry-activities/{requestModel}', [MinistryBudgetRequestController::class, 'show'])->name('ministries.ministry-activities.show');
+	Route::post('ministries/{ministry}/ministry-activities', [MinistryBudgetRequestController::class, 'store'])->name('ministries.ministry-activities.store');
+	Route::post('ministries/ministry-activities/{requestModel}/approve', [MinistryBudgetRequestController::class, 'approve'])->name('ministries.ministry-activities.approve');
+	Route::post('ministries/ministry-activities/{requestModel}/reject', [MinistryBudgetRequestController::class, 'reject'])->name('ministries.ministry-activities.reject');
 
 	// Ministries - Members CRUD
 	Route::get('ministries/{ministry}/members', [MinistryMemberController::class, 'index'])->name('ministries.members.index');
@@ -348,9 +358,16 @@ Route::prefix('ministry')->name('ministry.')->middleware(['auth', 'ministry_head
     Route::get('activities/{activity}/edit', [\App\Http\Controllers\Ministry\ActivityController::class, 'edit'])->name('activities.edit');
     Route::put('activities/{activity}', [\App\Http\Controllers\Ministry\ActivityController::class, 'update'])->name('activities.update');
     Route::delete('activities/{activity}', [\App\Http\Controllers\Ministry\ActivityController::class, 'destroy'])->name('activities.destroy');
-    Route::post('activities/{activity}/request-budget', [\App\Http\Controllers\Ministry\ActivityController::class, 'requestBudget'])->name('activities.request-budget');
+
     Route::post('activities/check-conflicts', [\App\Http\Controllers\Ministry\ActivityController::class, 'checkConflicts'])->name('activities.check-conflicts');
     Route::get('activities/test-conflicts', [\App\Http\Controllers\Ministry\ActivityController::class, 'testConflicts'])->name('activities.test-conflicts');
+
+    // Budget Management
+    Route::get('budget-management', [\App\Http\Controllers\Ministry\BudgetManagementController::class, 'index'])->name('budget-management.index');
+    Route::get('budget-management/show', [\App\Http\Controllers\Ministry\BudgetManagementController::class, 'show'])->name('budget-management.show');
+
+    // Manual Cash Inflows
+    Route::resource('manual-cash-inflows', \App\Http\Controllers\Ministry\ManualCashInflowController::class);
 });
 
 // Fallback route for admin pages

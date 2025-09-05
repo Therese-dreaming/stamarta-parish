@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class MinistryBudgetRequest extends Model
 {
@@ -12,17 +15,16 @@ class MinistryBudgetRequest extends Model
     protected $fillable = [
         'ministry_id',
         'activity_id',
-        'amount',
         'purpose',
         'details',
         'status',
         'requested_by_user_id',
         'approved_by_user_id',
         'approved_at',
+        'rejection_notes',
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
         'approved_at' => 'datetime',
     ];
 
@@ -51,6 +53,19 @@ class MinistryBudgetRequest extends Model
         return $this->hasMany(MinistryBudgetRequestFile::class, 'budget_request_id');
     }
 
+    public function fundTransactions()
+    {
+        return $this->hasMany(MinistryFundTransaction::class, 'budget_request_id');
+    }
+
+    /**
+     * Get the amount from the associated activity's estimated budget
+     */
+    public function getAmountAttribute()
+    {
+        return $this->activity ? $this->activity->estimated_budget : 0;
+    }
+
     public function getStatusColorAttribute()
     {
         return match($this->status) {
@@ -74,6 +89,15 @@ class MinistryBudgetRequest extends Model
     public function getActivityTitleAttribute()
     {
         return $this->activity ? $this->activity->title : null;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($budgetRequest) {
+            $budgetRequest->fundTransactions()->delete();
+        });
     }
 }
 

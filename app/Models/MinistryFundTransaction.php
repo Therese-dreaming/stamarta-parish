@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\MinistryBudgetRequest;
 
 class MinistryFundTransaction extends Model
 {
@@ -52,6 +53,17 @@ class MinistryFundTransaction extends Model
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
+
+    /**
+     * Get the budget request that created this transaction (if applicable)
+     */
+    public function budgetRequest()
+    {
+        if ($this->source_type === MinistryBudgetRequest::class) {
+            return $this->belongsTo(MinistryBudgetRequest::class, 'source_id');
+        }
+        return null;
     }
 }
 

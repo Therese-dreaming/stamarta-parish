@@ -100,13 +100,13 @@ class DashboardController extends Controller
 
         foreach ($completedBookings as $booking) {
             $acknowledgedAction = $booking->actions()
-                ->where('action', 'acknowledged')
+                ->where('action_type', BookingAction::ACTION_ACKNOWLEDGED)
                 ->where('performed_by', auth()->id())
                 ->first();
 
             if ($acknowledgedAction) {
                 $completedAction = $booking->actions()
-                    ->where('action', 'completed')
+                    ->where('action_type', BookingAction::ACTION_COMPLETED)
                     ->where('performed_by', auth()->id())
                     ->first();
 

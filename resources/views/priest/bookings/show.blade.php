@@ -8,7 +8,7 @@
     <!-- Hero Header with Pattern Background -->
     <div class="relative bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/80 rounded-2xl shadow-lg overflow-hidden">
         <div class="absolute inset-0 bg-pattern opacity-10"></div>
-        <div class="relative px-6 py-8">
+        <div class="relative px-6 py-6 lg:py-7">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <div class="flex items-center">
@@ -40,7 +40,7 @@
 
     <div x-data="{ tab: 'info' }" class="space-y-4">
         <!-- Tabs Nav -->
-        <div class="bg-white border border-gray-200 rounded-xl p-2 sticky top-0 z-10 shadow-sm">
+        <div class="bg-white border border-gray-200 rounded-xl p-2 shadow-sm">
             <div class="flex flex-wrap gap-2">
                 <button @click="tab='info'" :class="tab==='info' ? 'bg-[#0d5c2f] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
                     <i class="fas fa-info-circle mr-1.5"></i>Booking Info
@@ -54,81 +54,128 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
             <!-- Main Content -->
-            <div class="lg:col-span-8 space-y-6">
+            <div class="lg:col-span-8 space-y-4 lg:space-y-6">
                 <!-- Booking Information Card -->
                 <div x-show="tab==='info'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between p-3 lg:p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-base font-semibold text-gray-900 flex items-center">
                             <i class="fas fa-info-circle mr-2 text-[#0d5c2f]"></i>
                             Booking Information
                         </h2>
                         <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Created: {{ $booking->created_at->format('M d, Y g:i A') }}</span>
                     </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-3 lg:p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
                                     <i class="fas fa-concierge-bell text-[#0d5c2f] mr-2"></i>
                                     Service Details
                                 </h3>
-                                <div class="space-y-3">
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Service:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->service->name }}</p>
-                                    </div>
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Date & Time:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->formatted_date }} at {{ $booking->formatted_time }}</p>
-                                    </div>
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Duration:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->service->formatted_duration }}</p>
-                                    </div>
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Fees:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->service->formatted_fees }}</p>
-                                    </div>
-                                </div>
+                                <ul class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-church text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Service</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $booking->service->name }}</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-calendar-day text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Date & Time</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $booking->formatted_date }} at {{ $booking->formatted_time }}</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-hourglass-half text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Duration</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $booking->service->formatted_duration }}</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-receipt text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Fees</p>
+                                            @if(!empty($booking->service->fees))
+                                                @php $fees = $booking->service->fees; @endphp
+                                                <div class="space-y-0.5">
+                                                    @if(isset($fees['regular']))
+                                                        @php $amt = is_array($fees['regular']) ? ($fees['regular']['amount'] ?? 0) : $fees['regular']; @endphp
+                                                        <p class="text-sm font-medium text-gray-900">Regular: ₱{{ number_format($amt, 2) }}</p>
+                                                    @endif
+                                                    @if(isset($fees['rush']))
+                                                        @php $amt = is_array($fees['rush']) ? ($fees['rush']['amount'] ?? 0) : $fees['rush']; @endphp
+                                                        <p class="text-sm font-medium text-gray-900">Rush: ₱{{ number_format($amt, 2) }}</p>
+                                                    @endif
+                                                    @php $others = collect($fees)->except(['regular','rush']); @endphp
+                                                    @foreach($others as $type => $feeData)
+                                                        @php $label = is_array($feeData) ? ($feeData['description'] ?? ucfirst($type)) : ucfirst($type); $amount = is_array($feeData) ? ($feeData['amount'] ?? 0) : $feeData; @endphp
+                                                        <p class="text-sm font-medium text-gray-900">{{ $label }}: ₱{{ number_format($amount, 2) }}</p>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <p class="text-sm font-medium text-gray-900">{{ $booking->service->formatted_fees }}</p>
+                                            @endif
+                                        </div>
+                                    </li>
+                                </ul>
                             </div>
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
                                     <i class="fas fa-user text-[#0d5c2f] mr-2"></i>
                                     Contact Information
                                 </h3>
-                                <div class="space-y-3">
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Name:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->user->name }}</p>
-                                    </div>
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Phone:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->contact_phone ?? 'Not provided' }}</p>
-                                    </div>
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Address:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->contact_address ?? 'Not provided' }}</p>
-                                    </div>
-                                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:border-[#0d5c2f]/30 transition-all group">
-                                        <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Email:</span>
-                                        <p class="text-gray-900 text-sm font-medium">{{ $booking->user->email }}</p>
-                                    </div>
-                                </div>
+                                <ul class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-user-circle text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Name</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $booking->user->name }}</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-phone text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Phone</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $booking->contact_phone ?? 'Not provided' }}</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-map-marker-alt text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Address</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $booking->contact_address ?? 'Not provided' }}</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-center p-3">
+                                        <i class="fas fa-envelope text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Email</p>
+                                            <p class="text-sm font-medium text-gray-900">{{ $booking->user->email }}</p>
+                                        </div>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
 
-                        @if($booking->additional_notes)
-                            <div class="mt-5 pt-4 border-t border-gray-200">
-                                <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                                    <i class="fas fa-sticky-note text-[#0d5c2f] mr-2"></i>
-                                    Additional Notes
-                                </h3>
+                        <div class="mt-5 pt-4 border-t border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                                <i class="fas fa-sticky-note text-[#0d5c2f] mr-2"></i>
+                                Additional Notes
+                            </h3>
+                            @if($booking->additional_notes)
                                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
                                     <p class="text-gray-700 text-sm">{{ $booking->additional_notes }}</p>
                                 </div>
-                            </div>
-                        @endif
+                            @else
+                                <div class="bg-white rounded-xl p-4 border border-dashed border-gray-200 text-center text-gray-500 text-sm">
+                                    <i class="fas fa-note-sticky mr-1"></i>No additional notes provided
+                                </div>
+                            @endif
+                        </div>
 
                         @if($booking->custom_data && count($booking->custom_data) > 0)
                             <div class="mt-5 pt-4 border-t border-gray-200">
@@ -136,23 +183,65 @@
                                     <i class="fas fa-clipboard-list text-[#0d5c2f] mr-2"></i>
                                     Service-Specific Information
                                 </h3>
-                                <div class="space-y-4">
-                                    @php
-                                        $serviceType = $booking->service->service_type ?? 'general';
-                                    @endphp
-                                    @foreach($booking->custom_data as $fieldKey => $fieldValue)
-                                        @if(is_string($fieldValue) || is_numeric($fieldValue))
-                                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                                                <span class="text-xs font-medium text-gray-500">{{ ucwords(str_replace('_', ' ', $fieldKey)) }}:</span>
-                                                <p class="text-sm font-medium text-gray-900 mt-1">{{ $fieldValue }}</p>
-                                            </div>
-                                        @elseif(is_array($fieldValue))
-                                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                                                <span class="text-xs font-medium text-gray-500">{{ ucwords(str_replace('_', ' ', $fieldKey)) }}:</span>
-                                                <div class="mt-2 space-y-1">
-                                                    @foreach($fieldValue as $index => $item)
-                                                        <p class="text-sm font-medium text-gray-900">{{ $index + 1 }}. {{ $item }}</p>
-                                                    @endforeach
+                                @php
+                                    $groups = [
+                                        'People' => ['name','first','last','middle','father','mother','godparent','ninong','ninang','sponsor'],
+                                        'Contact' => ['contact','phone','email'],
+                                        'Schedule' => ['date','time','schedule'],
+                                        'Location' => ['address','city','barangay','province','venue','location'],
+                                        'Documents' => ['certificate','document','doc','file','id'],
+                                        'Details' => []
+                                    ];
+
+                                    $bucketed = [
+                                        'People' => [], 'Contact' => [], 'Schedule' => [], 'Location' => [], 'Documents' => [], 'Details' => []
+                                    ];
+
+                                    foreach ($booking->custom_data as $k => $v) {
+                                        $lk = strtolower($k);
+                                        $placed = false;
+                                        foreach ($groups as $group => $needles) {
+                                            foreach ($needles as $needle) {
+                                                if ($needle !== '' && str_contains($lk, $needle)) {
+                                                    $bucketed[$group][$k] = $v;
+                                                    $placed = true;
+                                                    break 2;
+                                                }
+                                            }
+                                        }
+                                        if (!$placed) { $bucketed['Details'][$k] = $v; }
+                                    }
+
+                                    $iconFor = function($key) {
+                                        $lk = strtolower($key);
+                                        return str_contains($lk,'name') ? 'fa-id-card'
+                                            : (str_contains($lk,'date') ? 'fa-calendar-day'
+                                            : (str_contains($lk,'time') ? 'fa-clock'
+                                            : (str_contains($lk,'address') ? 'fa-map-marker-alt'
+                                            : (str_contains($lk,'contact') || str_contains($lk,'phone') ? 'fa-phone'
+                                            : (str_contains($lk,'notes') || str_contains($lk,'remarks') ? 'fa-sticky-note'
+                                            : (str_contains($lk,'certificate') || str_contains($lk,'doc') || str_contains($lk,'file') ? 'fa-file-alt' : 'fa-circle-info'))))));
+                                    };
+                                @endphp
+
+                                <div class="space-y-3">
+                                    @foreach($bucketed as $group => $fields)
+                                        @if(count($fields) > 0)
+                                            <div class="bg-white border border-gray-200 rounded-xl">
+                                                <div class="px-3 py-2 border-b border-gray-100 bg-gray-50 text-[12px] font-semibold text-gray-700">{{ $group }}</div>
+                                                <div class="p-2">
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                        @foreach($fields as $fieldKey => $fieldValue)
+                                                            @php $displayValue = is_array($fieldValue) ? implode(', ', $fieldValue) : $fieldValue; @endphp
+                                                            <div class="flex items-start bg-gray-50 rounded-lg p-2 border border-gray-100">
+                                                                <i class="fas {{ $iconFor($fieldKey) }} text-[#0d5c2f] mr-2 w-4 text-xs mt-0.5"></i>
+                                                                <div class="min-w-0">
+                                                                    <p class="text-[11px] text-gray-500 leading-tight">{{ ucwords(str_replace('_', ' ', $fieldKey)) }}</p>
+                                                                    <p class="text-xs font-medium text-gray-900 leading-snug break-words">{{ $displayValue }}</p>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
                                                 </div>
                                             </div>
                                         @endif
@@ -165,7 +254,7 @@
 
                 <!-- Documents -->
                 <div x-show="tab==='docs'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between p-3 lg:p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-base font-semibold text-gray-900 flex items-center">
                             <i class="fas fa-file-alt mr-2 text-[#0d5c2f]"></i>
                             Submitted Documents
@@ -176,38 +265,31 @@
                             </span>
                         @endif
                     </div>
-                    <div class="p-4">
+                    <div class="p-3 lg:p-4">
                         @if($booking->requirements_submitted && count($booking->requirements_submitted) > 0)
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <ul class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                                 @foreach($booking->requirements_submitted as $field => $path)
                                     @if($field !== 'conditional_answers')
-                                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-[#0d5c2f]/30 transition-all duration-300">
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex items-center">
-                                                    <span class="w-10 h-10 rounded-lg bg-[#0d5c2f]/10 flex items-center justify-center mr-3">
-                                                        <i class="fas fa-file-pdf text-[#0d5c2f] text-sm"></i>
-                                                    </span>
-                                                    <div>
-                                                        <h4 class="text-sm font-medium text-gray-900 capitalize">
-                                                            {{ str_replace('_', ' ', $field) }}
-                                                        </h4>
-                                                        <p class="text-xs text-gray-500 mt-0.5">Document uploaded</p>
-                                                    </div>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <a href="{{ Storage::url($path) }}" target="_blank" title="View" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-                                                        <i class="fas fa-eye text-xs"></i>
-                                                    </a>
-                                                    <a href="{{ route('priest.bookings.download-document', [$booking, $field]) }}" 
-                                                    title="Download" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-[#0d5c2f] text-white hover:bg-[#0d5c2f]/90 transition-colors">
-                                                        <i class="fas fa-download text-xs"></i>
-                                                    </a>
+                                        <li class="flex items-center justify-between p-3 lg:p-4">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-file-pdf text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900 capitalize">{{ str_replace('_', ' ', $field) }}</p>
+                                                    <p class="text-xs text-gray-500">Document uploaded</p>
                                                 </div>
                                             </div>
-                                        </div>
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ Storage::url($path) }}" target="_blank" title="View" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                                                    <i class="fas fa-eye text-xs"></i>
+                                                </a>
+                                                <a href="{{ route('priest.bookings.download-document', [$booking, $field]) }}" title="Download" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-[#0d5c2f] text-white hover:bg-[#0d5c2f]/90 transition-colors">
+                                                    <i class="fas fa-download text-xs"></i>
+                                                </a>
+                                            </div>
+                                        </li>
                                     @endif
                                 @endforeach
-                            </div>
+                            </ul>
                         @else
                             <div class="py-10">
                                 <div class="flex flex-col items-center justify-center text-center">
@@ -226,7 +308,7 @@
 
                 <!-- Payment Information -->
                 <div x-show="tab==='payment'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between p-3 lg:p-4 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-base font-semibold text-gray-900 flex items-center">
                             <i class="fas fa-money-bill-wave mr-2 text-[#0d5c2f]"></i>
                             Payment Information
@@ -240,36 +322,48 @@
                             </span>
                         @endif
                     </div>
-                    <div class="p-4">
+                    <div class="p-3 lg:p-4">
                         @if($booking->payment)
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
                                         <i class="fas fa-receipt text-[#0d5c2f] mr-2"></i>
                                         Payment Details
                                     </h3>
-                                    <div class="space-y-3">
-                                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 group hover:border-[#0d5c2f]/30 transition-all">
-                                            <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Total Fee:</span>
-                                            <p class="text-gray-900 text-sm font-semibold">{{ $booking->payment->formatted_total_fee }}</p>
-                                        </div>
-                                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 group hover:border-[#0d5c2f]/30 transition-all">
-                                            <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Payment Method:</span>
-                                            <p class="text-gray-900 text-sm">{{ $booking->payment->payment_method_label }}</p>
-                                        </div>
-                                        @if($booking->payment->payment_reference)
-                                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 group hover:border-[#0d5c2f]/30 transition-all">
-                                                <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Reference:</span>
-                                                <p class="text-gray-900 text-sm">{{ $booking->payment->payment_reference }}</p>
+                                    <ul class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
+                                        <li class="flex items-center p-3">
+                                            <i class="fas fa-tags text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Total Fee</p>
+                                                <p class="text-sm font-semibold text-gray-900">{{ $booking->payment->formatted_total_fee }}</p>
                                             </div>
+                                        </li>
+                                        <li class="flex items-center p-3">
+                                            <i class="fas fa-wallet text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Payment Method</p>
+                                                <p class="text-sm text-gray-900">{{ $booking->payment->payment_method_label }}</p>
+                                            </div>
+                                        </li>
+                                        @if($booking->payment->payment_reference)
+                                        <li class="flex items-center p-3">
+                                            <i class="fas fa-hashtag text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Reference</p>
+                                                <p class="text-sm text-gray-900">{{ $booking->payment->payment_reference }}</p>
+                                            </div>
+                                        </li>
                                         @endif
                                         @if($booking->payment->payment_notes)
-                                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 group hover:border-[#0d5c2f]/30 transition-all">
-                                                <span class="text-xs font-medium text-gray-500 group-hover:text-[#0d5c2f] transition-colors">Notes:</span>
-                                                <p class="text-gray-900 text-sm">{{ $booking->payment->payment_notes }}</p>
+                                        <li class="flex items-center p-3">
+                                            <i class="fas fa-sticky-note text-[#0d5c2f] mr-3 w-5 text-sm"></i>
+                                            <div>
+                                                <p class="text-xs text-gray-500">Notes</p>
+                                                <p class="text-sm text-gray-900">{{ $booking->payment->payment_notes }}</p>
                                             </div>
+                                        </li>
                                         @endif
-                                    </div>
+                                    </ul>
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
@@ -330,7 +424,7 @@
             </div>
 
             <!-- Sidebar -->
-            <div class="lg:col-span-4 space-y-6">
+            <div class="lg:col-span-4 space-y-4 lg:space-y-6 lg:sticky lg:top-20 self-start">
                 <!-- Booking Summary -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="p-4 border-b border-gray-200 bg-gray-50">
@@ -339,14 +433,16 @@
                             Booking Summary
                         </h3>
                     </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-2 gap-4 mb-5">
+                    <div class="p-3 lg:p-4">
+                        <div class="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-5">
                             <div class="bg-[#0d5c2f]/5 rounded-xl p-4 text-center">
-                                <span class="text-2xl font-bold text-[#0d5c2f]">{{ $booking->id }}</span>
+                                <i class="fas fa-hashtag text-[#0d5c2f] mb-1"></i>
+                                <span class="block text-2xl font-bold text-[#0d5c2f]">{{ $booking->id }}</span>
                                 <p class="text-xs text-gray-600 mt-1">Booking ID</p>
                             </div>
                             <div class="bg-[#0d5c2f]/5 rounded-xl p-4 text-center">
-                                <span class="text-2xl font-bold text-[#0d5c2f]">
+                                <i class="fas fa-peso-sign text-[#0d5c2f] mb-1"></i>
+                                <span class="block text-2xl font-bold text-[#0d5c2f]">
                                     @if($booking->payment)
                                         {{ str_replace('₱', '', $booking->payment->formatted_total_fee) }}
                                     @else
@@ -357,43 +453,38 @@
                             </div>
                         </div>
                          
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <ul class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
+                            <li class="flex items-center justify-between p-3">
                                 <div class="flex items-center">
-                                    <i class="fas fa-calendar-plus text-[#0d5c2f] mr-2"></i>
+                                    <i class="fas fa-calendar-plus text-[#0d5c2f] mr-3 w-5 text-sm"></i>
                                     <span class="text-sm text-gray-700">Created</span>
                                 </div>
                                 <span class="text-sm font-medium">{{ $booking->created_at->format('M d, Y') }}</span>
-                            </div>
-                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                            </li>
+                            <li class="flex items-center justify-between p-3">
                                 <div class="flex items-center">
-                                    <i class="fas fa-calendar-day text-[#0d5c2f] mr-2"></i>
+                                    <i class="fas fa-calendar-day text-[#0d5c2f] mr-3 w-5 text-sm"></i>
                                     <span class="text-sm text-gray-700">Service Date</span>
                                 </div>
                                 <span class="text-sm font-medium">{{ $booking->formatted_date }}</span>
-                            </div>
-                            <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                            </li>
+                            <li class="flex items-center justify-between p-3">
                                 <div class="flex items-center">
-                                    <i class="fas fa-clock text-[#0d5c2f] mr-2"></i>
+                                    <i class="fas fa-clock text-[#0d5c2f] mr-3 w-5 text-sm"></i>
                                     <span class="text-sm text-gray-700">Service Time</span>
                                 </div>
                                 <span class="text-sm font-medium">{{ $booking->formatted_time }}</span>
-                            </div>
-                            <div class="flex items-center justify-between py-2">
+                            </li>
+                            <li class="flex items-center justify-between p-3">
                                 <div class="flex items-center">
-                                    <i class="fas fa-user text-[#0d5c2f] mr-2"></i>
+                                    <i class="fas fa-user text-[#0d5c2f] mr-3 w-5 text-sm"></i>
                                     <span class="text-sm text-gray-700">Booked By</span>
                                 </div>
                                 <span class="text-sm font-medium">{{ $booking->user->name }}</span>
-                            </div>
-                        </div>
+                            </li>
+                        </ul>
 
-                        <div class="mt-4">
-                            <a href="{{ route('priest.bookings.print', $booking) }}" class="w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors flex items-center justify-center">
-                                <i class="fas fa-file-pdf mr-2"></i>
-                                <span>Print Booking Details (PDF)</span>
-                            </a>
-                        </div>
+
                     </div>
                 </div>
 
@@ -405,11 +496,11 @@
                             Booking Timeline
                         </h3>
                     </div>
-                    <div class="p-4">
-                        <div class="space-y-3">
+                    <div class="p-3 lg:p-4">
+                        <div class="space-y-2 lg:space-y-3">
                             <div class="timeline-item flex">
                                 <div class="timeline-left">
-                                    <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                    <div class="w-5 h-5 lg:w-6 lg:h-6 bg-green-100 rounded-full flex items-center justify-center">
                                         <i class="fas fa-plus text-green-600 text-xs"></i>
                                     </div>
                                     <div class="timeline-line"></div>
@@ -441,7 +532,7 @@
                             @if($booking->payment && $booking->payment->payment_submitted_at)
                                 <div class="timeline-item flex">
                                     <div class="timeline-left">
-                                        <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <div class="w-5 h-5 lg:w-6 lg:h-6 bg-blue-100 rounded-full flex items-center justify-center">
                                             <i class="fas fa-upload text-blue-600 text-xs"></i>
                                         </div>
                                         @if($booking->payment && $booking->payment->payment_verified_at)
@@ -457,7 +548,7 @@
                             @if($booking->payment && $booking->payment->payment_verified_at)
                                 <div class="timeline-item flex">
                                     <div class="timeline-left">
-                                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                        <div class="w-5 h-5 lg:w-6 lg:h-6 bg-green-100 rounded-full flex items-center justify-center">
                                             <i class="fas fa-check-double text-green-600 text-xs"></i>
                                         </div>
                                     </div>

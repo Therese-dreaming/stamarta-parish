@@ -3,7 +3,7 @@
 @section('title', 'Notifications')
 
 @section('content')
-<div class="max-w-4xl mx-auto pt-5">
+<div class="max-w-4xl mx-auto pt-5 pb-8">
     <!-- Header -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
         <div class="px-6 py-6">
@@ -28,20 +28,6 @@
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-        <div class="px-6">
-            <nav class="flex space-x-8" aria-label="Tabs">
-                <button class="tab-button py-4 px-1 border-b-2 font-medium text-sm transition-colors border-[#0d5c2f] text-[#0d5c2f]" data-tab="all">
-                    <i class="fas fa-list mr-2"></i>All Notifications
-                </button>
-                <button class="tab-button py-4 px-1 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="user">
-                    <i class="fas fa-user mr-2"></i>User Actions
-                </button>
-            </nav>
         </div>
     </div>
 
@@ -95,7 +81,7 @@
                                         <div class="flex-1">
                                             <div class="flex items-center space-x-3 mb-2">
                                                 @if(!$notification->read_at)
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0d5c2f] text-white">
+                                                    <span class="new-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0d5c2f] text-white">
                                                         New
                                                     </span>
                                                 @endif
@@ -128,7 +114,6 @@
                                                     Mark Read
                                                 </button>
                                             @endif
-                                            <input type="checkbox" class="notification-checkbox h-4 w-4 text-[#0d5c2f] focus:ring-[#0d5c2f] border-gray-300 rounded" value="{{ $notification->id }}">
                                         </div>
                                     </div>
                                 </div>
@@ -178,52 +163,18 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-6 border w-96 shadow-2xl rounded-xl bg-white">
-        <div class="text-center">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
-                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete Notifications</h3>
-            <p class="text-sm text-gray-600 mb-6">
-                Are you sure you want to delete the selected notifications? This action cannot be undone.
-            </p>
-            <div class="flex items-center justify-center space-x-3">
-                <button id="cancel-delete" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
-                    Cancel
-                </button>
-                <button id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
-                    Delete
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @endsection
 
 @push('scripts')
 <script>
-let currentTab = 'all';
 let currentPage = 1;
-let selectedNotifications = new Set();
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
-    updateDeleteButton();
 });
 
 function setupEventListeners() {
-    // Tab switching
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const tab = this.dataset.tab;
-            switchTab(tab);
-        });
-    });
-
     // Mark all as read
     document.getElementById('mark-all-read').addEventListener('click', markAllAsRead);
     
@@ -231,52 +182,12 @@ function setupEventListeners() {
     document.getElementById('refresh-notifications').addEventListener('click', function() {
         window.location.reload();
     });
-
-    // Delete modal
-    document.getElementById('cancel-delete').addEventListener('click', function() {
-        document.getElementById('delete-modal').classList.add('hidden');
-    });
-
-    document.getElementById('confirm-delete').addEventListener('click', deleteSelectedNotifications);
     
     // Setup notification event listeners
     setupNotificationEventListeners();
 }
 
-function switchTab(tab) {
-    currentTab = tab;
-    currentPage = 1;
-    
-    // Update tab buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
-        if (button.dataset.tab === tab) {
-            button.classList.add('border-[#0d5c2f]', 'text-[#0d5c2f]');
-            button.classList.remove('border-transparent', 'text-gray-500');
-        } else {
-            button.classList.remove('border-[#0d5c2f]', 'text-[#0d5c2f]');
-            button.classList.add('border-transparent', 'text-gray-500');
-        }
-    });
-    
-    // For now, just reload the page with the tab parameter
-    // In a real implementation, you'd make an AJAX call
-    window.location.href = '{{ route("user.notifications.index") }}?tab=' + tab;
-}
-
 function setupNotificationEventListeners() {
-    // Checkbox change events
-    document.querySelectorAll('.notification-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const notificationId = this.value;
-            if (this.checked) {
-                selectedNotifications.add(notificationId);
-            } else {
-                selectedNotifications.delete(notificationId);
-            }
-            updateDeleteButton();
-        });
-    });
-
     // Mark as read buttons
     document.querySelectorAll('.mark-read-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -306,7 +217,7 @@ function markAsRead(notificationId) {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ notification_id: notificationId })
+        body: JSON.stringify({ notification_ids: [notificationId] })
     })
     .then(response => response.json())
     .then(data => {
@@ -317,8 +228,11 @@ function markAsRead(notificationId) {
                 notificationItem.classList.remove('border-[#0d5c2f]', 'bg-blue-50/30');
                 notificationItem.classList.add('border-gray-200', 'bg-gray-50/50');
                 
-                const badge = notificationItem.querySelector('.unread-badge');
-                if (badge) badge.remove();
+                // Remove the "New" badge
+                const newBadge = notificationItem.querySelector('.new-badge');
+                if (newBadge) {
+                    newBadge.remove();
+                }
                 
                 const markReadBtn = notificationItem.querySelector('.mark-read-btn');
                 if (markReadBtn) markReadBtn.remove();
@@ -347,48 +261,6 @@ function markAllAsRead() {
         }
     })
     .catch(error => console.error('Error marking all notifications as read:', error));
-}
-
-function updateDeleteButton() {
-    const deleteButton = document.getElementById('delete-selected');
-    if (deleteButton) {
-        if (selectedNotifications.size > 0) {
-            deleteButton.classList.remove('hidden');
-            deleteButton.textContent = `Delete Selected (${selectedNotifications.size})`;
-        } else {
-            deleteButton.classList.add('hidden');
-        }
-    }
-}
-
-function deleteSelectedNotifications() {
-    if (selectedNotifications.size === 0) return;
-
-    fetch('{{ route("user.notifications.delete") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ 
-            notification_ids: Array.from(selectedNotifications)
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Hide modal
-            document.getElementById('delete-modal').classList.add('hidden');
-            
-            // Clear selection
-            selectedNotifications.clear();
-            updateDeleteButton();
-            
-            // Reload page to show updated notifications
-            window.location.reload();
-        }
-    })
-    .catch(error => console.error('Error deleting notifications:', error));
 }
 
 function updateHeaderNotificationCount() {

@@ -23,14 +23,30 @@ class ActivityController extends Controller
         return $ministry;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $ministry = $this->getHeadMinistryOrAbort();
-        $activities = $ministry->activities()
-            ->with(['pendingBudgetRequest', 'approvedBudgetRequest'])
-            ->orderBy('start_at', 'desc')
-            ->paginate(20);
-        return view('ministry.activities.index', compact('ministry', 'activities'));
+        
+        $query = $ministry->activities()
+            ->with(['pendingBudgetRequest', 'approvedBudgetRequest']);
+
+        // Filter by type (public/internal)
+        if ($request->filled('type')) {
+            if ($request->type === 'public') {
+                $query->where('is_public', true);
+            } elseif ($request->type === 'internal') {
+                $query->where('is_public', false);
+            }
+        }
+
+        $activities = $query->orderBy('start_at', 'desc')->paginate(20);
+        
+        // Get total counts for statistics
+        $totalActivities = $ministry->activities()->count();
+        $publicActivities = $ministry->activities()->where('is_public', true)->count();
+        $internalActivities = $ministry->activities()->where('is_public', false)->count();
+        
+        return view('ministry.activities.index', compact('ministry', 'activities', 'totalActivities', 'publicActivities', 'internalActivities'));
     }
 
     public function create()
@@ -74,23 +90,21 @@ class ActivityController extends Controller
         $budgetBreakdown = [];
         foreach ($data['budget_items'] as $item) {
             $totalBudget += $item['amount'];
-            $budgetBreakdown[] = $item['name'] . ': ₱' . number_format($item['amount'], 2);
+            $budgetBreakdown[$item['name']] = $item['amount'];
         }
 
         $data['is_all_day'] = (bool)($data['is_all_day'] ?? false);
         $data['is_public'] = (bool)($data['is_public'] ?? false);
-        $data['has_budget_request'] = true; // Always true now
         $data['estimated_budget'] = $totalBudget;
-        $data['budget_breakdown'] = implode(', ', $budgetBreakdown);
+        $data['budget_breakdown'] = json_encode($budgetBreakdown);
 
-        // Create the activity
+        // Create ministry activity (always required now)
         $activity = $ministry->activities()->create($data);
 
         // Create budget request (always required now)
         $budgetRequest = MinistryBudgetRequest::create([
             'ministry_id' => $ministry->id,
             'activity_id' => $activity->id,
-            'amount' => $totalBudget,
             'purpose' => $data['budget_purpose'],
             'details' => $data['budget_details'] ?? $data['budget_breakdown'],
             'status' => 'pending',
@@ -104,17 +118,14 @@ class ActivityController extends Controller
                 $file->storeAs('budget_requests', $filename, 'public');
                 
                 $budgetRequest->files()->create([
-                    'filename' => $filename,
+                    'path' => 'budget_requests/' . $filename,
                     'original_name' => $file->getClientOriginalName(),
-                    'file_path' => 'budget_requests/' . $filename,
-                    'file_size' => $file->getSize(),
-                    'mime_type' => $file->getMimeType(),
                     'uploaded_by' => auth()->id(),
                 ]);
             }
         }
 
-        $message = 'Activity created successfully with budget request submitted.';
+        $message = 'Activity created successfully with ministry activity submitted.';
         if ($conflicts['has_conflicts']) {
             $message .= ' Note: This activity conflicts with existing schedules.';
         }
@@ -162,7 +173,6 @@ class ActivityController extends Controller
             'budget_items' => 'nullable|array',
             'budget_items.*.name' => 'nullable|string|max:255',
             'budget_items.*.amount' => 'nullable|numeric|min:0',
-            'request_budget' => 'nullable|boolean',
         ]);
 
         // Check for conflicts (excluding current activity)
@@ -186,47 +196,17 @@ class ActivityController extends Controller
             foreach ($data['budget_items'] as $item) {
                 if (!empty($item['name']) && isset($item['amount']) && $item['amount'] > 0) {
                     $totalBudget += $item['amount'];
-                    $budgetBreakdown[] = $item['name'] . ': ₱' . number_format($item['amount'], 2);
+                    $budgetBreakdown[$item['name']] = $item['amount'];
                 }
             }
             
             $data['estimated_budget'] = $totalBudget;
-            $data['budget_breakdown'] = implode(', ', $budgetBreakdown);
+            $data['budget_breakdown'] = json_encode($budgetBreakdown);
         }
-
-        $data['has_budget_request'] = (bool)($data['request_budget'] ?? false);
 
         $activity->update($data);
 
-        // Handle budget request updates
-        if (isset($data['request_budget']) && $data['request_budget'] && isset($data['estimated_budget']) && $data['estimated_budget'] > 0) {
-            // Check if budget request already exists
-            $existingRequest = $activity->budgetRequests()->where('status', 'pending')->first();
-            
-            if (!$existingRequest) {
-                MinistryBudgetRequest::create([
-                    'ministry_id' => $ministry->id,
-                    'activity_id' => $activity->id,
-                    'amount' => $data['estimated_budget'],
-                    'purpose' => $data['budget_purpose'] ?? 'Budget for activity: ' . $activity->title,
-                    'details' => $data['budget_details'] ?? $data['budget_breakdown'] ?? 'Budget request for activity: ' . $activity->title,
-                    'status' => 'pending',
-                    'requested_by_user_id' => auth()->id(),
-                ]);
-            } else {
-                // Update existing request
-                $existingRequest->update([
-                    'amount' => $data['estimated_budget'],
-                    'purpose' => $data['budget_purpose'] ?? 'Budget for activity: ' . $activity->title,
-                    'details' => $data['budget_details'] ?? $data['budget_breakdown'] ?? 'Budget request for activity: ' . $activity->title,
-                ]);
-            }
-        }
-
         $message = 'Activity updated successfully.';
-        if (isset($data['request_budget']) && $data['request_budget'] && isset($data['estimated_budget']) && $data['estimated_budget'] > 0) {
-            $message .= ' Budget request has been updated.';
-        }
         if ($conflicts['has_conflicts']) {
             $message .= ' Note: This activity conflicts with existing schedules.';
         }
@@ -240,40 +220,32 @@ class ActivityController extends Controller
         if ($activity->ministry_id !== $ministry->id) {
             abort(403);
         }
-        $activity->delete();
-        return redirect()->route('ministry.activities.index')->with('success', 'Activity deleted successfully.');
+
+        try {
+            // Log the deletion for debugging
+            \Log::info('Deleting ministry activity', [
+                'activity_id' => $activity->id,
+                'title' => $activity->title,
+                'ministry_id' => $activity->ministry_id,
+                'deleted_by' => auth()->id()
+            ]);
+
+            // Delete the activity (this will trigger the model events to delete budget requests and files)
+            $activity->delete();
+
+            return redirect()->route('ministry.activities.index')->with('success', 'Activity deleted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error deleting ministry activity', [
+                'activity_id' => $activity->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('ministry.activities.index')->with('error', 'Error deleting activity. Please try again.');
+        }
     }
 
-    public function requestBudget(MinistryActivity $activity)
-    {
-        $ministry = $this->getHeadMinistryOrAbort();
-        if ($activity->ministry_id !== $ministry->id) {
-            abort(403);
-        }
 
-        // Check if budget request already exists
-        $existingRequest = $activity->budgetRequests()->where('status', 'pending')->first();
-        
-        if ($existingRequest) {
-            return redirect()->route('ministry.activities.index')->with('info', 'A budget request for this activity already exists.');
-        }
-
-        if (!$activity->estimated_budget || $activity->estimated_budget <= 0) {
-            return redirect()->route('ministry.activities.index')->with('error', 'Please set an estimated budget for this activity first.');
-        }
-
-        MinistryBudgetRequest::create([
-            'ministry_id' => $ministry->id,
-            'activity_id' => $activity->id,
-            'amount' => $activity->estimated_budget,
-            'purpose' => 'Budget for activity: ' . $activity->title,
-            'details' => $activity->budget_breakdown ?? 'Budget request for activity: ' . $activity->title,
-            'status' => 'pending',
-            'requested_by_user_id' => auth()->id(),
-        ]);
-
-        return redirect()->route('ministry.activities.index')->with('success', 'Budget request submitted successfully.');
-    }
 
     public function checkConflicts(Request $request)
     {

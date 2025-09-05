@@ -10,37 +10,49 @@ use Illuminate\Http\Request;
 
 class MinistryBudgetRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $requests = MinistryBudgetRequest::with(['ministry', 'requestedBy', 'approvedBy'])
-            ->latest()
-            ->paginate(20);
-        return view('admin.ministries.budget-requests.index', compact('requests'));
+        $query = MinistryBudgetRequest::with(['ministry', 'requestedBy', 'approvedBy', 'activity']);
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $requests = $query->latest()->paginate(20);
+
+        // Get counts for all statuses (unfiltered)
+        $allRequests = MinistryBudgetRequest::all();
+        $statusCounts = [
+            'pending' => $allRequests->where('status', 'pending')->count(),
+            'approved' => $allRequests->where('status', 'approved')->count(),
+            'rejected' => $allRequests->where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.ministries.ministry-activities.index', compact('requests', 'statusCounts'));
     }
 
     public function create(Ministry $ministry)
     {
-        return view('admin.ministries.budget-requests.create', compact('ministry'));
+        return view('admin.ministries.ministry-activities.create', compact('ministry'));
     }
 
     public function store(Request $request, Ministry $ministry)
     {
         $data = $request->validate([
-            'amount' => 'required|numeric|min:0.01',
             'purpose' => 'required|string|max:255',
             'details' => 'nullable|string',
         ]);
 
         MinistryBudgetRequest::create([
             'ministry_id' => $ministry->id,
-            'amount' => $data['amount'],
             'purpose' => $data['purpose'],
             'details' => $data['details'] ?? null,
             'status' => 'pending',
             'requested_by_user_id' => auth()->id(),
         ]);
 
-        return redirect()->route('admin.ministries.budget-requests.index')->with('success', 'Budget request submitted.');
+        return redirect()->route('admin.ministries.ministry-activities.index')->with('success', 'Ministry activity submitted.');
     }
 
     public function approve(MinistryBudgetRequest $requestModel)
@@ -57,8 +69,8 @@ class MinistryBudgetRequestController extends Controller
 
         MinistryFundTransaction::create([
             'ministry_id' => $requestModel->ministry_id,
-            'type' => MinistryFundTransaction::TYPE_CREDIT,
-            'amount' => $requestModel->amount,
+            'type' => MinistryFundTransaction::TYPE_DEBIT,
+            'amount' => $requestModel->amount, // This will now use the accessor from the activity
             'description' => 'Budget approved: ' . $requestModel->purpose,
             'source_type' => get_class($requestModel),
             'source_id' => $requestModel->id,
@@ -66,7 +78,7 @@ class MinistryBudgetRequestController extends Controller
             'approved_by_user_id' => auth()->id(),
         ]);
 
-        return back()->with('success', 'Budget request approved and funds credited.');
+        return back()->with('success', 'Ministry activity approved and funds allocated.');
     }
 
     public function reject(MinistryBudgetRequest $requestModel, Request $request)
@@ -75,13 +87,62 @@ class MinistryBudgetRequestController extends Controller
             return back()->with('error', 'Only pending requests can be rejected.');
         }
 
+        $request->validate([
+            'rejection_notes' => 'required|string|max:1000',
+        ]);
+
         $requestModel->update([
             'status' => 'rejected',
             'approved_by_user_id' => auth()->id(),
             'approved_at' => now(),
+            'rejection_notes' => $request->rejection_notes,
         ]);
 
-        return back()->with('success', 'Budget request rejected.');
+        return back()->with('success', 'Ministry activity rejected.');
+    }
+
+    public function show(MinistryBudgetRequest $requestModel)
+    {
+        $requestModel->load(['ministry', 'activity', 'requestedBy', 'approvedBy', 'files.uploader']);
+        
+        // Calculate ministry budget stats
+        $ministry = $requestModel->ministry;
+        
+        // Get total budget allocated to this ministry (from ministry fund transactions)
+        $totalBudget = MinistryFundTransaction::where('ministry_id', $ministry->id)
+            ->where('type', 'credit')
+            ->sum('amount');
+        
+        // Calculate budget used (sum of all approved budget requests for this ministry)
+        $budgetUsed = MinistryBudgetRequest::where('ministry_id', $ministry->id)
+            ->where('status', 'approved')
+            ->with('activity')
+            ->get()
+            ->sum('amount'); // This will use the accessor that gets amount from activity
+        
+        // Get approved and pending requests count
+        $approvedRequestsCount = MinistryBudgetRequest::where('ministry_id', $ministry->id)
+            ->where('status', 'approved')
+            ->count();
+            
+        $pendingRequestsCount = MinistryBudgetRequest::where('ministry_id', $ministry->id)
+            ->where('status', 'pending')
+            ->count();
+        
+        // Calculate remaining budget
+        $remainingBudget = $totalBudget - $budgetUsed;
+        
+        // Add the calculated stats to the ministry object
+        $ministry->budget = $totalBudget;
+        $ministry->budget_used = $budgetUsed;
+        $ministry->budget_remaining = $remainingBudget;
+        $ministry->approved_requests_count = $approvedRequestsCount;
+        $ministry->pending_requests_count = $pendingRequestsCount;
+        
+        // Calculate budget percentage for display
+        $ministry->budget_percentage = $totalBudget > 0 ? min(100, ($budgetUsed / $totalBudget) * 100) : 0;
+        
+        return view('admin.ministries.ministry-activities.show', compact('requestModel'));
     }
 }
 

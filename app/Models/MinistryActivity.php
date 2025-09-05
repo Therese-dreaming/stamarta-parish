@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class MinistryActivity extends Model
 {
@@ -32,7 +33,7 @@ class MinistryActivity extends Model
         'is_all_day' => 'boolean',
         'is_public' => 'boolean',
         'estimated_budget' => 'decimal:2',
-        'has_budget_request' => 'boolean',
+        'budget_breakdown' => 'array',
     ];
 
     public function ministry(): BelongsTo
@@ -134,6 +135,36 @@ class MinistryActivity extends Model
 
         // Check if time ranges overlap
         return $thisStart->lt($otherEnd) && $thisEnd->gt($otherStart);
+    }
+
+    /**
+     * Boot method to handle model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // When a ministry activity is deleted, delete associated budget requests and files
+        static::deleting(function ($activity) {
+            // Get all budget requests for this activity
+            $budgetRequests = $activity->budgetRequests;
+            
+            foreach ($budgetRequests as $budgetRequest) {
+                // Delete associated files from storage
+                $files = $budgetRequest->files;
+                foreach ($files as $file) {
+                    // Delete physical file from storage
+                    if (Storage::disk('public')->exists($file->path)) {
+                        Storage::disk('public')->delete($file->path);
+                    }
+                    // Delete file record
+                    $file->delete();
+                }
+                
+                // Delete the budget request (this will cascade to delete files due to foreign key)
+                $budgetRequest->delete();
+            }
+        });
     }
 }
 

@@ -153,7 +153,7 @@ class BookingController extends Controller
         // Record the action
         BookingAction::create([
             'booking_id' => $booking->id,
-            'action' => 'acknowledged',
+            'action_type' => BookingAction::ACTION_ACKNOWLEDGED,
             'performed_by' => $priest->id,
             'notes' => 'Booking acknowledged by assigned priest'
         ]);
@@ -186,7 +186,7 @@ class BookingController extends Controller
         // Record the action
         BookingAction::create([
             'booking_id' => $booking->id,
-            'action' => 'completed',
+            'action_type' => BookingAction::ACTION_COMPLETED,
             'performed_by' => $priest->id,
             'notes' => 'Service completed by assigned priest'
         ]);
@@ -226,7 +226,7 @@ class BookingController extends Controller
         // Record the action
         BookingAction::create([
             'booking_id' => $booking->id,
-            'action' => 'rejected',
+            'action_type' => BookingAction::ACTION_REJECTED,
             'performed_by' => $priest->id,
             'notes' => $request->rejection_reason
         ]);
@@ -263,7 +263,7 @@ class BookingController extends Controller
         // Record the action
         BookingAction::create([
             'booking_id' => $booking->id,
-            'action' => 'payment_verified',
+            'action_type' => BookingAction::ACTION_APPROVED,
             'performed_by' => $priest->id,
             'notes' => 'Payment verified by assigned priest'
         ]);
@@ -330,4 +330,5 @@ class BookingController extends Controller
 
         return response()->download($filePath);
     }
+
 } 

@@ -94,9 +94,9 @@
                                         <a href="{{ route("admin.ministries.members.index", $ministry) }}" class="w-7 h-7 rounded-lg bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110" title="View Members">
                                             <i class="fas fa-users text-xs"></i>
                                         </a>
-                                        <button type="button" class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 cursor-not-allowed" title="View Ledger (coming soon)" disabled>
+                                        <a href="{{ route('admin.ministries.fund', $ministry) }}" class="w-7 h-7 rounded-lg bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-all duration-200 hover:scale-110" title="View Ledger">
                                             <i class="fas fa-book text-xs"></i>
-                                        </button>
+                                        </a>
                                         <button type="button" class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 cursor-not-allowed" title="View Activities (coming soon)" disabled>
                                             <i class="fas fa-calendar-check text-xs"></i>
                                         </button>
@@ -153,9 +153,9 @@
                             <a href="{{ route("admin.ministries.members.index", $ministry) }}" class="w-7 h-7 rounded-lg bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110" title="View Members">
                                 <i class="fas fa-users text-xs"></i>
                             </a>
-                            <button type="button" class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 cursor-not-allowed" title="View Ledger (coming soon)" disabled>
+                            <a href="{{ route('admin.ministries.fund', $ministry) }}" class="w-7 h-7 rounded-lg bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-all duration-200 hover:scale-110" title="View Ledger">
                                 <i class="fas fa-book text-xs"></i>
-                            </button>
+                            </a>
                             <button type="button" class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 cursor-not-allowed" title="View Activities (coming soon)" disabled>
                                 <i class="fas fa-calendar-check text-xs"></i>
                             </button>

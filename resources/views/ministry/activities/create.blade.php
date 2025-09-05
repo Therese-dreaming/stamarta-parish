@@ -256,16 +256,13 @@
                     </div>
                 </div>
 
-                <!-- Budget Request Section (Always Required) -->
-                <div class="space-y-4 border-t border-gray-200 pt-6">
+                <!-- Ministry Activity Section (Always Required) -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center mb-4">
-                        <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                            <i class="fas fa-coins text-blue-600 text-lg"></i>
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-invoice-dollar text-blue-600"></i>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Budget Request</h3>
-                            <p class="text-sm text-gray-500">Required budget information for this activity</p>
-                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Ministry Activity</h3>
                     </div>
 
                     <!-- Budget Purpose -->
@@ -352,7 +349,7 @@
                             name="budget_details" 
                             rows="3" 
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none" 
-                            placeholder="Provide detailed justification for the budget request, including specific items and their purposes..."
+                            placeholder="Provide detailed justification for the ministry activity, including specific items and their purposes..."
                         >{{ old('budget_details') }}</textarea>
                         <p class="text-xs text-gray-500 mt-1">Optional: Detailed explanation of budget requirements</p>
                         @error('budget_details')

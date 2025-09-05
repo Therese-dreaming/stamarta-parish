@@ -57,10 +57,10 @@
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 transform translate-y-0"
             x-transition:leave-end="opacity-0 transform translate-y-2"
-            class="border-b border-gray-200 bg-gray-50"
+            class="flex-1 flex flex-col bg-gray-50 overflow-hidden"
         >
-            <div class="p-4">
-                <div class="flex items-center justify-between mb-3">
+            <div class="p-4 h-full flex flex-col">
+                <div class="flex items-center justify-between mb-3 flex-shrink-0">
                     <h4 class="text-sm font-medium text-gray-700">Frequently Asked Questions</h4>
                     <button 
                         @click="showFaqList = false" 
@@ -71,7 +71,7 @@
                 </div>
                 
                 <!-- Search FAQ -->
-                <div class="mb-3">
+                <div class="mb-3 flex-shrink-0">
                     <div class="relative">
                         <input 
                             type="text" 
@@ -84,7 +84,7 @@
                 </div>
                 
                 <!-- All FAQ Questions - Scrollable -->
-                <div class="max-h-64 overflow-y-auto space-y-1">
+                <div class="flex-1 overflow-y-auto space-y-1 min-h-0">
                     <template x-for="faq in filteredFaqs" :key="faq.id">
                         <button 
                             @click="sendFaqQuestion(faq.question)"
@@ -117,7 +117,7 @@
         </div>
 
         <!-- Chat Messages -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-4" x-ref="messagesContainer">
+        <div x-show="!showFaqList" class="flex-1 overflow-y-auto p-4 space-y-4" x-ref="messagesContainer">
             <!-- Welcome Message -->
             <div class="flex items-start space-x-3">
                 <div class="w-8 h-8 bg-[#0d5c2f] rounded-full flex items-center justify-center flex-shrink-0">
@@ -239,25 +239,6 @@
             </div>
         </div>
 
-        <!-- Chat Input -->
-        <div class="border-t border-gray-200 p-4">
-            <form @submit.prevent="sendMessage(userInput)" class="flex space-x-2">
-                <input 
-                    type="text" 
-                    x-model="userInput"
-                    placeholder="Type your question..."
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm"
-                    :disabled="isTyping"
-                >
-                <button 
-                    type="submit"
-                    class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0a4a26] transition-colors disabled:opacity-50"
-                    :disabled="!userInput.trim() || isTyping"
-                >
-                    <i class="fas fa-paper-plane text-sm"></i>
-                </button>
-            </form>
-        </div>
     </div>
 </div>
 

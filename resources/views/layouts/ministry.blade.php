@@ -55,6 +55,20 @@
                         <i class="fas fa-calendar-star w-4 h-4 mr-2"></i>
                         Activities
                     </a>
+                    
+                    <div class="pt-4">
+                        <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Financial Management</h3>
+                    </div>
+                    
+                    <a href="{{ route('ministry.budget-management.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.budget-management.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-chart-line w-4 h-4 mr-2"></i>
+                        Budget Management
+                    </a>
+                    
+                    <a href="{{ route('ministry.manual-cash-inflows.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.manual-cash-inflows.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-coins w-4 h-4 mr-2"></i>
+                        Cash Inflows
+                    </a>
                 </div>
             </nav>
         </div>

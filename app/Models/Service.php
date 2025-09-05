@@ -63,10 +63,25 @@ class Service extends Model
         }
         
         $formatted = [];
-        foreach ($this->fees as $type => $feeData) {
+        $preferredOrder = ['regular', 'rush'];
+        $fees = $this->fees;
+        
+        // Build an ordered list: preferred keys first in order, then the rest alphabetically
+        $orderedKeys = [];
+        foreach ($preferredOrder as $key) {
+            if (array_key_exists($key, $fees)) {
+                $orderedKeys[] = $key;
+            }
+        }
+        $remainingKeys = array_diff(array_keys($fees), $orderedKeys);
+        sort($remainingKeys);
+        $orderedKeys = array_merge($orderedKeys, $remainingKeys);
+        
+        foreach ($orderedKeys as $type) {
+            $feeData = $fees[$type];
             if (is_array($feeData) && isset($feeData['amount'])) {
-                $description = $feeData['description'] ?? $type;
-                $formatted[] = $description . ': ₱' . number_format($feeData['amount'], 2);
+                $label = $feeData['description'] ?? ucfirst($type);
+                $formatted[] = $label . ': ₱' . number_format($feeData['amount'], 2);
             } else {
                 $formatted[] = ucfirst($type) . ': ₱' . number_format($feeData, 2);
             }

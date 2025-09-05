@@ -40,6 +40,11 @@ class NotificationController extends Controller
                 $query->where('user_id', $user->id);
                 break;
                 
+            case 'ministry_head':
+                // Ministry heads see only their own notifications
+                $query->where('user_id', $user->id);
+                break;
+                
             case 'user':
                 // Users see only their own notifications
                 $query->where('user_id', $user->id);
@@ -73,8 +78,9 @@ class NotificationController extends Controller
             'admin' => 'admin.notifications.index',
             'staff' => 'staff.notifications.index',
             'priest' => 'priest.notifications.index',
+            'ministry_head' => 'user.notifications.index', // Ministry heads use the same view as regular users
             'user' => 'user.notifications.index',
-            default => 'notifications.index'
+            default => 'user.notifications.index' // Fallback to user view
         };
         
         return view($viewPath, compact('notifications', 'type', 'counts', 'user'));
@@ -111,6 +117,15 @@ class NotificationController extends Controller
                 
             case 'priest':
                 // Priest sees only their own notifications
+                $counts['all'] = Notification::where('user_id', $user->id)->count();
+                $counts['booking'] = Notification::where('user_id', $user->id)
+                    ->where('action', 'like', '%booking%')->count();
+                $counts['system'] = Notification::where('user_id', $user->id)
+                    ->where('action', 'not like', '%booking%')->count();
+                break;
+                
+            case 'ministry_head':
+                // Ministry head sees only their own notifications
                 $counts['all'] = Notification::where('user_id', $user->id)->count();
                 $counts['booking'] = Notification::where('user_id', $user->id)
                     ->where('action', 'like', '%booking%')->count();
@@ -163,8 +178,9 @@ class NotificationController extends Controller
                 break;
                 
             case 'priest':
+            case 'ministry_head':
             case 'user':
-                // Priest and user can only mark their own notifications as read
+                // Priest, ministry head, and user can only mark their own notifications as read
                 $notificationIds = Notification::whereIn('id', $notificationIds)
                     ->where('user_id', $user->id)
                     ->pluck('id')
@@ -173,7 +189,7 @@ class NotificationController extends Controller
         }
         
         if (!empty($notificationIds)) {
-            NotificationService::markAsRead($notificationIds, $user->role === 'user' ? $user->id : null);
+            NotificationService::markAsRead($notificationIds, in_array($user->role, ['user', 'ministry_head']) ? $user->id : null);
         }
         
         return response()->json([
@@ -208,8 +224,9 @@ class NotificationController extends Controller
                 break;
                 
             case 'priest':
+            case 'ministry_head':
             case 'user':
-                // Priest and user can only mark their own notifications as read
+                // Priest, ministry head, and user can only mark their own notifications as read
                 $query->where('user_id', $user->id);
                 break;
         }
@@ -232,7 +249,7 @@ class NotificationController extends Controller
         $notificationIds = $query->pluck('id')->toArray();
         
         if (!empty($notificationIds)) {
-            NotificationService::markAsRead($notificationIds, $user->role === 'user' ? $user->id : null);
+            NotificationService::markAsRead($notificationIds, in_array($user->role, ['user', 'ministry_head']) ? $user->id : null);
         }
         
         return response()->json([
@@ -266,6 +283,7 @@ class NotificationController extends Controller
                 break;
                 
             case 'priest':
+            case 'ministry_head':
             case 'user':
                 $count = Notification::where('is_read', false)
                     ->where('user_id', $user->id)->count();
@@ -298,8 +316,9 @@ class NotificationController extends Controller
                     break;
                     
                 case 'priest':
+                case 'ministry_head':
                 case 'user':
-                    // Priest and user see only their own notifications
+                    // Priest, ministry head, and user see only their own notifications
                     $query->where('user_id', $user->id);
                     break;
             }
@@ -353,8 +372,9 @@ class NotificationController extends Controller
                 break;
                 
             case 'priest':
+            case 'ministry_head':
             case 'user':
-                // Priest and user can only delete their own notifications
+                // Priest, ministry head, and user can only delete their own notifications
                 $notificationIds = Notification::whereIn('id', $notificationIds)
                     ->where('user_id', $user->id)
                     ->pluck('id')

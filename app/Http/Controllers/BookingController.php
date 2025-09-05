@@ -66,6 +66,7 @@ class BookingController extends Controller
         // Get ministry activities that could block this service
         $ministryActivities = \App\Models\MinistryActivity::query()
             ->where('is_public', true) // Only public ministry activities block bookings
+            ->whereHas('approvedBudgetRequest') // Only block if budget request is approved
             ->get();
 
         return view('booking.step2', compact('service', 'step1Data', 'activeBookings', 'selectedDate', 'parochialActivities', 'ministryActivities'));
@@ -345,6 +346,8 @@ class BookingController extends Controller
         $blockingActivities = \App\Models\ParochialActivity::active()->onDate($date)->get();
         // Check for ministry activities that block this time slot
         $ministryActivities = \App\Models\MinistryActivity::query()
+            ->where('is_public', true) // Only public ministry activities block bookings
+            ->whereHas('approvedBudgetRequest') // Only block if budget request is approved
             ->whereDate('start_at', '<=', $date)
             ->where(function($q) use ($date) {
                 $q->whereDate('end_at', '>=', $date)->orWhereNull('end_at');
@@ -419,6 +422,7 @@ class BookingController extends Controller
         // Check for ministry activities that block bookings on this date
         $ministryActivities = \App\Models\MinistryActivity::query()
             ->where('is_public', true) // Only public ministry activities block bookings
+            ->whereHas('approvedBudgetRequest') // Only block if budget request is approved
             ->where(function($q) use ($date) {
                 $q->whereDate('start_at', '<=', $date)
                   ->where(function($subQ) use ($date) {
@@ -574,6 +578,7 @@ class BookingController extends Controller
             $parochial = \App\Models\ParochialActivity::active()->onDate($date)->get();
             $ministry = \App\Models\MinistryActivity::query()
                 ->where('is_public', true) // Only public ministry activities block bookings
+                ->whereHas('approvedBudgetRequest') // Only block if budget request is approved
                 ->where(function($q) use ($date) {
                     $q->whereDate('start_at', '<=', $date)
                       ->where(function($subQ) use ($date) {
