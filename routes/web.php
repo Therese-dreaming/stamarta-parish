@@ -211,6 +211,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
 	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
 	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+	Route::get('notifications/admin-action-counts', [App\Http\Controllers\NotificationController::class, 'getAdminActionCounts'])->name('notifications.admin-action-counts');
 	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
 
 	// Ministries - Fund Overview (admin)
@@ -316,6 +317,7 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
 	Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
 	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
 	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+	Route::get('notifications/admin-action-counts', [App\Http\Controllers\NotificationController::class, 'getAdminActionCounts'])->name('notifications.admin-action-counts');
 	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
 });
 
@@ -367,7 +369,8 @@ Route::prefix('ministry')->name('ministry.')->middleware(['auth', 'ministry_head
     Route::get('budget-management/show', [\App\Http\Controllers\Ministry\BudgetManagementController::class, 'show'])->name('budget-management.show');
 
     // Manual Cash Inflows
-    Route::resource('manual-cash-inflows', \App\Http\Controllers\Ministry\ManualCashInflowController::class);
+    Route::resource('manual-cash-inflows', \App\Http\Controllers\Ministry\ManualCashInflowController::class)
+        ->parameters(['manual-cash-inflows' => 'manual_cash_inflow']);
 });
 
 // Fallback route for admin pages

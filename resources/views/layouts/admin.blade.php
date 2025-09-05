@@ -40,6 +40,22 @@
             
             <nav class="mt-6 px-4">
                 <div class="space-y-2">
+                    <!-- Admin Actions Summary -->
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                                <span class="text-sm font-medium text-red-800">Admin Actions</span>
+                            </div>
+                            <span id="total-admin-actions" class="bg-red-500 text-white text-xs rounded-full px-2 py-1 font-bold">0</span>
+                        </div>
+                        <div class="mt-2 text-xs text-red-600">
+                            <div id="admin-actions-breakdown" class="space-y-1">
+                                <!-- Breakdown will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-[#0d5c2f] text-white' : '' }}">
                         <i class="fas fa-tachometer-alt w-4 h-4 mr-2"></i>
                         Dashboard
@@ -72,10 +88,12 @@
                 <a href="{{ route('admin.budget-management.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.budget-management.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                     <i class="fas fa-chart-line w-4 h-4 mr-2"></i>
                     Budget Management
+                    <span id="pending-budget-requests-count" class="ml-auto bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-count="0">0</span>
                 </a>
                 <a href="{{ route('admin.manual-cash-inflows.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.manual-cash-inflows.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                     <i class="fas fa-money-bill-wave w-4 h-4 mr-2"></i>
                     Manual Cash Inflows
+                    <span id="pending-cash-inflows-count" class="ml-auto bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-count="0">0</span>
                 </a>
 
                 <!-- Priest Management -->
@@ -130,6 +148,7 @@
                         <div class="flex items-center">
                             <i class="fas fa-bookmark w-4 h-4 mr-2"></i>
                             Bookings
+                            <span id="pending-bookings-count" class="ml-2 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-count="0">0</span>
                         </div>
                         <i class="fas fa-chevron-down text-[10px] transition-transform group-hover:rotate-180"></i>
                     </button>
@@ -142,6 +161,11 @@
                             <i class="fas fa-calendar-alt mr-2"></i>
                             Calendar
                         </a>
+                        <a href="{{ route('admin.bookings.index') }}?status=payment_hold" class="block px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-credit-card mr-2"></i>
+                            Payment Verification
+                            <span id="payment-verification-count" class="ml-auto bg-red-500 text-white text-[8px] rounded-full px-1 py-0.5 hidden" data-count="0">0</span>
+                        </a>
                     </div>
                 </div>
 
@@ -153,6 +177,7 @@
                 <a href="{{ route('admin.parochial-activities.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.parochial-activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                     <i class="fas fa-church w-4 h-4 mr-2"></i>
                     Activities
+                    <span id="pending-activities-count" class="ml-auto bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-count="0">0</span>
                 </a>
 
                 <!-- Notifications -->
@@ -489,6 +514,99 @@
 
         // Load header notifications on page load
         loadHeaderNotifications();
+
+        // Update admin action counts
+        function updateAdminActionCounts() {
+            const route = '{{ Auth::user()->role === "staff" ? route("staff.notifications.admin-action-counts") : route("admin.notifications.admin-action-counts") }}';
+            fetch(route)
+            .then(response => response.json())
+            .then(data => {
+                if (data.has_actions) {
+                    // Update total count
+                    const totalElement = document.getElementById('total-admin-actions');
+                    if (totalElement) {
+                        totalElement.textContent = data.formatted_total;
+                    }
+
+                    // Update individual counts
+                    updateCountElement('pending-bookings-count', data.counts.pending_bookings);
+                    updateCountElement('payment-verification-count', data.counts.payment_verification);
+                    updateCountElement('pending-cash-inflows-count', data.counts.pending_cash_inflows);
+                    updateCountElement('pending-budget-requests-count', data.counts.pending_budget_requests);
+                    updateCountElement('pending-activities-count', data.counts.pending_activities);
+
+                    // Update breakdown
+                    const breakdownElement = document.getElementById('admin-actions-breakdown');
+                    if (breakdownElement) {
+                        let breakdownHtml = '';
+                        if (data.counts.pending_bookings > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_bookings} pending bookings</div>`;
+                        }
+                        if (data.counts.payment_verification > 0) {
+                            breakdownHtml += `<div>• ${data.counts.payment_verification} payments to verify</div>`;
+                        }
+                        if (data.counts.pending_cash_inflows > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_cash_inflows} cash inflows pending</div>`;
+                        }
+                        if (data.counts.pending_budget_requests > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_budget_requests} budget requests pending</div>`;
+                        }
+                        if (data.counts.pending_activities > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_activities} activities need review</div>`;
+                        }
+                        if (data.counts.pending_users > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_users} new users</div>`;
+                        }
+                        breakdownElement.innerHTML = breakdownHtml;
+                    }
+                } else {
+                    // Hide all count elements if no actions needed
+                    hideAllCountElements();
+                }
+            })
+            .catch(error => console.error('Error fetching admin action counts:', error));
+        }
+
+        function updateCountElement(elementId, count) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                if (count > 0) {
+                    element.textContent = count > 99 ? '99+' : count;
+                    element.classList.remove('hidden');
+                } else {
+                    element.classList.add('hidden');
+                }
+            }
+        }
+
+        function hideAllCountElements() {
+            const countElements = [
+                'total-admin-actions',
+                'pending-bookings-count',
+                'payment-verification-count',
+                'pending-cash-inflows-count',
+                'pending-budget-requests-count',
+                'pending-activities-count'
+            ];
+            
+            countElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.classList.add('hidden');
+                }
+            });
+
+            const breakdownElement = document.getElementById('admin-actions-breakdown');
+            if (breakdownElement) {
+                breakdownElement.innerHTML = '<div class="text-green-600">All caught up! No pending actions.</div>';
+            }
+        }
+
+        // Update admin action counts on page load
+        updateAdminActionCounts();
+
+        // Update admin action counts every 30 seconds
+        setInterval(updateAdminActionCounts, 30000);
     </script>
 </body>
 </html> 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use App\Services\NotificationService;
+use App\Services\AdminActionCounterService;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -390,5 +391,20 @@ class NotificationController extends Controller
             'success' => true,
             'message' => 'Notifications deleted successfully'
         ]);
+    }
+
+    public function getAdminActionCounts(Request $request)
+    {
+        $user = auth()->user();
+        
+        // Only allow admin and staff to access this endpoint
+        if (!in_array($user->role, ['admin', 'staff'])) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        
+        $actionCounter = new AdminActionCounterService();
+        $formattedCounts = $actionCounter->getFormattedCounts();
+        
+        return response()->json($formattedCounts);
     }
 }

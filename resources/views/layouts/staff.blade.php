@@ -45,6 +45,22 @@
                         Dashboard
                     </a>
                     
+                    <!-- Admin Actions Summary -->
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                                <span class="text-sm font-medium text-red-800">Admin Actions</span>
+                            </div>
+                            <span id="total-admin-actions" class="bg-red-500 text-white text-xs rounded-full px-2 py-1 font-bold">0</span>
+                        </div>
+                        <div class="mt-2 text-xs text-red-600">
+                            <div id="admin-actions-breakdown" class="space-y-1">
+                                <!-- Breakdown will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Booking Management -->
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Booking Management</h3>
@@ -459,6 +475,59 @@
 
         // Load header notifications on page load
         loadHeaderNotifications();
+
+        // Update admin action counts
+        function updateAdminActionCounts() {
+            fetch('{{ route("staff.notifications.admin-action-counts") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.has_actions) {
+                    // Update total count
+                    const totalElement = document.getElementById('total-admin-actions');
+                    if (totalElement) {
+                        totalElement.textContent = data.formatted_total;
+                    }
+
+                    // Update breakdown
+                    const breakdownElement = document.getElementById('admin-actions-breakdown');
+                    if (breakdownElement) {
+                        let breakdownHtml = '';
+                        if (data.counts.pending_bookings > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_bookings} pending bookings</div>`;
+                        }
+                        if (data.counts.payment_verification > 0) {
+                            breakdownHtml += `<div>• ${data.counts.payment_verification} payments to verify</div>`;
+                        }
+                        if (data.counts.pending_cash_inflows > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_cash_inflows} cash inflows pending</div>`;
+                        }
+                        if (data.counts.pending_budget_requests > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_budget_requests} budget requests pending</div>`;
+                        }
+                        if (data.counts.pending_activities > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_activities} activities need review</div>`;
+                        }
+                        if (data.counts.pending_users > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_users} new users</div>`;
+                        }
+                        breakdownElement.innerHTML = breakdownHtml;
+                    }
+                } else {
+                    // Hide all count elements if no actions needed
+                    const breakdownElement = document.getElementById('admin-actions-breakdown');
+                    if (breakdownElement) {
+                        breakdownElement.innerHTML = '<div class="text-green-600">All caught up! No pending actions.</div>';
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching admin action counts:', error));
+        }
+
+        // Update admin action counts on page load
+        updateAdminActionCounts();
+
+        // Update admin action counts every 30 seconds
+        setInterval(updateAdminActionCounts, 30000);
     </script>
 </body>
 </html> 
