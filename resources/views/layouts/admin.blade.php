@@ -24,10 +24,10 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-50 font-['Poppins'] min-h-full flex flex-col">
+<body class="bg-gray-50 font-['Poppins'] min-h-full flex flex-col text-sm">
     <div class="min-h-screen">
         <!-- Sidebar -->
-        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out" id="sidebar">
+        <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out overflow-y-auto pb-4" id="sidebar">
             <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
                 <div class="flex items-center">
                     <img src="{{ asset('images/church-logo.png') }}" alt="Logo" class="h-8 w-8">
@@ -169,7 +169,7 @@
         </div>
 
         <!-- Main Content -->
-        <div class="lg:ml-64">
+        <div class="lg:ml-64 h-screen flex flex-col">
             <!-- Top Navigation -->
             <div class="bg-white shadow-sm border-b border-gray-200">
                 <div class="flex items-center justify-between h-16 px-6">
@@ -275,7 +275,7 @@
             </div>
 
             <!-- Page Content -->
-            <main class="p-6">
+            <main class="p-6 flex-1 overflow-y-auto">
                 @if(session('success'))
                     <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
                         <i class="fas fa-check-circle mr-2"></i>

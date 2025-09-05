@@ -18,7 +18,7 @@ class ManualCashInflowController extends Controller
         $ministry = $this->getHeadMinistryOrAbort();
         
         $query = ManualCashInflow::where('ministry_id', $ministry->id)
-            ->with(['requestedBy', 'approvedBy', 'rejectedBy']);
+            ->with(['enteredBy', 'approvedBy']);
         
         // Filter by status
         if ($request->filled('status')) {
@@ -79,23 +79,31 @@ class ManualCashInflowController extends Controller
         $ministry = $this->getHeadMinistryOrAbort();
         
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:0.01|max:999999.99',
+            'source_type' => 'required|string|in:diocese,donation,fundraising,event_revenue,membership_fee,sponsorship,other',
             'description' => 'required|string|max:500',
-            'source' => 'required|string|max:100',
-            'other_source_specify' => 'nullable|string|max:100',
+            'source_details' => 'nullable|string|max:500',
+            'other_source_specify' => 'required_if:source_type,other|nullable|string|max:100',
+            'reference_no' => 'nullable|string|max:50|unique:manual_cash_inflows,reference_no',
             'date_received' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:1000',
         ]);
         
         try {
+            $referenceNo = $request->reference_no ?: 'MCI-' . strtoupper(uniqid());
+
             $cashInflow = ManualCashInflow::create([
                 'ministry_id' => $ministry->id,
+                'head_user_id' => $ministry->head_user_id,
                 'amount' => $request->amount,
+                'source_type' => $request->source_type,
                 'description' => $request->description,
-                'source' => $request->source,
+                'source_details' => $request->source_details,
                 'other_source_specify' => $request->other_source_specify,
-                'date_received' => $request->date_received,
-                'requested_by' => auth()->id(),
-                'status' => 'pending',
+                'reference_no' => $referenceNo,
+                'notes' => $request->notes,
+                'entered_by_user_id' => auth()->id(),
+                'status' => ManualCashInflow::STATUS_PENDING,
             ]);
             
             return redirect()->route('ministry.manual-cash-inflows.index')
@@ -111,12 +119,12 @@ class ManualCashInflowController extends Controller
     {
         $ministry = $this->getHeadMinistryOrAbort();
         
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
+        // Ensure the cash inflow belongs to this ministry or was created by this user
+        if (!is_null($cashInflow->ministry_id) && !$this->userHeadsMinistryId($cashInflow->ministry_id)) {
             abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
         }
         
-        $cashInflow->load(['requestedBy', 'approvedBy', 'rejectedBy']);
+        $cashInflow->load(['enteredBy', 'approvedBy']);
         
         return view('ministry.manual-cash-inflows.show', compact('ministry', 'cashInflow'));
     }
@@ -125,8 +133,8 @@ class ManualCashInflowController extends Controller
     {
         $ministry = $this->getHeadMinistryOrAbort();
         
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
+        // Ensure the cash inflow belongs to this ministry or was created by this user
+        if (!is_null($cashInflow->ministry_id) && !$this->userHeadsMinistryId($cashInflow->ministry_id)) {
             abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
         }
         
@@ -143,8 +151,8 @@ class ManualCashInflowController extends Controller
     {
         $ministry = $this->getHeadMinistryOrAbort();
         
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
+        // Ensure the cash inflow belongs to this ministry or was created by this user
+        if (!is_null($cashInflow->ministry_id) && !$this->userHeadsMinistryId($cashInflow->ministry_id)) {
             abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
         }
         
@@ -155,20 +163,25 @@ class ManualCashInflowController extends Controller
         }
         
         $request->validate([
-            'amount' => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:0.01|max:999999.99',
+            'source_type' => 'required|string|in:diocese,donation,fundraising,event_revenue,membership_fee,sponsorship,other',
             'description' => 'required|string|max:500',
-            'source' => 'required|string|max:100',
-            'other_source_specify' => 'nullable|string|max:100',
+            'source_details' => 'nullable|string|max:500',
+            'other_source_specify' => 'required_if:source_type,other|nullable|string|max:100',
+            'reference_no' => 'nullable|string|max:50|unique:manual_cash_inflows,reference_no,' . $cashInflow->id,
             'date_received' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:1000',
         ]);
         
         try {
             $cashInflow->update([
                 'amount' => $request->amount,
+                'source_type' => $request->source_type,
                 'description' => $request->description,
-                'source' => $request->source,
+                'source_details' => $request->source_details,
                 'other_source_specify' => $request->other_source_specify,
-                'date_received' => $request->date_received,
+                'reference_no' => $request->reference_no,
+                'notes' => $request->notes,
             ]);
             
             return redirect()->route('ministry.manual-cash-inflows.show', $cashInflow)
@@ -184,8 +197,8 @@ class ManualCashInflowController extends Controller
     {
         $ministry = $this->getHeadMinistryOrAbort();
         
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
+        // Ensure the cash inflow belongs to this ministry or was created by this user
+        if (!is_null($cashInflow->ministry_id) && !$this->userHeadsMinistryId($cashInflow->ministry_id)) {
             abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
         }
         
@@ -215,6 +228,17 @@ class ManualCashInflowController extends Controller
             abort(403, 'Access denied. Ministry head role required.');
         }
         
+        // Allow selecting a specific ministry the head owns
+        $requestedMinistryId = request()->get('ministry_id');
+        if ($requestedMinistryId) {
+            $selected = Ministry::where('id', $requestedMinistryId)
+                ->where('head_user_id', $user->id)
+                ->first();
+            if ($selected) {
+                return $selected;
+            }
+        }
+
         $ministry = Ministry::where('head_user_id', $user->id)->first();
         
         if (!$ministry) {
@@ -222,5 +246,15 @@ class ManualCashInflowController extends Controller
         }
         
         return $ministry;
+    }
+
+    private function userHeadsMinistryId(?int $ministryId): bool
+    {
+        if (!$ministryId) {
+            return false;
+        }
+        return Ministry::where('id', $ministryId)
+            ->where('head_user_id', auth()->id())
+            ->exists();
     }
 } 

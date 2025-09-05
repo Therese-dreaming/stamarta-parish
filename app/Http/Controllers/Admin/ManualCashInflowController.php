@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Ministry;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -15,69 +15,48 @@ class ManualCashInflowController extends Controller
 {
     public function index(Request $request)
     {
-        $ministry = $this->getHeadMinistryOrAbort();
-        
-        $query = ManualCashInflow::where('ministry_id', $ministry->id)
-            ->with(['enteredBy', 'approvedBy']);
-        
-        // Filter by status
+        // Admin view: show all inflows with filters
+        $this->ensureAdmin();
+
+        $query = ManualCashInflow::with(['enteredBy', 'approvedBy', 'ministry']);
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
-        // Filter by date range
-        if ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
+
+        if ($request->filled('source_type')) {
+            $query->where('source_type', $request->source_type);
         }
-        
-        if ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
+
+        if ($request->filled('ministry_id')) {
+            $query->where('ministry_id', $request->ministry_id);
         }
-        
-        // Search by description
-        if ($request->filled('search')) {
-            $query->where('description', 'like', '%' . $request->search . '%');
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
         }
-        
-        $cashInflows = $query->orderBy('created_at', 'desc')->paginate(20);
-        
-        // Calculate statistics
-        $totalAmount = $query->sum('amount');
-        $pendingAmount = $query->where('status', 'pending')->sum('amount');
-        $approvedAmount = $query->where('status', 'approved')->sum('amount');
-        $rejectedAmount = $query->where('status', 'rejected')->sum('amount');
-        
-        // Get counts
-        $totalCount = $query->count();
-        $pendingCount = $query->where('status', 'pending')->count();
-        $approvedCount = $query->where('status', 'approved')->count();
-        $rejectedCount = $query->where('status', 'rejected')->count();
-        
-        return view('ministry.manual-cash-inflows.index', compact(
-            'ministry',
-            'cashInflows',
-            'totalAmount',
-            'pendingAmount',
-            'approvedAmount',
-            'rejectedAmount',
-            'totalCount',
-            'pendingCount',
-            'approvedCount',
-            'rejectedCount'
-        ));
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $cashInflows = $query->orderByDesc('created_at')->paginate(20);
+        $ministries = Ministry::orderBy('name')->get();
+
+        return view('admin.manual-cash-inflows.index', compact('cashInflows', 'ministries'));
     }
     
     public function create()
     {
-        $ministry = $this->getHeadMinistryOrAbort();
-        
-        return view('ministry.manual-cash-inflows.create', compact('ministry'));
+        $this->ensureAdmin();
+        $ministries = Ministry::orderBy('name')->get();
+        return view('admin.manual-cash-inflows.create', compact('ministries'));
     }
     
     public function store(Request $request)
     {
-        $ministry = $this->getHeadMinistryOrAbort();
-        
+        $this->ensureAdmin();
+
         $request->validate([
             'amount' => 'required|numeric|min:0.01|max:999999.99',
             'source_type' => 'required|string|in:diocese,donation,fundraising,event_revenue,membership_fee,sponsorship,other',
@@ -85,19 +64,15 @@ class ManualCashInflowController extends Controller
             'source_details' => 'nullable|string|max:500',
             'other_source_specify' => 'required_if:source_type,other|nullable|string|max:100',
             'reference_no' => 'nullable|string|max:50|unique:manual_cash_inflows,reference_no',
-            'date_received' => 'required|date|before_or_equal:today',
             'notes' => 'nullable|string|max:1000',
+            'ministry_id' => 'nullable|exists:ministries,id',
         ]);
-        
+
         try {
-            // Generate reference number if not provided
-            $referenceNo = $request->reference_no;
-            if (empty($referenceNo)) {
-                $referenceNo = 'MCI-' . strtoupper(uniqid());
-            }
-            
-            $cashInflow = ManualCashInflow::create([
-                'ministry_id' => $ministry->id,
+            $referenceNo = $request->reference_no ?: 'MCI-' . strtoupper(uniqid());
+
+            ManualCashInflow::create([
+                'ministry_id' => $request->ministry_id,
                 'amount' => $request->amount,
                 'source_type' => $request->source_type,
                 'description' => $request->description,
@@ -106,78 +81,58 @@ class ManualCashInflowController extends Controller
                 'reference_no' => $referenceNo,
                 'notes' => $request->notes,
                 'entered_by_user_id' => auth()->id(),
-                'status' => 'pending',
+                'status' => ManualCashInflow::STATUS_PENDING,
             ]);
-            
-            return redirect()->route('ministry.manual-cash-inflows.index')
-                ->with('success', 'Cash inflow request submitted successfully. Waiting for admin approval.');
-                
+
+            return redirect()->route('admin.manual-cash-inflows.index')
+                ->with('success', 'Cash inflow created successfully.');
         } catch (\Exception $e) {
             Log::error('Failed to create manual cash inflow: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Failed to submit cash inflow request. Please try again.');
+            return back()->withInput()->with('error', 'Failed to submit cash inflow. Please try again.');
         }
     }
     
-    public function show(ManualCashInflow $cashInflow)
+    public function show(ManualCashInflow $manual_cash_inflow)
     {
-        $ministry = $this->getHeadMinistryOrAbort();
-        
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
-            abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
-        }
-        
-        $cashInflow->load(['enteredBy', 'approvedBy']);
-        
-        return view('ministry.manual-cash-inflows.show', compact('ministry', 'cashInflow'));
+        $this->ensureAdmin();
+        $manual_cash_inflow->load(['enteredBy', 'approvedBy', 'ministry']);
+        return view('admin.manual-cash-inflows.show', compact('manual_cash_inflow'));
     }
     
-    public function edit(ManualCashInflow $cashInflow)
+    public function edit(ManualCashInflow $manual_cash_inflow)
     {
-        $ministry = $this->getHeadMinistryOrAbort();
-        
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
-            abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
-        }
-        
-        // Only allow editing if status is pending
-        if ($cashInflow->status !== 'pending') {
-            return redirect()->route('ministry.manual-cash-inflows.show', $cashInflow)
+        $this->ensureAdmin();
+        if (!$manual_cash_inflow->isPending()) {
+            return redirect()->route('admin.manual-cash-inflows.show', ['manual_cash_inflow' => $manual_cash_inflow->id])
                 ->with('error', 'Cannot edit cash inflow that has already been processed.');
         }
-        
-        return view('ministry.manual-cash-inflows.edit', compact('ministry', 'cashInflow'));
+        $ministries = Ministry::orderBy('name')->get();
+        return view('admin.manual-cash-inflows.edit', compact('manual_cash_inflow', 'ministries'));
     }
     
-    public function update(Request $request, ManualCashInflow $cashInflow)
+    public function update(Request $request, ManualCashInflow $manual_cash_inflow)
     {
-        $ministry = $this->getHeadMinistryOrAbort();
-        
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
-            abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
-        }
-        
-        // Only allow updating if status is pending
-        if ($cashInflow->status !== 'pending') {
-            return redirect()->route('ministry.manual-cash-inflows.show', $cashInflow)
+        $this->ensureAdmin();
+
+        if (!$manual_cash_inflow->isPending()) {
+            return redirect()->route('admin.manual-cash-inflows.show', ['manual_cash_inflow' => $manual_cash_inflow->id])
                 ->with('error', 'Cannot update cash inflow that has already been processed.');
         }
-        
+
         $request->validate([
             'amount' => 'required|numeric|min:0.01|max:999999.99',
             'source_type' => 'required|string|in:diocese,donation,fundraising,event_revenue,membership_fee,sponsorship,other',
             'description' => 'required|string|max:500',
             'source_details' => 'nullable|string|max:500',
             'other_source_specify' => 'required_if:source_type,other|nullable|string|max:100',
-            'reference_no' => 'nullable|string|max:50|unique:manual_cash_inflows,reference_no,' . $cashInflow->id,
-            'date_received' => 'required|date|before_or_equal:today',
+            'reference_no' => 'nullable|string|max:50|unique:manual_cash_inflows,reference_no,' . $manual_cash_inflow->id,
             'notes' => 'nullable|string|max:1000',
+            'ministry_id' => 'nullable|exists:ministries,id',
         ]);
-        
+
         try {
-            $cashInflow->update([
+            $manual_cash_inflow->update([
+                'ministry_id' => $request->ministry_id,
                 'amount' => $request->amount,
                 'source_type' => $request->source_type,
                 'description' => $request->description,
@@ -186,57 +141,102 @@ class ManualCashInflowController extends Controller
                 'reference_no' => $request->reference_no,
                 'notes' => $request->notes,
             ]);
-            
-            return redirect()->route('ministry.manual-cash-inflows.show', $cashInflow)
+
+            return redirect()->route('admin.manual-cash-inflows.show', ['manual_cash_inflow' => $manual_cash_inflow->id])
                 ->with('success', 'Cash inflow updated successfully.');
-                
         } catch (\Exception $e) {
             Log::error('Failed to update manual cash inflow: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Failed to update cash inflow. Please try again.');
         }
     }
     
-    public function destroy(ManualCashInflow $cashInflow)
+    public function destroy(ManualCashInflow $manual_cash_inflow)
     {
-        $ministry = $this->getHeadMinistryOrAbort();
-        
-        // Ensure the cash inflow belongs to this ministry
-        if ($cashInflow->ministry_id !== $ministry->id) {
-            abort(403, 'Access denied. This cash inflow does not belong to your ministry.');
-        }
-        
-        // Only allow deletion if status is pending
-        if ($cashInflow->status !== 'pending') {
-            return redirect()->route('ministry.manual-cash-inflows.show', $cashInflow)
+        $this->ensureAdmin();
+
+        if (!$manual_cash_inflow->isPending()) {
+            return redirect()->route('admin.manual-cash-inflows.show', ['manual_cash_inflow' => $manual_cash_inflow->id])
                 ->with('error', 'Cannot delete cash inflow that has already been processed.');
         }
-        
+
         try {
-            $cashInflow->delete();
-            
-            return redirect()->route('ministry.manual-cash-inflows.index')
+            $manual_cash_inflow->delete();
+
+            return redirect()->route('admin.manual-cash-inflows.index')
                 ->with('success', 'Cash inflow deleted successfully.');
-                
         } catch (\Exception $e) {
             Log::error('Failed to delete manual cash inflow: ' . $e->getMessage());
             return back()->with('error', 'Failed to delete cash inflow. Please try again.');
         }
     }
     
-    private function getHeadMinistryOrAbort()
+    public function approve(ManualCashInflow $manual_cash_inflow)
+    {
+        $this->ensureAdmin();
+
+        if (!$manual_cash_inflow->canBeApproved()) {
+            return back()->with('error', 'Cash inflow cannot be approved.');
+        }
+
+        try {
+            DB::transaction(function () use ($manual_cash_inflow) {
+                $manual_cash_inflow->update([
+                    'status' => ManualCashInflow::STATUS_APPROVED,
+                    'approved_by_user_id' => auth()->id(),
+                    'approved_at' => Carbon::now(),
+                ]);
+
+                MinistryFundTransaction::create([
+                    'ministry_id' => $manual_cash_inflow->ministry_id,
+                    'type' => MinistryFundTransaction::TYPE_CREDIT,
+                    'amount' => $manual_cash_inflow->amount,
+                    'description' => 'Manual cash inflow approved: ' . ($manual_cash_inflow->description ?? ''),
+                    'reference_no' => $manual_cash_inflow->reference_no,
+                    'source_type' => ManualCashInflow::class,
+                    'source_id' => $manual_cash_inflow->id,
+                    'entered_by_user_id' => $manual_cash_inflow->entered_by_user_id,
+                    'approved_by_user_id' => auth()->id(),
+                ]);
+            });
+
+            return back()->with('success', 'Cash inflow approved and funds added.');
+        } catch (\Exception $e) {
+            Log::error('Failed to approve manual cash inflow: ' . $e->getMessage());
+            return back()->with('error', 'Failed to approve cash inflow.');
+        }
+    }
+
+    public function reject(Request $request, ManualCashInflow $manual_cash_inflow)
+    {
+        $this->ensureAdmin();
+
+        if (!$manual_cash_inflow->canBeRejected()) {
+            return back()->with('error', 'Cash inflow cannot be rejected.');
+        }
+
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        try {
+            $notes = trim(($manual_cash_inflow->notes ?? '') . "\nRejection reason: " . $request->rejection_reason);
+            $manual_cash_inflow->update([
+                'status' => ManualCashInflow::STATUS_REJECTED,
+                'notes' => $notes,
+            ]);
+
+            return back()->with('success', 'Cash inflow rejected.');
+        } catch (\Exception $e) {
+            Log::error('Failed to reject manual cash inflow: ' . $e->getMessage());
+            return back()->with('error', 'Failed to reject cash inflow.');
+        }
+    }
+
+    private function ensureAdmin(): void
     {
         $user = auth()->user();
-        
-        if (!$user || $user->role !== 'ministry_head') {
-            abort(403, 'Access denied. Ministry head role required.');
+        if (!$user || ($user->role ?? null) !== 'admin') {
+            abort(403, 'Access denied. Admin role required.');
         }
-        
-        $ministry = Ministry::where('head_user_id', $user->id)->first();
-        
-        if (!$ministry) {
-            abort(404, 'Ministry not found or you are not assigned as ministry head.');
-        }
-        
-        return $ministry;
     }
 }

@@ -11,6 +11,7 @@ class ManualCashInflow extends Model
 
     protected $fillable = [
         'ministry_id',
+        'head_user_id',
         'amount',
         'source_type',
         'description',
@@ -67,7 +68,8 @@ class ManualCashInflow extends Model
 
     public function rejectedBy()
     {
-        return null; // This field doesn't exist in the current schema
+        // We don't store a separate rejected_by_user_id; reuse approved_by_user_id for handler
+        return $this->belongsTo(User::class, 'approved_by_user_id');
     }
 
     // Scopes

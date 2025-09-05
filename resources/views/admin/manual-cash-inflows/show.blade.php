@@ -6,47 +6,40 @@
 @include('components.toast')
 
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-    <!-- Enhanced Header -->
-    <div class="bg-[#0d5c2f] rounded-2xl shadow-xl overflow-hidden mb-8">
-        <div class="px-8 py-8 relative">
-            <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-bl-full"></div>
-            <div class="absolute left-0 bottom-0 w-24 h-24 bg-white/5 rounded-tr-full"></div>
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <div class="mr-6 hidden md:block">
-                        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center border-2 border-white/30 shadow-lg">
-                            <i class="fas fa-money-bill-wave text-white text-2xl"></i>
-                        </div>
+    <!-- Header / Actions -->
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 mb-6">
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white">
+                        <i class="fas fa-receipt"></i>
                     </div>
                     <div>
-                        <h2 class="text-3xl font-bold text-white flex items-center mb-2">
-                            <i class="fas fa-receipt mr-3"></i>
-                            Cash Inflow Details
-                        </h2>
-                        <p class="text-white/90 text-base">Reference: {{ $manual_cash_inflow->reference_no }}</p>
-                        <div class="flex items-center mt-3 text-white/80 text-sm">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            <span>View complete transaction information</span>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-2xl font-bold text-gray-900">Manual Cash Inflow</h2>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $manual_cash_inflow->getStatusBadgeClass() }}">
+                                {{ ucfirst($manual_cash_inflow->status) }}
+                            </span>
                         </div>
+                        <div class="text-sm text-gray-500 mt-1">Reference: <span class="font-mono text-gray-900">{{ $manual_cash_inflow->reference_no ?? 'N/A' }}</span></div>
+                        <div class="text-xs text-gray-500 mt-1">Created: {{ optional($manual_cash_inflow->created_at)->format('M d, Y h:i A') ?? 'N/A' }}</div>
                     </div>
                 </div>
-                <div class="flex flex-col items-end text-white">
-                    <div class="text-4xl font-bold mb-1">₱{{ number_format($manual_cash_inflow->amount, 2) }}</div>
-                    <div class="text-sm opacity-90 mb-4">Transaction Amount</div>
-                    <div class="flex space-x-3">
-                        <a href="{{ route('admin.manual-cash-inflows.index') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-all duration-200 border border-white/30 hover:border-white/50">
-                            <i class="fas fa-arrow-left mr-2"></i>
-                            Back to List
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="{{ route('admin.manual-cash-inflows.index') }}" class="px-3 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 text-xs">
+                        <i class="fas fa-arrow-left mr-1"></i> Back
+                    </a>
+                    @if($manual_cash_inflow->isPending())
+                        <button type="button" onclick="openApproveModal()" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs">
+                            <i class="fas fa-check mr-1"></i> Approve
+                        </button>
+                        <button type="button" onclick="openRejectModal()" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs">
+                            <i class="fas fa-times mr-1"></i> Reject
+                        </button>
+                        <a href="{{ route('admin.manual-cash-inflows.edit', ['manual_cash_inflow' => $manual_cash_inflow->id]) }}" class="px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-xs">
+                            <i class="fas fa-edit mr-1"></i> Edit
                         </a>
-                        @if($manual_cash_inflow->isPending())
-                            <a href="{{ route('admin.manual-cash-inflows.edit', ['manual_cash_inflow' => $manual_cash_inflow->id]) }}" 
-                               class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-all duration-200 border border-white/30 hover:border-white/50">
-                                <i class="fas fa-edit mr-2"></i>
-                                Edit
-                            </a>
-                        @endif
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -61,6 +54,15 @@
                     <p class="text-sm font-medium text-gray-600 mb-1">Status</p>
                     <p class="text-xl font-bold {{ $manual_cash_inflow->isApproved() ? 'text-green-600' : ($manual_cash_inflow->isRejected() ? 'text-red-600' : 'text-yellow-600') }}">
                         {{ $manual_cash_inflow->isApproved() ? 'Approved' : ($manual_cash_inflow->isRejected() ? 'Rejected' : 'Pending') }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        @if($manual_cash_inflow->isApproved())
+                            Approved on {{ optional($manual_cash_inflow->approved_at)->format('M d, Y') ?? 'N/A' }}
+                        @elseif($manual_cash_inflow->isRejected())
+                            Updated on {{ optional($manual_cash_inflow->updated_at)->format('M d, Y') ?? 'N/A' }}
+                        @else
+                            Awaiting approval
+                        @endif
                     </p>
                 </div>
                 <div class="w-12 h-12 {{ $manual_cash_inflow->isApproved() ? 'bg-green-500' : ($manual_cash_inflow->isRejected() ? 'bg-red-500' : 'bg-yellow-500') }} rounded-xl flex items-center justify-center shadow-lg">
@@ -178,7 +180,7 @@
                 </div>
             </div>
 
-            <!-- Approval Actions (if pending) -->
+            <!-- Approval Actions (Toolbar replicated above) -->
             @if($manual_cash_inflow->isPending())
                 <div class="bg-white rounded-xl shadow-lg border border-gray-100">
                     <div class="p-6 border-b border-gray-200">
@@ -189,27 +191,18 @@
                     </div>
                     <div class="p-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Approve Button -->
-                            <form action="{{ route('admin.manual-cash-inflows.approve', ['manual_cash_inflow' => $manual_cash_inflow->id]) }}" method="POST">
-                                @csrf
-                                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                                    <label class="block text-sm font-medium text-green-800 mb-2">Approve Cash Inflow</label>
-                                    <p class="text-sm text-green-700 mb-4">This will add ₱{{ number_format($manual_cash_inflow->amount, 2) }} to the budget.</p>
-                                    <button type="submit" 
-                                            class="w-full inline-flex justify-center items-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
-                                        <i class="fas fa-check mr-2"></i>
-                                        Approve & Add to Budget
-                                    </button>
-                                </div>
-                            </form>
-
-                            <!-- Reject Button -->
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <label class="block text-sm font-medium text-green-800 mb-2">Approve Cash Inflow</label>
+                                <p class="text-sm text-green-700 mb-4">This will add ₱{{ number_format($manual_cash_inflow->amount, 2) }} to the budget.</p>
+                                <button type="button" onclick="openApproveModal()" class="w-full inline-flex justify-center items-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+                                    <i class="fas fa-check mr-2"></i>
+                                    Approve & Add to Budget
+                                </button>
+                            </div>
                             <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                                 <label class="block text-sm font-medium text-red-800 mb-2">Reject Cash Inflow</label>
                                 <p class="text-sm text-red-700 mb-4">Provide a reason for rejection.</p>
-                                <button type="button" 
-                                        onclick="openRejectModal()"
-                                        class="w-full inline-flex justify-center items-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
+                                <button type="button" onclick="openRejectModal()" class="w-full inline-flex justify-center items-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
                                     <i class="fas fa-times mr-2"></i>
                                     Reject
                                 </button>
@@ -237,20 +230,20 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Created Date</label>
-                        <p class="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg">{{ $manual_cash_inflow->created_at->format('M d, Y') }}</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ $manual_cash_inflow->created_at->format('h:i A') }}</p>
+                        <p class="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg">{{ optional($manual_cash_inflow->created_at)->format('M d, Y') ?? 'N/A' }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ optional($manual_cash_inflow->created_at)->format('h:i A') ?? 'N/A' }}</p>
                     </div>
                     @if($manual_cash_inflow->isApproved())
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-2">Approved Date</label>
-                            <p class="text-sm text-gray-900 bg-green-50 p-2 rounded-lg">{{ $manual_cash_inflow->approved_at->format('M d, Y') }}</p>
-                            <p class="text-xs text-gray-500 mt-1">{{ $manual_cash_inflow->approved_at->format('h:i A') }}</p>
+                            <p class="text-sm text-gray-900 bg-green-50 p-2 rounded-lg">{{ optional($manual_cash_inflow->approved_at)->format('M d, Y') ?? 'N/A' }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ optional($manual_cash_inflow->approved_at)->format('h:i A') ?? 'N/A' }}</p>
                         </div>
                     @endif
                     <div>
                         <label class="block text-sm font-medium text-gray-500 mb-2">Last Updated</label>
-                        <p class="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg">{{ $manual_cash_inflow->updated_at->format('M d, Y') }}</p>
-                        <p class="text-xs text-gray-500 mt-1">{{ $manual_cash_inflow->updated_at->format('h:i A') }}</p>
+                        <p class="text-sm text-gray-900 bg-gray-50 p-2 rounded-lg">{{ optional($manual_cash_inflow->updated_at)->format('M d, Y') ?? 'N/A' }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ optional($manual_cash_inflow->updated_at)->format('h:i A') ?? 'N/A' }}</p>
                     </div>
                 </div>
             </div>
@@ -282,54 +275,98 @@
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-xl bg-white">
-        <div class="mt-3">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Reject Cash Inflow</h3>
-            <form action="{{ route('admin.manual-cash-inflows.reject', ['manual_cash_inflow' => $manual_cash_inflow->id]) }}" method="POST">
+<!-- Approve Modal -->
+<div id="approveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-24 mx-auto p-5 w-full max-w-md">
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900">Confirm Approval</h3>
+                <button onclick="closeApproveModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+            </div>
+            <form action="{{ route('admin.manual-cash-inflows.approve', ['manual_cash_inflow' => $manual_cash_inflow->id]) }}" method="POST">
                 @csrf
-                <div class="mb-4">
-                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">
-                        Rejection Reason <span class="text-red-500">*</span>
-                    </label>
-                    <textarea name="rejection_reason" 
-                              id="rejection_reason" 
-                              rows="4"
-                              class="w-full border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
-                              placeholder="Please provide a reason for rejecting this cash inflow"
-                              required></textarea>
+                <div class="px-5 py-4">
+                    <p class="text-sm text-gray-600">Approve this cash inflow and add <span class="font-semibold text-gray-900">₱{{ number_format($manual_cash_inflow->amount, 2) }}</span> to the budget?</p>
                 </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" 
-                            onclick="closeRejectModal()"
-                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
-                        Reject
-                    </button>
+                <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeApproveModal()" class="px-4 py-2 text-xs rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs rounded-lg bg-green-600 hover:bg-green-700 text-white">Approve</button>
                 </div>
             </form>
         </div>
     </div>
-</div>
+    </div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-24 mx-auto p-5 w-full max-w-md">
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900">Reject Cash Inflow</h3>
+                <button onclick="closeRejectModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+            </div>
+            <form action="{{ route('admin.manual-cash-inflows.reject', ['manual_cash_inflow' => $manual_cash_inflow->id]) }}" method="POST">
+                @csrf
+                <div class="px-5 py-4 space-y-3">
+                    <p class="text-sm text-gray-600">Provide a reason for rejection. This will be saved with the record.</p>
+                    <textarea name="rejection_reason" id="rejection_reason" rows="5" class="w-full border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm" placeholder="Reason for rejection" required></textarea>
+                </div>
+                <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeRejectModal()" class="px-4 py-2 text-xs rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs rounded-lg bg-red-600 hover:bg-red-700 text-white">Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-24 mx-auto p-5 w-full max-w-2xl">
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900">Full Details</h3>
+                <button onclick="closeDetailsModal()" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="px-5 py-4 space-y-4 text-sm">
+                <div>
+                    <div class="text-gray-500 mb-1">Description</div>
+                    <div class="bg-gray-50 rounded-lg p-3 text-gray-900">{{ $manual_cash_inflow->description }}</div>
+                </div>
+                @if($manual_cash_inflow->source_details)
+                <div>
+                    <div class="text-gray-500 mb-1">Source Details</div>
+                    <div class="bg-gray-50 rounded-lg p-3 text-gray-900">{{ $manual_cash_inflow->source_details }}</div>
+                </div>
+                @endif
+                @if($manual_cash_inflow->notes)
+                <div>
+                    <div class="text-gray-500 mb-1">Notes</div>
+                    <div class="bg-gray-50 rounded-lg p-3 text-gray-900 whitespace-pre-line">{{ $manual_cash_inflow->notes }}</div>
+                </div>
+                @endif
+            </div>
+            <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end">
+                <button type="button" onclick="closeDetailsModal()" class="px-4 py-2 text-xs rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50">Close</button>
+            </div>
+        </div>
+    </div>
+    </div>
 
 <script>
-function openRejectModal() {
-    document.getElementById('rejectModal').classList.remove('hidden');
-}
-
-function closeRejectModal() {
-    document.getElementById('rejectModal').classList.add('hidden');
-}
+function openRejectModal() { document.getElementById('rejectModal').classList.remove('hidden'); }
+function closeRejectModal() { document.getElementById('rejectModal').classList.add('hidden'); }
+function openApproveModal() { document.getElementById('approveModal').classList.remove('hidden'); }
+function closeApproveModal() { document.getElementById('approveModal').classList.add('hidden'); }
+function openDetailsModal() { document.getElementById('detailsModal').classList.remove('hidden'); }
+function closeDetailsModal() { document.getElementById('detailsModal').classList.add('hidden'); }
 
 // Close modal when clicking outside
-document.getElementById('rejectModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeRejectModal();
-    }
+['rejectModal','approveModal','detailsModal'].forEach(function(id){
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('click', function(e){ if (e.target === this) { this.classList.add('hidden'); } });
+  }
 });
 </script>
 @endsection 

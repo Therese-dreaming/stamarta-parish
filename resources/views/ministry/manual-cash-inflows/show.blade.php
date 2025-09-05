@@ -67,7 +67,7 @@
                             </div>
                             <div class="ml-4">
                                 <p class="text-sm font-medium text-gray-500">Date Received</p>
-                                <p class="text-lg font-bold text-blue-600">{{ $cashInflow->date_received->format('M d, Y') }}</p>
+                                <p class="text-lg font-bold text-blue-600">{{ optional($cashInflow->date_received ?? $cashInflow->created_at)->format('M d, Y') ?? 'N/A' }}</p>
                             </div>
                         </div>
                     </div>
@@ -163,11 +163,11 @@
                             @endif
                             <div class="space-y-2">
                                 <label class="block text-sm font-semibold text-gray-700">Requested By</label>
-                                <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-xl">{{ $cashInflow->requestedBy ? $cashInflow->requestedBy->name : 'Unknown' }}</p>
+                                <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-xl">{{ $cashInflow->enteredBy ? $cashInflow->enteredBy->name : 'Unknown' }}</p>
                             </div>
                             <div class="space-y-2">
                                 <label class="block text-sm font-semibold text-gray-700">Request Date</label>
-                                <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-xl">{{ $cashInflow->created_at->format('M d, Y g:i A') }}</p>
+                                <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-xl">{{ optional($cashInflow->created_at)->format('M d, Y g:i A') ?? 'N/A' }}</p>
                             </div>
                         </div>
                         
@@ -207,7 +207,7 @@
                                     {{ $cashInflow->status === 'approved' ? 'Approval' : 'Rejection' }} Date
                                 </label>
                                 <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-xl">
-                                    {{ $cashInflow->status === 'approved' ? ($cashInflow->approved_at ? $cashInflow->approved_at->format('M d, Y g:i A') : 'N/A') : ($cashInflow->rejected_at ? $cashInflow->rejected_at->format('M d, Y g:i A') : 'N/A') }}
+                                    {{ $cashInflow->status === 'approved' ? (optional($cashInflow->approved_at)->format('M d, Y g:i A') ?? 'N/A') : (optional($cashInflow->rejected_at)->format('M d, Y g:i A') ?? 'N/A') }}
                                 </p>
                             </div>
                             @if($cashInflow->status === 'rejected' && $cashInflow->rejection_reason)
@@ -290,8 +290,8 @@
                                                     <p class="text-xs text-gray-500">Cash inflow request created</p>
                                                 </div>
                                                 <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                                                    <time datetime="{{ $cashInflow->created_at->format('Y-m-d') }}">
-                                                        {{ $cashInflow->created_at->format('M d, Y') }}
+                                                    <time datetime="{{ optional($cashInflow->created_at)->format('Y-m-d') }}">
+                                                        {{ optional($cashInflow->created_at)->format('M d, Y') ?? 'N/A' }}
                                                     </time>
                                                 </div>
                                             </div>
@@ -403,7 +403,7 @@
                                     </div>
                                     <span class="text-sm font-medium text-gray-800">Days Since Request</span>
                                 </div>
-                                <span class="text-lg font-bold text-gray-600">{{ $cashInflow->created_at->diffInDays(now()) }}</span>
+                                <span class="text-lg font-bold text-gray-600">{{ optional($cashInflow->created_at)->diffInDays(now()) ?? 'N/A' }}</span>
                             </div>
                             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                                 <div class="flex items-center space-x-3">
@@ -412,7 +412,7 @@
                                     </div>
                                     <span class="text-sm font-medium text-gray-800">Last Updated</span>
                                 </div>
-                                <span class="text-sm font-bold text-gray-600">{{ $cashInflow->updated_at->format('M d') }}</span>
+                                <span class="text-sm font-bold text-gray-600">{{ optional($cashInflow->updated_at)->format('M d') ?? 'N/A' }}</span>
                             </div>
                         </div>
                     </div>
