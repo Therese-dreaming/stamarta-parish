@@ -95,73 +95,16 @@ class Calendar {
     }
 
     renderCalendar() {
-        
         const year = this.currentMonth.getFullYear();
         const month = this.currentMonth.getMonth();
         
-        
-        // Clear previous calendar
-        this.container.innerHTML = '';
-        
-        // Create calendar header
-        const header = document.createElement('div');
-        header.className = 'calendar-header flex justify-between items-center mb-4';
-        header.innerHTML = `
-            <button id="prevMonth" class="p-2 hover:bg-gray-100 rounded">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <h2 class="text-xl font-bold">${this.getMonthName(month)} ${year}</h2>
-            <button id="nextMonth" class="p-2 hover:bg-gray-100 rounded">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        `;
-        this.container.appendChild(header);
-
-        // Create calendar legend
-        const legend = document.createElement('div');
-        legend.className = 'calendar-legend mb-4 text-sm text-gray-600';
-        legend.innerHTML = `
-            <div class="flex flex-wrap gap-4">
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-white border-2 border-gray-300 mr-2"></div>
-                    <span>Available</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-purple-200 border-2 border-purple-400 mr-2"></div>
-                    <span>Ministry Activity</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-blue-200 border-2 border-blue-400 mr-2"></div>
-                    <span>Parochial Activity</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-red-200 border-2 border-red-400 mr-2"></div>
-                    <span>Fully Booked</span>
-                </div>
-                <div class="flex items-center">
-                    <div class="w-4 h-4 bg-gray-100 text-gray-400 mr-2"></div>
-                    <span>Not Available</span>
-                </div>
-            </div>
-        `;
-        this.container.appendChild(legend);
-
-        // Create days of week header
-        const daysHeader = document.createElement('div');
-        daysHeader.className = 'grid grid-cols-7 gap-1 mb-2';
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayNames.forEach(day => {
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'text-center font-semibold text-gray-700 py-2';
-            dayHeader.textContent = day;
-            daysHeader.appendChild(dayHeader);
-        });
-        this.container.appendChild(daysHeader);
-
-        // Create calendar days container
-        const daysContainer = document.createElement('div');
-        daysContainer.className = 'grid grid-cols-7 gap-1';
-        this.container.appendChild(daysContainer);
+        // Update header
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        const currentMonthElement = document.getElementById('currentMonth');
+        if (currentMonthElement) {
+            currentMonthElement.textContent = `${monthNames[month]} ${year}`;
+        }
 
         // Get first day of month and number of days
         const firstDay = new Date(year, month, 1);
@@ -169,22 +112,19 @@ class Calendar {
         const startDate = new Date(firstDay);
         startDate.setDate(startDate.getDate() - firstDay.getDay());
 
+        const daysContainer = document.getElementById('calendarDays');
+        if (!daysContainer) return;
         
+        daysContainer.innerHTML = '';
 
         // Generate calendar days
         for (let i = 0; i < 42; i++) {
             const currentDate = new Date(startDate);
             currentDate.setDate(startDate.getDate() + i);
             
-            
             const dayElement = this.createDayElement(currentDate, year, month);
             daysContainer.appendChild(dayElement);
         }
-        
-        // Attach event listeners for month navigation
-        this.attachEventListeners();
-        
-        
     }
 
     createDayElement(date, targetYear, targetMonth) {
@@ -201,6 +141,8 @@ class Calendar {
         const dateString = `${year}-${month}-${day}`;
         
         // Set initial classes based on basic availability
+        let availability = null;
+        
         if (!isCurrentMonth) {
             dayDiv.className += ' text-gray-300 cursor-not-allowed';
         } else {
@@ -220,14 +162,8 @@ class Calendar {
                     dayDiv.className += ' text-gray-400 cursor-not-allowed bg-gray-100';
                 } else {
                     // Check availability for this date
-                    const availability = this.getDateAvailability(dateString);
+                    availability = this.getDateAvailability(dateString);
                     this.updateDayClasses(dayDiv, availability);
-                    
-                    // Add click handler for available dates (including those with ministry activity notes)
-                    // But don't allow clicking on dates completely blocked by ministry activities
-                    if (availability.status === 'available' || availability.status === 'available-with-notes') {
-                        dayDiv.addEventListener('click', () => this.selectDate(dateString));
-                    }
                     
                     // Add tooltip
                     if (availability.available_slots !== undefined) {
@@ -239,6 +175,12 @@ class Calendar {
                     }
                 }
             }
+        }
+        
+        // Add click handler for available dates (including those with ministry activity notes)
+        // But don't allow clicking on dates completely blocked by ministry activities
+        if (availability && (availability.status === 'available' || availability.status === 'available-with-notes')) {
+            dayDiv.addEventListener('click', () => this.selectDate(dateString));
         }
 
         // Highlight selected date
@@ -782,6 +724,7 @@ class Calendar {
         this.loadTimeSlots(dateString);
     }
 
+
     loadTimeSlots(dateString) {
         const serviceId = this.service.id;
         const url = `/booking/time-slots/${serviceId}?date=${dateString}`;
@@ -932,6 +875,7 @@ class Calendar {
         });
     }
 
+
     attachEventListeners() {
         const prevButton = document.getElementById('prevMonth');
         const nextButton = document.getElementById('nextMonth');
@@ -978,4 +922,5 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Calendar container not found');
     }
 });
+
 </script>

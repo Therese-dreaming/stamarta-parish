@@ -104,6 +104,7 @@
                 <a href="{{ route('admin.priests.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.priests.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                     <i class="fas fa-cross w-4 h-4 mr-2"></i>
                     Priests
+                    <span id="pending-priest-leaves-count" class="ml-auto bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-count="0">0</span>
                 </a>
 
                 <!-- User Management -->
@@ -534,6 +535,7 @@
                     updateCountElement('pending-cash-inflows-count', data.counts.pending_cash_inflows);
                     updateCountElement('pending-budget-requests-count', data.counts.pending_budget_requests);
                     updateCountElement('pending-activities-count', data.counts.pending_activities);
+                    updateCountElement('pending-priest-leaves-count', data.counts.pending_priest_leaves);
 
                     // Update breakdown
                     const breakdownElement = document.getElementById('admin-actions-breakdown');
@@ -557,7 +559,10 @@
                         if (data.counts.pending_users > 0) {
                             breakdownHtml += `<div>• ${data.counts.pending_users} new users</div>`;
                         }
-                        breakdownElement.innerHTML = breakdownHtml;
+                        if (data.counts.pending_priest_leaves > 0) {
+                            breakdownHtml += `<div>• ${data.counts.pending_priest_leaves} priest leaves to review</div>`;
+                        }
+                        breakdownElement.innerHTML = breakdownHtml || '<div class="text-green-600">All caught up! No pending actions.</div>';
                     }
                 } else {
                     // Hide all count elements if no actions needed
@@ -586,7 +591,8 @@
                 'payment-verification-count',
                 'pending-cash-inflows-count',
                 'pending-budget-requests-count',
-                'pending-activities-count'
+                'pending-activities-count',
+                'pending-priest-leaves-count'
             ];
             
             countElements.forEach(id => {

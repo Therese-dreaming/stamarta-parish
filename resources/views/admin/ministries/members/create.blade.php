@@ -94,7 +94,10 @@
                     </label>
                     <input name="phone" value="{{ old("phone") }}" 
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d5c2f] focus:border-transparent transition-all duration-200 @error("phone") border-red-500 @enderror" 
-                           placeholder="Enter phone number" />
+                           placeholder="Enter phone number (numbers only)" />
+                    <p class="text-sm text-gray-500 mt-1 flex items-center">
+                        <i class="fas fa-info-circle mr-1"></i>Numbers only (e.g., 09123456789)
+                    </p>
                     @error("phone")
                         <div class="text-red-600 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
@@ -105,17 +108,58 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-briefcase mr-1 text-gray-500"></i>
-                        Position/Role
+                        Position/Title
                     </label>
                     <input name="position" value="{{ old("position") }}" 
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d5c2f] focus:border-transparent transition-all duration-200 @error("position") border-red-500 @enderror" 
-                           placeholder="Enter position or role" />
+                           placeholder="Enter position or title" />
                     @error("position")
                         <div class="text-red-600 text-sm mt-2 flex items-center">
                             <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
                         </div>
                     @enderror
                 </div>
+            </div>
+
+            <!-- Role Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-user-tag mr-1 text-gray-500"></i>
+                    Ministry Role <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label class="flex items-center p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="radio" name="role" value="member" {{ old('role') == 'member' ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <div class="ml-3">
+                            <div class="text-sm font-medium text-gray-900">Member</div>
+                            <div class="text-xs text-gray-500">Regular ministry member</div>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="radio" name="role" value="officer" {{ old('role') == 'officer' ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <div class="ml-3">
+                            <div class="text-sm font-medium text-gray-900">Officer</div>
+                            <div class="text-xs text-gray-500">Ministry officer</div>
+                        </div>
+                    </label>
+                    
+                    <label class="flex items-center p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="radio" name="role" value="assistant_ministry_head" {{ old('role') == 'assistant_ministry_head' ? 'checked' : '' }}
+                               class="rounded border-gray-300 text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <div class="ml-3">
+                            <div class="text-sm font-medium text-gray-900">Assistant Ministry Head</div>
+                            <div class="text-xs text-gray-500">Max 2 per ministry</div>
+                        </div>
+                    </label>
+                </div>
+                @error("role")
+                    <div class="text-red-600 text-sm mt-2 flex items-center">
+                        <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                    </div>
+                @enderror
             </div>
 
             <!-- Joined Date -->
@@ -125,6 +169,7 @@
                     Joined Date
                 </label>
                 <input name="joined_at" type="date" value="{{ old("joined_at") }}" 
+                       max="{{ date('Y-m-d') }}"
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d5c2f] focus:border-transparent transition-all duration-200 @error("joined_at") border-red-500 @enderror" />
                 @error("joined_at")
                     <div class="text-red-600 text-sm mt-2 flex items-center">

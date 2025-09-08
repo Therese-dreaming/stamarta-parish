@@ -63,7 +63,7 @@ class Service extends Model
         }
         
         $formatted = [];
-        $preferredOrder = ['regular', 'rush'];
+        $preferredOrder = ['regular'];
         $fees = $this->fees;
         
         // Build an ordered list: preferred keys first in order, then the rest alphabetically
@@ -140,7 +140,7 @@ class Service extends Model
     public function getFeeForDate($requestedDate)
     {
         if (empty($this->fees)) {
-            return null;
+            return ['amount' => 0, 'type' => 'regular', 'description' => 'No fee'];
         }
 
         $today = now()->startOfDay();
@@ -148,35 +148,42 @@ class Service extends Model
         $daysDifference = $today->diffInDays($requested, false);
 
         // Check fee conditions in order of priority
-        foreach ($this->fees as $feeType => $feeData) {
-            if (is_array($feeData) && isset($feeData['condition'])) {
-                $condition = $feeData['condition'];
-                
-                // Check if condition is met
-                if ($this->checkFeeCondition($condition, $daysDifference)) {
+        foreach ($this->fees as $feeData) {
+            if (is_array($feeData)) {
+                // Check if this fee has conditions
+                if (isset($feeData['condition'])) {
+                    $condition = $feeData['condition'];
+                    
+                    // Check if condition is met
+                    if ($this->checkFeeCondition($condition, $daysDifference)) {
+                        return [
+                            'type' => $feeData['type'] ?? 'regular',
+                            'amount' => $feeData['amount'] ?? 0,
+                            'description' => $feeData['description'] ?? 'Regular Fee'
+                        ];
+                    }
+                } else {
+                    // Simple fee structure (no conditions)
                     return [
-                        'type' => $feeType,
-                        'amount' => $feeData['amount'],
-                        'description' => $feeData['description'] ?? $feeType
+                        'type' => $feeData['type'] ?? 'regular',
+                        'amount' => $feeData['amount'] ?? 0,
+                        'description' => $feeData['description'] ?? 'Regular Fee'
                     ];
                 }
-            } else {
-                // Simple fee structure (fallback)
-                return [
-                    'type' => $feeType,
-                    'amount' => $feeData,
-                    'description' => $feeType
-                ];
             }
         }
 
-        // Return the first fee as default
-        $firstFee = array_values($this->fees)[0];
-        return [
-            'type' => array_keys($this->fees)[0],
-            'amount' => is_array($firstFee) ? $firstFee['amount'] : $firstFee,
-            'description' => 'Regular'
-        ];
+        // Return the first fee as default if no conditions match
+        if (!empty($this->fees)) {
+            $firstFee = $this->fees[0];
+            return [
+                'type' => $firstFee['type'] ?? 'regular',
+                'amount' => $firstFee['amount'] ?? 0,
+                'description' => $firstFee['description'] ?? 'Regular Fee'
+            ];
+        }
+
+        return ['amount' => 0, 'type' => 'regular', 'description' => 'No fee'];
     }
 
     private function checkFeeCondition($condition, $daysDifference)

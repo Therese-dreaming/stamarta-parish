@@ -8,6 +8,7 @@ use App\Models\BookingAction;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -21,6 +22,10 @@ class DashboardController extends Controller
         if (!$priestRecord) {
             abort(403, 'No priest record found for this user.');
         }
+        
+        // Get current year and month for filtering
+        $currentYear = now()->year;
+        $currentMonth = now()->month;
         
         // Get bookings assigned to this priest
         $assignedBookings = Booking::where('priest_id', $priestRecord->id)
@@ -50,9 +55,6 @@ class DashboardController extends Controller
         $recentBookings = $assignedBookings->take(5);
 
         // Monthly statistics
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
-        
         $monthlyStats = [
             'assigned_this_month' => $assignedBookings->where('created_at', '>=', Carbon::now()->startOfMonth())->count(),
             'completed_this_month' => $assignedBookings->where('status', 'completed')
@@ -77,13 +79,27 @@ class DashboardController extends Controller
             ->sortBy('service_date')
             ->take(5);
 
+        // Chart data
+        $monthlyBookingsData = $this->getMonthlyBookingsChartData($priestRecord->id, $currentYear);
+        $serviceTypeData = $this->getServiceTypeChartData($priestRecord->id);
+        $bookingStatusData = $this->getBookingStatusChartData($priestRecord->id);
+        $weeklyPerformanceData = $this->getWeeklyPerformanceChartData($priestRecord->id);
+        $completionTrendData = $this->getCompletionTrendChartData($priestRecord->id, $currentYear);
+        $serviceFrequencyData = $this->getServiceFrequencyChartData($priestRecord->id);
+
         return view('priest.dashboard', compact(
             'bookingStats',
             'recentActivities', 
             'recentBookings',
             'monthlyStats',
             'performanceMetrics',
-            'upcomingBookings'
+            'upcomingBookings',
+            'monthlyBookingsData',
+            'serviceTypeData',
+            'bookingStatusData',
+            'weeklyPerformanceData',
+            'completionTrendData',
+            'serviceFrequencyData'
         ));
     }
 
@@ -119,5 +135,187 @@ class DashboardController extends Controller
         }
 
         return $count > 0 ? round($totalHours / $count, 1) : 0;
+    }
+
+    private function getMonthlyBookingsChartData($priestId, $year)
+    {
+        $bookings = Booking::where('priest_id', $priestId)
+            ->selectRaw('MONTH(created_at) as month, COUNT(*) as count')
+            ->whereYear('created_at', $year)
+            ->groupBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $data = [];
+
+        for ($i = 1; $i <= 12; $i++) {
+            $data[] = $bookings[$i] ?? 0;
+        }
+
+        return [
+            'labels' => $months,
+            'data' => $data,
+            'isEmpty' => array_sum($data) === 0
+        ];
+    }
+
+    private function getServiceTypeChartData($priestId)
+    {
+        $services = Booking::where('priest_id', $priestId)
+            ->join('services', 'bookings.service_id', '=', 'services.id')
+            ->selectRaw('services.service_type, COUNT(*) as count')
+            ->groupBy('services.service_type')
+            ->pluck('count', 'service_type')
+            ->toArray();
+
+        $labels = ['Baptism', 'Wedding', 'Blessing', 'Funeral', 'Confession', 'Other'];
+        $data = [];
+        $colors = ['#0d5c2f', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
+
+        $serviceMapping = [
+            'baptism' => 'Baptism',
+            'wedding' => 'Wedding',
+            'blessing' => 'Blessing',
+            'funeral' => 'Funeral',
+            'confession' => 'Confession',
+            'other' => 'Other'
+        ];
+
+        foreach ($labels as $label) {
+            $serviceKey = array_search($label, $serviceMapping);
+            $data[] = $services[$serviceKey] ?? 0;
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+            'colors' => $colors,
+            'isEmpty' => array_sum($data) === 0
+        ];
+    }
+
+    private function getBookingStatusChartData($priestId)
+    {
+        $statuses = Booking::where('priest_id', $priestId)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $labels = ['Pending', 'Acknowledged', 'Payment Hold', 'Approved', 'Completed', 'Rejected'];
+        $data = [];
+        $colors = ['#f59e0b', '#3b82f6', '#f97316', '#10b981', '#8b5cf6', '#ef4444'];
+
+        $statusMapping = [
+            'pending' => 'Pending',
+            'acknowledged' => 'Acknowledged',
+            'payment_hold' => 'Payment Hold',
+            'approved' => 'Approved',
+            'completed' => 'Completed',
+            'rejected' => 'Rejected'
+        ];
+
+        foreach ($labels as $label) {
+            $statusKey = array_search($label, $statusMapping);
+            $data[] = $statuses[$statusKey] ?? 0;
+        }
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+            'colors' => $colors,
+            'isEmpty' => array_sum($data) === 0
+        ];
+    }
+
+    private function getWeeklyPerformanceChartData($priestId)
+    {
+        $weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $completedData = [];
+        $assignedData = [];
+
+        for ($i = 0; $i < 7; $i++) {
+            $startOfWeek = Carbon::now()->startOfWeek()->addDays($i);
+            $endOfWeek = $startOfWeek->copy()->endOfDay();
+
+            $completed = Booking::where('priest_id', $priestId)
+                ->where('status', 'completed')
+                ->whereBetween('updated_at', [$startOfWeek, $endOfWeek])
+                ->count();
+
+            $assigned = Booking::where('priest_id', $priestId)
+                ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                ->count();
+
+            $completedData[] = $completed;
+            $assignedData[] = $assigned;
+        }
+
+        return [
+            'labels' => $weekDays,
+            'datasets' => [
+                [
+                    'label' => 'Completed',
+                    'data' => $completedData,
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.8)',
+                    'borderColor' => '#10b981'
+                ],
+                [
+                    'label' => 'Assigned',
+                    'data' => $assignedData,
+                    'backgroundColor' => 'rgba(59, 130, 246, 0.8)',
+                    'borderColor' => '#3b82f6'
+                ]
+            ],
+            'isEmpty' => (array_sum($completedData) + array_sum($assignedData)) === 0
+        ];
+    }
+
+    private function getCompletionTrendChartData($priestId, $year)
+    {
+        $completions = Booking::where('priest_id', $priestId)
+            ->where('status', 'completed')
+            ->selectRaw('MONTH(updated_at) as month, COUNT(*) as count')
+            ->whereYear('updated_at', $year)
+            ->groupBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $data = [];
+
+        for ($i = 1; $i <= 12; $i++) {
+            $data[] = $completions[$i] ?? 0;
+        }
+
+        return [
+            'labels' => $months,
+            'data' => $data,
+            'isEmpty' => array_sum($data) === 0
+        ];
+    }
+
+    private function getServiceFrequencyChartData($priestId)
+    {
+        $frequencies = Booking::where('priest_id', $priestId)
+            ->join('services', 'bookings.service_id', '=', 'services.id')
+            ->selectRaw('services.name, COUNT(*) as count')
+            ->groupBy('services.id', 'services.name')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->pluck('count', 'name')
+            ->toArray();
+
+        $labels = array_keys($frequencies);
+        $data = array_values($frequencies);
+        $colors = ['#0d5c2f', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+
+        return [
+            'labels' => $labels,
+            'data' => $data,
+            'colors' => $colors,
+            'isEmpty' => array_sum($data) === 0
+        ];
     }
 } 

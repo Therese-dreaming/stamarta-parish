@@ -820,7 +820,7 @@
                                        required
                                        class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
                                        placeholder="0.00"
-                                       value="{{ $booking->payment && $booking->payment->total_fee ? $booking->payment->total_fee : ($booking->service ? ($booking->service->getFeeForDate($booking->service_date)['amount'] ?? '') : '') }}">
+                                       value="{{ $booking->payment && $booking->payment->total_fee ? $booking->payment->total_fee : ($booking->service ? (is_array($booking->service->getFeeForDate($booking->service_date)) ? ($booking->service->getFeeForDate($booking->service_date)['amount'] ?? '') : '') : '') }}"> 
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Enter the total amount the user needs to pay</p>
                         </div>

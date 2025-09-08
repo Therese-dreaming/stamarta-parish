@@ -17,7 +17,9 @@ class Priest extends Model
         'address',
         'birth_date',
         'ordination_date',
+        'years_of_service',
         'is_active',
+        'leave_status',
         'specializations',
         'bio',
         'photo_path',
@@ -34,7 +36,7 @@ class Priest extends Model
     protected $appends = [
         'full_name',
         'age',
-        'years_of_service',
+        'calculated_years_of_service',
     ];
 
     public function getFullNameAttribute()
@@ -47,8 +49,12 @@ class Priest extends Model
         return $this->birth_date ? $this->birth_date->age : null;
     }
 
-    public function getYearsOfServiceAttribute()
+    public function getCalculatedYearsOfServiceAttribute()
     {
+        // If manually set years_of_service, use that, otherwise calculate from ordination_date
+        if ($this->attributes['years_of_service']) {
+            return $this->attributes['years_of_service'];
+        }
         return $this->ordination_date ? $this->ordination_date->diffInYears(now()) : null;
     }
 
@@ -65,5 +71,52 @@ class Priest extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function leaves()
+    {
+        return $this->hasMany(\App\Models\PriestLeave::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(\App\Models\Booking::class);
+    }
+
+    // Leave management methods
+    public function isOnLeave()
+    {
+        return $this->leave_status !== 'active';
+    }
+
+    public function isAvailable()
+    {
+        return $this->is_active && $this->leave_status === 'active';
+    }
+
+    public function getLeaveStatusBadgeAttribute()
+    {
+        $badges = [
+            'active' => 'bg-green-100 text-green-800',
+            'on_leave' => 'bg-yellow-100 text-yellow-800',
+            'pilgrimage' => 'bg-blue-100 text-blue-800',
+            'sabbatical' => 'bg-purple-100 text-purple-800',
+            'retired' => 'bg-gray-100 text-gray-800',
+        ];
+
+        return $badges[$this->leave_status] ?? 'bg-gray-100 text-gray-800';
+    }
+
+    public function getLeaveStatusLabelAttribute()
+    {
+        $labels = [
+            'active' => 'Active',
+            'on_leave' => 'On Leave',
+            'pilgrimage' => 'Pilgrimage',
+            'sabbatical' => 'Sabbatical',
+            'retired' => 'Retired',
+        ];
+
+        return $labels[$this->leave_status] ?? 'Unknown';
     }
 } 

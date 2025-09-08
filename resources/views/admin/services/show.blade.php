@@ -104,14 +104,8 @@
                                         <span class="text-base font-medium text-gray-900">₱{{ number_format($byType['regular']['amount'] ?? 0, 2) }}</span>
                                     </div>
                                 @endif
-                                @if(isset($byType['rush']))
-                                    <div class="flex items-center justify-between mt-1">
-                                        <span class="text-gray-700 text-sm">Rush</span>
-                                        <span class="text-base font-medium text-gray-900">₱{{ number_format($byType['rush']['amount'] ?? 0, 2) }}</span>
-                                    </div>
-                                @endif
                                 @foreach($byType as $t => $f)
-                                    @if(!in_array($t, ['regular','rush']))
+                                    @if(!in_array($t, ['regular']))
                                         <div class="flex items-center justify-between mt-1">
                                             <span class="text-gray-700 text-sm">{{ is_string($t) ? ucfirst($t) : ($f['description'] ?? 'Fee') }}</span>
                                             <span class="text-base font-medium text-gray-900">₱{{ number_format($f['amount'] ?? 0, 2) }}</span>

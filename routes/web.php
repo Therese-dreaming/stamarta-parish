@@ -67,9 +67,9 @@ Route::get('/kaparian', function () {
 	return view('kaparian');
 })->name('kaparian');
 
-Route::get('/profile', function () {
-	return view('profile');
-})->name('profile');
+Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
+Route::get('/profile/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
 // FAQ Chatbot Routes
 Route::post('/faq/chat', [FaqController::class, 'chat'])->name('faq.chat');
@@ -172,6 +172,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	// Priest Management
 	Route::resource('priests', PriestController::class);
 	Route::post('priests/{priest}/toggle-status', [PriestController::class, 'toggleStatus'])->name('priests.toggle-status');
+	
+	// Priest Leaves Management (Admin)
+	Route::post('leaves/{leave}/approve', [\App\Http\Controllers\Admin\PriestLeaveController::class, 'approve'])->name('leaves.approve');
+	Route::post('leaves/{leave}/reject', [\App\Http\Controllers\Admin\PriestLeaveController::class, 'reject'])->name('leaves.reject');
+	Route::post('leaves/{leave}/complete', [\App\Http\Controllers\Admin\PriestLeaveController::class, 'complete'])->name('leaves.complete');
 	
 	// User Management
 	Route::resource('users', UserController::class);
@@ -339,6 +344,13 @@ Route::prefix('priest')->name('priest.')->middleware(['auth', 'priest'])->group(
 	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
 	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
 	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
+	
+	// Priest Profile and Leave Management
+	Route::get('profile', [App\Http\Controllers\Priest\ProfileController::class, 'edit'])->name('profile.edit');
+	Route::put('profile', [App\Http\Controllers\Priest\ProfileController::class, 'update'])->name('profile.update');
+	Route::get('leave', [App\Http\Controllers\Priest\LeaveController::class, 'create'])->name('leave.create');
+	Route::post('leave', [App\Http\Controllers\Priest\LeaveController::class, 'store'])->name('leave.store');
+	Route::get('leave/existing', [App\Http\Controllers\Priest\LeaveController::class, 'getExistingLeaves'])->name('leave.existing');
 });
 
 // Ministry Head Routes

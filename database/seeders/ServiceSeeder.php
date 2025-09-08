@@ -20,27 +20,13 @@ class ServiceSeeder extends Seeder
                 'requirements' => [
                     'Birth Certificate',
                     "Parents' IDs",
-                    'Marriage Contract (if parents are married)',
-                    'Baptismal Permit (if from another parish)'
+                    'Marriage Contract (if parents are married)'
                 ],
                 'fees' => [
                     [
                         'type' => 'regular',
                         'description' => 'Regular Fee',
-                        'amount' => 1500.00,
-                        'condition' => [
-                            'min_days' => 10,
-                            'max_days' => null
-                        ]
-                    ],
-                    [
-                        'type' => 'rush',
-                        'description' => 'Rush Fee (under 10 days)',
-                        'amount' => 2500.00,
-                        'condition' => [
-                            'min_days' => 1,
-                            'max_days' => 9
-                        ]
+                        'amount' => 1500.00
                     ]
                 ],
                 'schedules' => [
@@ -64,27 +50,13 @@ class ServiceSeeder extends Seeder
                 'requirements' => [
                     'Birth Certificates',
                     "Parents' IDs",
-                    'Marriage Contract (if parents are married)',
-                    'Baptismal Permit (if from another parish)'
+                    'Marriage Contract (if parents are married)'
                 ],
                 'fees' => [
                     [
                         'type' => 'regular',
                         'description' => 'Regular Fee (per child)',
-                        'amount' => 1200.00,
-                        'condition' => [
-                            'min_days' => 10,
-                            'max_days' => null
-                        ]
-                    ],
-                    [
-                        'type' => 'rush',
-                        'description' => 'Rush Fee (under 10 days)',
-                        'amount' => 2000.00,
-                        'condition' => [
-                            'min_days' => 1,
-                            'max_days' => 9
-                        ]
+                        'amount' => 1200.00
                     ]
                 ],
                 'schedules' => [
@@ -108,34 +80,19 @@ class ServiceSeeder extends Seeder
                     'Baptismal Certificates',
                     'Confirmation Certificates',
                     'Birth Certificates',
-                    'Witnesses IDs',
                     'Pre-Cana Certificate',
-                    'Civil Marriage Contract (if already civilly married)',
-                    'Affidavit of Cohabitation (if currently cohabiting)'
+                    'Civil Marriage Contract (if already civilly married)'
                 ],
                 'fees' => [
                     [
                         'type' => 'regular',
                         'description' => 'Regular Fee',
-                        'amount' => 5000.00,
-                        'condition' => [
-                            'min_days' => 90,
-                            'max_days' => null
-                        ]
-                    ],
-                    [
-                        'type' => 'rush',
-                        'description' => 'Rush Fee (under 3 months)',
-                        'amount' => 7500.00,
-                        'condition' => [
-                            'min_days' => 30,
-                            'max_days' => 89
-                        ]
+                        'amount' => 5000.00
                     ]
                 ],
                 'schedules' => [
-                    'friday' => ['2:00 PM', '5:00 PM'],
-                    'saturday' => ['10:00 AM', '2:00 PM', '5:00 PM']
+                    'saturday' => ['10:00 AM', '2:00 PM'],
+                    'sunday' => ['2:00 PM']
                 ],
                 'booking_restrictions' => [
                     'minimum_days' => 1,
@@ -159,20 +116,7 @@ class ServiceSeeder extends Seeder
                     [
                         'type' => 'regular',
                         'description' => 'Regular Fee',
-                        'amount' => 800.00,
-                        'condition' => [
-                            'min_days' => 7,
-                            'max_days' => null
-                        ]
-                    ],
-                    [
-                        'type' => 'rush',
-                        'description' => 'Rush Fee (under 7 days)',
-                        'amount' => 1200.00,
-                        'condition' => [
-                            'min_days' => 1,
-                            'max_days' => 6
-                        ]
+                        'amount' => 800.00
                     ]
                 ],
                 'schedules' => [

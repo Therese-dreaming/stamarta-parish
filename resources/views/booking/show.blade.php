@@ -119,9 +119,9 @@
                                     <span class="block text-xs font-medium text-blue-600 mb-1">Date of Birth</span>
                                     <span class="text-sm font-semibold text-gray-900">
                                         @if(isset($booking->custom_data['birth_date']))
-                                            {{ \Carbon\Carbon::parse($booking->custom_data['birth_date'])->format('M d, Y') }}
+                                            {{ \Carbon\Carbon::parse($booking->custom_data['birth_date'])->format('F d, Y') }}
                                         @elseif(isset($booking->custom_data['date_of_birth']))
-                                            {{ \Carbon\Carbon::parse($booking->custom_data['date_of_birth'])->format('M d, Y') }}
+                                            {{ \Carbon\Carbon::parse($booking->custom_data['date_of_birth'])->format('F d, Y') }}
                                         @else
                                             Not provided
                                         @endif
@@ -296,7 +296,7 @@
             </div>
 
             <!-- Right Column - Sidebar Information -->
-            <div class="space-y-6">
+            <div class="space-y-6 lg:sticky lg:top-4 self-start">
                 <!-- Booking Timeline -->
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
                     <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -308,7 +308,7 @@
                             <div class="w-4 h-4 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
                             <div>
                                 <span class="block text-sm font-medium text-gray-900">Booking Created</span>
-                                <p class="text-sm text-gray-600">{{ $booking->created_at->format('M d, Y') }}</p>
+                                <p class="text-sm text-gray-600">{{ $booking->created_at->format('F d, Y') }}</p>
                                 <p class="text-xs text-gray-500">{{ $booking->created_at->format('g:i A') }}</p>
                             </div>
                         </div>
@@ -317,7 +317,7 @@
                                 <div class="w-4 h-4 bg-blue-500 rounded-full mt-1 flex-shrink-0"></div>
                                 <div>
                                     <span class="block text-sm font-medium text-gray-900">Acknowledged</span>
-                                    <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($booking->acknowledged_at)->format('M d, Y') }}</p>
+                                    <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($booking->acknowledged_at)->format('F d, Y') }}</p>
                                     <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($booking->acknowledged_at)->format('g:i A') }}</p>
                                 </div>
                             </div>
@@ -327,7 +327,7 @@
                                 <div class="w-4 h-4 bg-green-500 rounded-full mt-1 flex-shrink-0"></div>
                                 <div>
                                     <span class="block text-sm font-medium text-gray-900">Payment Verified</span>
-                                    <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($booking->payment->payment_verified_at)->format('M d, Y') }}</p>
+                                    <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($booking->payment->payment_verified_at)->format('F d, Y') }}</p>
                                     <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($booking->payment->payment_verified_at)->format('g:i A') }}</p>
                                 </div>
                             </div>
@@ -337,7 +337,7 @@
                                 <div class="w-4 h-4 bg-emerald-500 rounded-full mt-1 flex-shrink-0"></div>
                                 <div>
                                     <span class="block text-sm font-medium text-gray-900">Completed</span>
-                                    <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($booking->completed_at)->format('M d, Y') }}</p>
+                                    <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($booking->completed_at)->format('F d, Y') }}</p>
                                     <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($booking->completed_at)->format('g:i A') }}</p>
                                 </div>
                             </div>
@@ -345,68 +345,6 @@
                     </div>
                 </div>
 
-                <!-- Quick Stats -->
-                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                        <i class="fas fa-chart-bar text-[#0d5c2f] mr-3"></i>
-                        Quick Stats
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Days Until Service</span>
-                            <span class="text-lg font-semibold text-gray-900">
-                                @php
-                                    $serviceDate = \Carbon\Carbon::parse($booking->service_date);
-                                    $now = now();
-                                    $diffInSeconds = $serviceDate->diffInSeconds($now, false);
-                                    
-                                    if ($diffInSeconds > 0) {
-                                        // Service is in the future
-                                        if ($diffInSeconds >= 86400) { // 24 hours
-                                            $days = round($diffInSeconds / 86400, 2);
-                                            echo $days . ' days';
-                                        } elseif ($diffInSeconds >= 3600) { // 1 hour
-                                            $hours = round($diffInSeconds / 3600, 2);
-                                            echo $hours . ' hours';
-                                        } else {
-                                            $minutes = round($diffInSeconds / 60, 2);
-                                            echo $minutes . ' minutes';
-                                        }
-                                    } elseif ($diffInSeconds < 0) {
-                                        // Service is in the past
-                                        $absSeconds = abs($diffInSeconds);
-                                        if ($absSeconds >= 86400) { // 24 hours
-                                            $days = round($absSeconds / 86400, 2);
-                                            echo $days . ' days ago';
-                                        } elseif ($absSeconds >= 3600) { // 1 hour
-                                            $hours = round($absSeconds / 3600, 2);
-                                            echo $hours . ' hours ago';
-                                        } else {
-                                            $minutes = round($absSeconds / 60, 2);
-                                            echo $minutes . ' minutes ago';
-                                        }
-                                    } else {
-                                        echo 'Now';
-                                    }
-                                @endphp
-                            </span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Booking Age</span>
-                            <span class="text-lg font-semibold text-gray-900">
-                                {{ $booking->created_at->diffForHumans() }}
-                            </span>
-                        </div>
-                        @if($booking->payment)
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Payment Status</span>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium {{ $booking->payment->payment_status_badge }}">
-                                    {{ ucfirst($booking->payment->payment_status) }}
-                                </span>
-                            </div>
-                        @endif
-                    </div>
-                </div>
 
                 <!-- Payment Information -->
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
@@ -422,8 +360,10 @@
                                     @if($booking->service && $booking->service->fees)
                                         @php
                                             $feeInfo = $booking->service->getFeeForDate($booking->service_date);
+                                            $feeAmount = is_array($feeInfo) ? ($feeInfo['amount'] ?? 0) : 0;
+                                            $feeAmount = is_numeric($feeAmount) ? (float)$feeAmount : 0;
                                         @endphp
-                                        ₱{{ number_format($feeInfo['amount'] ?? 0, 2) }}
+                                        ₱{{ number_format($feeAmount, 2) }}
                                     @else
                                         Contact office
                                     @endif

@@ -202,24 +202,25 @@
                 <i class="fas fa-flag-checkered mr-2"></i> Completed
             </button>
         </div>
-        
-        <div class="p-6">
-            <!-- View Toggle -->
-            <div class="flex justify-between items-center mb-5">
-                <div class="flex items-center space-x-2">
-                    <button id="table-view-btn" class="px-3 py-2 text-sm font-medium text-[#0d5c2f] bg-[#0d5c2f]/10 rounded-lg border border-[#0d5c2f]/20">
-                        <i class="fas fa-table mr-2"></i> Table View
-                    </button>
-                    <button id="card-view-btn" class="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors">
-                        <i class="fas fa-th-large mr-2"></i> Card View
-                    </button>
-                </div>
-                <div class="text-sm text-gray-500">
-                    <span id="filtered-count">{{ $bookings->count() }}</span> bookings found
-                </div>
+    
+    <div class="p-6">
+        <!-- View Toggle -->
+        <div class="flex justify-between items-center mb-5">
+            <div class="flex items-center space-x-2">
+                <button id="table-view-btn" class="px-3 py-2 text-sm font-medium text-[#0d5c2f] bg-[#0d5c2f]/10 rounded-lg border border-[#0d5c2f]/20">
+                    <i class="fas fa-table mr-2"></i> Table View
+                </button>
+                <button id="card-view-btn" class="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-th-large mr-2"></i> Card View
+                </button>
             </div>
-            <!-- Table View -->
-            <div id="table-view" class="overflow-x-auto">
+            <div class="text-sm text-gray-500">
+                <span id="filtered-count">{{ $bookings->count() }}</span> bookings found
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="table-view" class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -248,6 +249,14 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($bookings as $booking)
+                            @php
+                                $serviceFee = 0;
+                                if ($booking->service) {
+                                    $feeInfo = $booking->service->getFeeForDate($booking->service_date);
+                                    $serviceFee = is_array($feeInfo) ? ($feeInfo['amount'] ?? 0) : 0;
+                                    $serviceFee = is_numeric($serviceFee) ? (float)$serviceFee : 0;
+                                }
+                            @endphp
                             <tr class="hover:bg-gray-50 transition-colors booking-row" data-status="{{ $booking->status }}">
                                 <td class="px-5 py-3 whitespace-nowrap">
                                     <div>
@@ -269,15 +278,7 @@
                                 </td>
                                 <td class="px-5 py-3 whitespace-nowrap">
                                     <div class="text-sm text-gray-900 font-medium">
-                                        @if($booking->service)
-                                            @php
-                                                $feeInfo = $booking->service->getFeeForDate($booking->service_date);
-                                                $feeAmount = $feeInfo['amount'] ?? 0;
-                                            @endphp
-                                            ₱{{ number_format($feeAmount, 2) }}
-                                        @else
-                                            ₱0.00
-                                        @endif
+                                        ₱{{ number_format($serviceFee, 2) }}
                                     </div>
                                     @if($booking->payment && $booking->payment->total_fee)
                                         <div class="text-[11px] text-gray-500">
@@ -317,6 +318,40 @@
                         @endforeach
                     </tbody>
                 </table>
+                
+                <!-- Empty State for Table View -->
+                @if($bookings->count() === 0)
+                    <div class="text-center py-16">
+                        <div class="max-w-md mx-auto">
+                            <div class="w-20 h-20 bg-gradient-to-br from-[#0d5c2f]/10 to-[#0d5c2f]/5 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                <i class="fas fa-calendar-check text-[#0d5c2f] text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">No Bookings Assigned</h3>
+                            <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                                You don't have any bookings assigned to you yet. When parishioners book services and you're assigned as the priest, they will appear here.
+                            </p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-center space-x-6 text-xs text-gray-500">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                                        <span>Pending bookings will show here</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                        <span>Completed services tracked</span>
+                                    </div>
+                                </div>
+                                <div class="pt-4">
+                                    <a href="{{ route('priest.dashboard') }}" 
+                                       class="inline-flex items-center px-5 py-2.5 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                        <i class="fas fa-tachometer-alt mr-2"></i>
+                                        Go to Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Card View -->
@@ -333,6 +368,14 @@
                             default => 'bg-gray-400'
                         };
                         $paymentStatus = $booking->payment->payment_status ?? null;
+                        
+                        // Calculate service fee safely
+                        $serviceFee = 0;
+                        if ($booking->service) {
+                            $feeInfo = $booking->service->getFeeForDate($booking->service_date);
+                            $serviceFee = is_array($feeInfo) ? ($feeInfo['amount'] ?? 0) : 0;
+                            $serviceFee = is_numeric($serviceFee) ? (float)$serviceFee : 0;
+                        }
                     @endphp
                     <div class="relative bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition transform hover:-translate-y-0.5 booking-card" data-status="{{ $booking->status }}">
                         <div class="absolute inset-x-0 top-0 h-1.5 {{ $statusColor }}"></div>
@@ -378,11 +421,7 @@
                                 <div class="flex items-center flex-wrap gap-2 pt-1">
                                     <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                                         <i class="fas fa-money-bill-wave mr-1"></i>
-                                        @php
-                                            $feeInfo = $booking->service ? $booking->service->getFeeForDate($booking->service_date) : ['amount' => 0];
-                                            $feeAmount = $feeInfo['amount'] ?? 0;
-                                        @endphp
-                                        ₱{{ number_format($feeAmount, 2) }}
+                                        ₱{{ number_format($serviceFee, 2) }}
                                     </span>
                                     @if($booking->payment && $booking->payment->total_fee)
                                         <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] bg-gray-50 text-gray-700 border border-gray-200">
@@ -419,30 +458,64 @@
                         </div>
                     </div>
                 @endforeach
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-state" class="text-center py-10 hidden">
-                <div class="max-w-md mx-auto">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-calendar-times text-2xl text-gray-400"></i>
+                
+                <!-- Empty State for Card View -->
+                @if($bookings->count() === 0)
+                    <div class="col-span-full text-center py-16">
+                        <div class="max-w-md mx-auto">
+                            <div class="w-20 h-20 bg-gradient-to-br from-[#0d5c2f]/10 to-[#0d5c2f]/5 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                <i class="fas fa-calendar-check text-[#0d5c2f] text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">No Bookings Assigned</h3>
+                            <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                                You don't have any bookings assigned to you yet. When parishioners book services and you're assigned as the priest, they will appear here.
+                            </p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-center space-x-6 text-xs text-gray-500">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                                        <span>Pending bookings will show here</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                        <span>Completed services tracked</span>
+                                    </div>
+                                </div>
+                                <div class="pt-4">
+                                    <a href="{{ route('priest.dashboard') }}" 
+                                       class="inline-flex items-center px-5 py-2.5 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                        <i class="fas fa-tachometer-alt mr-2"></i>
+                                        Go to Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="text-base font-semibold text-gray-900 mb-1">No Bookings Found</h3>
-                    <p class="text-gray-600 mb-4 text-sm">There are no bookings matching the selected filter.</p>
-                    <button onclick="resetFilter()" class="px-4 py-2 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors text-sm">
-                        <i class="fas fa-refresh mr-2"></i>Show All Bookings
-                    </button>
-                </div>
+                @endif
             </div>
 
-            <!-- Pagination -->
-            @if($bookings->hasPages())
-                <div class="mt-5 border-t border-gray-200 pt-4">
-                    {{ $bookings->links() }}
+                <!-- Empty State for Filtered Results -->
+                <div id="empty-state" class="text-center py-12 hidden">
+                    <div class="max-w-md mx-auto">
+                        <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <i class="fas fa-filter text-gray-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Bookings Found</h3>
+                        <p class="text-gray-600 mb-6 text-sm leading-relaxed">There are no bookings matching the selected filter. Try adjusting your filter or view all bookings.</p>
+                        <button onclick="resetFilter()" class="inline-flex items-center px-5 py-2.5 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-refresh mr-2"></i>Show All Bookings
+                        </button>
+                    </div>
                 </div>
-            @endif
+
+                <!-- Pagination -->
+                @if($bookings->hasPages())
+                    <div class="mt-5 border-t border-gray-200 pt-4">
+                        {{ $bookings->links() }}
+                    </div>
+                @endif
+            </div>
         </div>
-    </div>
 </div>
 
 <script>
@@ -555,6 +628,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set initial active tab
     setActiveTab(document.getElementById('tab-all'));
+    
+    // Only run filtering if there are bookings
+    if (bookingRows.length > 0) {
+        filterBookings('all');
+    } else {
+        // If no bookings, ensure table view is visible and hide empty state
+        showTableView();
+        emptyState.classList.add('hidden');
+    }
+    
+    // Ensure table view is visible on page load
+    if (currentView === 'table') {
+        showTableView();
+    }
 });
 </script>
 @endsection 

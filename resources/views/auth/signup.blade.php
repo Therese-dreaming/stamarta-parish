@@ -66,6 +66,18 @@
                     </div>
 
                     <div>
+                        <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                        <input id="date_of_birth" name="date_of_birth" type="date" 
+                               max="{{ date('Y-m-d', strtotime('-1 day')) }}"
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#0d5c2f] focus:border-[#0d5c2f] focus:z-10 sm:text-sm"
+                               value="{{ old('date_of_birth') }}">
+                        @error('date_of_birth')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-500">Required for booking wedding services</p>
+                    </div>
+
+                    <div>
                         <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                         <input id="password" name="password" type="password" required 
                                class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#0d5c2f] focus:border-[#0d5c2f] focus:z-10 sm:text-sm"

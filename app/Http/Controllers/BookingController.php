@@ -23,11 +23,60 @@ class BookingController extends Controller
             return redirect()->route('services.index')->with('error', 'This service is not available for booking.');
         }
 
+        // Check if this is a wedding service and validate user eligibility
+        if ($this->isWeddingService($service)) {
+            $user = Auth::user();
+            
+            // Check if user has date of birth
+            if (!$user->date_of_birth) {
+                return redirect()->route('profile.edit')
+                    ->with('error', 'Please provide your date of birth in your profile before booking a wedding service.');
+            }
+            
+            // Check if user is of legal age
+            if (!$user->isOfLegalAge()) {
+                return redirect()->route('services.index')
+                    ->with('error', 'You must be at least 18 years old to book a wedding service.');
+            }
+            
+            // Check if user already has a wedding booking
+            if (!$user->canBookWedding()) {
+                $existingBooking = $user->getWeddingBooking();
+                $status = $existingBooking ? $existingBooking->status : 'unknown';
+                
+                return redirect()->route('services.index')
+                    ->with('error', "You already have a wedding booking with status: " . ucfirst($status) . ". Only one wedding booking per person is allowed.");
+            }
+        }
+
         return view('booking.step1', compact('service'));
     }
 
     public function step1(Request $request, Service $service)
     {
+        // Double-check wedding booking eligibility
+        if ($this->isWeddingService($service)) {
+            $user = Auth::user();
+            
+            if (!$user->date_of_birth) {
+                return redirect()->route('profile.edit')
+                    ->with('error', 'Please provide your date of birth in your profile before booking a wedding service.');
+            }
+            
+            if (!$user->isOfLegalAge()) {
+                return redirect()->route('services.index')
+                    ->with('error', 'You must be at least 18 years old to book a wedding service.');
+            }
+            
+            if (!$user->canBookWedding()) {
+                $existingBooking = $user->getWeddingBooking();
+                $status = $existingBooking ? $existingBooking->status : 'unknown';
+                
+                return redirect()->route('services.index')
+                    ->with('error', "You already have a wedding booking with status: " . ucfirst($status) . ". Only one wedding booking per person is allowed.");
+            }
+        }
+
         // Get service-specific validation rules
         $validationRules = $this->getServiceValidationRules($service);
         
@@ -122,15 +171,13 @@ class BookingController extends Controller
             case 'solo_baptism':
                 $requiredDocuments = ['birth_certificate', 'parents_ids'];
                 $conditionalDocuments = [
-                    'marriage_contract' => 'parents_married',
-                    'baptismal_permit' => 'from_another_parish'
+                    'marriage_contract' => 'parents_married'
                 ];
                 break;
             case 'group_baptism':
                 $requiredDocuments = ['birth_certificates', 'parents_ids'];
                 $conditionalDocuments = [
-                    'marriage_contract' => 'parents_married',
-                    'baptismal_permit' => 'from_another_parish'
+                    'marriage_contract' => 'parents_married'
                 ];
                 break;
             case 'wedding':
@@ -139,25 +186,22 @@ class BookingController extends Controller
                     'baptismal_certificates', 
                     'confirmation_certificates', 
                     'birth_certificates', 
-                    'witnesses_ids', 
                     'pre_cana_certificate'
                 ];
                 $conditionalDocuments = [
-                    'civil_marriage_contract' => 'already_civilly_married',
-                    'affidavit_of_cohabitation' => 'currently_cohabiting'
+                    'civil_marriage_contract' => 'already_civilly_married'
                 ];
                 break;
             case 'blessing':
                 $requiredDocuments = ['valid_id'];
                 $conditionalDocuments = [
-                    'proof_ownership' => 'has_ownership'
+                    'proof_of_ownership' => 'proof_of_ownership',
+                    'special_requests' => 'special_requests'
                 ];
                 break;
             default:
                 $requiredDocuments = ['valid_id'];
-                $conditionalDocuments = [
-                    'additional_documents' => 'additional_docs'
-                ];
+                $conditionalDocuments = [];
         }
 
         // Add validation rules for required documents
@@ -235,6 +279,16 @@ class BookingController extends Controller
         }
 
         return view('booking.confirmation', compact('booking'));
+    }
+
+    /**
+     * Check if a service is a wedding service
+     */
+    private function isWeddingService(Service $service)
+    {
+        return $service->service_type === 'wedding' 
+            || stripos($service->name, 'wedding') !== false 
+            || stripos($service->name, 'marriage') !== false;
     }
 
     public function myBookings()

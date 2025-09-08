@@ -72,9 +72,6 @@
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ $service->formatted_fees }}</div>
-                                    @if($service->rush_fee > 0)
-                                        <div class="text-xs text-orange-600">Rush: {{ $service->formatted_rush_fees }}</div>
-                                    @endif
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     @if($service->schedules && count($service->schedules) > 0)
@@ -153,23 +150,18 @@
                                 @php
                                     $fees = $service->fees ?? [];
                                     $regularFee = null;
-                                    $rushFee = null;
                                     $otherFees = [];
                                     
                                     foreach ($fees as $type => $feeData) {
                                         if (is_array($feeData) && isset($feeData['amount'])) {
                                             if (strtolower($type) === 'regular') {
                                                 $regularFee = $feeData;
-                                            } elseif (strtolower($type) === 'rush') {
-                                                $rushFee = $feeData;
                                             } else {
                                                 $otherFees[$type] = $feeData;
                                             }
                                         } else {
                                             if (strtolower($type) === 'regular') {
                                                 $regularFee = ['amount' => $feeData, 'description' => 'Regular'];
-                                            } elseif (strtolower($type) === 'rush') {
-                                                $rushFee = ['amount' => $feeData, 'description' => 'Rush'];
                                             } else {
                                                 $otherFees[$type] = ['amount' => $feeData, 'description' => ucfirst($type)];
                                             }
@@ -179,10 +171,6 @@
                                 
                                 @if($regularFee)
                                     <p class="text-gray-900 text-xs">{{ $regularFee['description'] }}: ₱{{ number_format($regularFee['amount'], 2) }}</p>
-                                @endif
-                                
-                                @if($rushFee)
-                                    <p class="text-orange-600 text-xs mt-1">{{ $rushFee['description'] }}: ₱{{ number_format($rushFee['amount'], 2) }}</p>
                                 @endif
                                 
                                 @foreach($otherFees as $type => $feeData)

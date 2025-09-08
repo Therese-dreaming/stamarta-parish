@@ -45,7 +45,7 @@ class FaqSeeder extends Seeder
             ],
             [
                 'question' => 'How much does a service cost?',
-                'answer' => 'Service costs vary depending on the type of service. Regular fees are listed on each service page. Some services offer rush options for an additional fee. For specific pricing, please check the service details or contact the parish office.',
+                'answer' => 'Service costs vary depending on the type of service. Regular fees are listed on each service page. For specific pricing, please check the service details or contact the parish office.',
                 'category' => 'services',
                 'keywords' => ['cost', 'price', 'fee', 'payment', 'how much', 'costs', 'prices', 'fees', 'pay'],
                 'order' => 4,
@@ -60,10 +60,10 @@ class FaqSeeder extends Seeder
                 'is_active' => true
             ],
             [
-                'question' => 'Do you offer rush services?',
-                'answer' => 'Yes, we offer rush services for urgent cases. Rush services have an additional fee and are subject to availability. Please contact the parish office directly for rush service requests.',
+                'question' => 'Do you offer urgent services?',
+                'answer' => 'For urgent service requests, please contact the parish office directly. We will do our best to accommodate urgent cases based on availability and scheduling.',
                 'category' => 'services',
-                'keywords' => ['rush', 'urgent', 'emergency', 'fast', 'quick', 'immediate', 'service', 'services'],
+                'keywords' => ['urgent', 'emergency', 'fast', 'quick', 'immediate', 'service', 'services'],
                 'order' => 6,
                 'is_active' => true
             ],

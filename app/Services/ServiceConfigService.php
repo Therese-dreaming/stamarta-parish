@@ -83,19 +83,18 @@ class ServiceConfigService
                         'required' => false,
                         'placeholder' => "M.I."
                     ],
-                    // Godparents as repeatable list
-                    'godparents' => [
-                        'label' => 'Godparents',
+                    // Sponsors as repeatable list
+                    'sponsors' => [
+                        'label' => 'Sponsors',
                         'type' => 'array',
                         'required' => true,
-                        'placeholder' => 'Add godparent name(s) one at a time'
+                        'placeholder' => 'Add sponsor name(s) one at a time'
                     ],
                 ],
                 'requirements' => [
                     'Birth Certificate',
                     "Parents' IDs",
-                    'Marriage Contract (if parents are married)',
-                    'Baptismal Permit (if from another parish)'
+                    'Marriage Contract (if parents are married)'
                 ]
             ],
             'group_baptism' => [
@@ -174,19 +173,18 @@ class ServiceConfigService
                         'required' => false,
                         'placeholder' => "M.I."
                     ],
-                    // Godparents as repeatable list
-                    'godparents' => [
-                        'label' => 'Godparents',
+                    // Sponsors as repeatable list
+                    'sponsors' => [
+                        'label' => 'Sponsors',
                         'type' => 'array',
                         'required' => true,
-                        'placeholder' => 'Add godparent name(s) one at a time'
+                        'placeholder' => 'Add sponsor name(s) one at a time'
                     ],
                 ],
                 'requirements' => [
                     'Birth Certificates',
                     "Parents' IDs",
-                    'Marriage Contract (if parents are married)',
-                    'Baptismal Permit (if from another parish)'
+                    'Marriage Contract (if parents are married)'
                 ]
             ],
             'wedding' => [
@@ -200,9 +198,8 @@ class ServiceConfigService
                     ],
                     'groom_religion' => [
                         'label' => "Groom's Religion",
-                        'type' => 'text',
-                        'required' => true,
-                        'placeholder' => 'e.g., Roman Catholic'
+                        'type' => 'religion',
+                        'required' => true
                     ],
                     'bride_name' => [
                         'label' => "Bride's Name",
@@ -212,9 +209,8 @@ class ServiceConfigService
                     ],
                     'bride_religion' => [
                         'label' => "Bride's Religion",
-                        'type' => 'text',
-                        'required' => true,
-                        'placeholder' => 'e.g., Roman Catholic'
+                        'type' => 'religion',
+                        'required' => true
                     ],
                     'groom_birth_date' => [
                         'label' => "Groom's Birth Date",
@@ -226,11 +222,11 @@ class ServiceConfigService
                         'type' => 'date',
                         'required' => true
                     ],
-                    'witnesses' => [
-                        'label' => 'Witnesses',
+                    'wedding_sponsors' => [
+                        'label' => 'Wedding Sponsors',
                         'type' => 'array',
                         'required' => true,
-                        'placeholder' => 'Add witness name(s) one at a time'
+                        'placeholder' => 'Add wedding sponsor name(s) one at a time'
                     ]
                 ],
                 'requirements' => [
@@ -238,10 +234,8 @@ class ServiceConfigService
                     'Baptismal Certificates',
                     'Confirmation Certificates',
                     'Birth Certificates',
-                    'Witnesses IDs',
                     'Pre-Cana Certificate',
-                    'Civil Marriage Contract (if already civilly married)',
-                    'Affidavit of Cohabitation (if currently cohabiting)'
+                    'Civil Marriage Contract (if already civilly married)'
                 ]
             ],
             'blessing' => [

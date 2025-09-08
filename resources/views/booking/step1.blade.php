@@ -194,9 +194,10 @@
                                         $fieldGroups = [
                                             'child' => ['child_last_name', 'child_first_name', 'child_middle_initial', 'child_birth_date', 'place_of_birth', 'nationality'],
                                             'parents' => ['father_last_name', 'father_first_name', 'father_middle_initial', 'mother_last_name', 'mother_first_name', 'mother_middle_initial'],
-                                            'godparents' => ['godparents'],
+                                            'sponsors' => ['sponsors'],
                                             'groom' => ['groom_name', 'groom_birth_date', 'groom_religion'],
                                             'bride' => ['bride_name', 'bride_birth_date', 'bride_religion'],
+                                            'wedding_sponsors' => ['wedding_sponsors'],
                                             'witnesses' => ['witnesses'],
                                             'person' => ['person_last_name', 'person_first_name', 'person_middle_initial', 'blessing_type', 'blessing_details'],
                                             'other' => []
@@ -228,12 +229,14 @@
                                                             <i class="fas fa-baby text-[#0d5c2f] mr-2"></i>Child's Information
                                                         @elseif($groupKey === 'parents')
                                                             <i class="fas fa-users text-[#0d5c2f] mr-2"></i>Parents' Information
-                                                        @elseif($groupKey === 'godparents')
-                                                            <i class="fas fa-user-friends text-[#0d5c2f] mr-2"></i>Godparents
+                                                        @elseif($groupKey === 'sponsors')
+                                                            <i class="fas fa-user-friends text-[#0d5c2f] mr-2"></i>Sponsors
                                                         @elseif($groupKey === 'groom')
                                                             <i class="fas fa-male text-[#0d5c2f] mr-2"></i>Groom's Information
                                                         @elseif($groupKey === 'bride')
                                                             <i class="fas fa-female text-[#0d5c2f] mr-2"></i>Bride's Information
+                                                        @elseif($groupKey === 'wedding_sponsors')
+                                                            <i class="fas fa-heart text-[#0d5c2f] mr-2"></i>Wedding Sponsors
                                                         @elseif($groupKey === 'witnesses')
                                                             <i class="fas fa-user-friends text-[#0d5c2f] mr-2"></i>Witnesses
                                                         @elseif($groupKey === 'person')
@@ -314,7 +317,45 @@
                                                                             @if($fieldConfig['required']) required @endif
                                                                             class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
                                                                             value="{{ old("custom_fields.{$fieldKey}") }}"
+                                                                            max="{{ date('Y-m-d') }}"
                                                                         >
+                                                                    </div>
+                                                                @elseif($fieldConfig['type'] === 'religion')
+                                                                    <label for="custom_fields_{{ $fieldKey }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                                                        {{ $fieldConfig['label'] }}
+                                                                        @if($fieldConfig['required'])
+                                                                            <span class="text-red-500">*</span>
+                                                                        @endif
+                                                                    </label>
+                                                                    <div class="space-y-2">
+                                                                        <select 
+                                                                            id="custom_fields_{{ $fieldKey }}" 
+                                                                            name="custom_fields[{{ $fieldKey }}]"
+                                                                            @if($fieldConfig['required']) required @endif
+                                                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                                                            onchange="toggleOtherReligion('{{ $fieldKey }}', this.value)"
+                                                                        >
+                                                                            <option value="">Select Religion</option>
+                                                                            <option value="Catholic" @selected(old("custom_fields.{$fieldKey}") == 'Catholic')>Catholic</option>
+                                                                            <option value="Protestant" @selected(old("custom_fields.{$fieldKey}") == 'Protestant')>Protestant</option>
+                                                                            <option value="Orthodox" @selected(old("custom_fields.{$fieldKey}") == 'Orthodox')>Orthodox</option>
+                                                                            <option value="Anglican" @selected(old("custom_fields.{$fieldKey}") == 'Anglican')>Anglican</option>
+                                                                            <option value="Methodist" @selected(old("custom_fields.{$fieldKey}") == 'Methodist')>Methodist</option>
+                                                                            <option value="Baptist" @selected(old("custom_fields.{$fieldKey}") == 'Baptist')>Baptist</option>
+                                                                            <option value="Lutheran" @selected(old("custom_fields.{$fieldKey}") == 'Lutheran')>Lutheran</option>
+                                                                            <option value="Presbyterian" @selected(old("custom_fields.{$fieldKey}") == 'Presbyterian')>Presbyterian</option>
+                                                                            <option value="Other" @selected(old("custom_fields.{$fieldKey}") == 'Other')>Other</option>
+                                                                        </select>
+                                                                        <div id="other-religion-{{ $fieldKey }}" class="hidden">
+                                                                            <input 
+                                                                                type="text" 
+                                                                                id="custom_fields_{{ $fieldKey }}_other" 
+                                                                                name="custom_fields[{{ $fieldKey }}_other]"
+                                                                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
+                                                                                placeholder="Please specify religion"
+                                                                                value="{{ old("custom_fields.{$fieldKey}_other") }}"
+                                                                            >
+                                                                        </div>
                                                                     </div>
                                                                 @else
                                                                     <label for="custom_fields_{{ $fieldKey }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -379,6 +420,20 @@
                             </div>
                         </div>
                         <script>
+                            function toggleOtherReligion(fieldKey, value) {
+                                const otherDiv = document.getElementById(`other-religion-${fieldKey}`);
+                                const otherInput = document.getElementById(`custom_fields_${fieldKey}_other`);
+                                
+                                if (value === 'Other') {
+                                    otherDiv.classList.remove('hidden');
+                                    otherInput.required = true;
+                                } else {
+                                    otherDiv.classList.add('hidden');
+                                    otherInput.required = false;
+                                    otherInput.value = '';
+                                }
+                            }
+
                             document.addEventListener('DOMContentLoaded', function () {
                                 // Generic array-type dynamic add/remove (e.g., witnesses)
                                 document.querySelectorAll('.add-array-item').forEach(addBtn => {
@@ -407,6 +462,12 @@
                                 }
 
                                 bindGenericArrayRemove();
+
+                                // Initialize religion fields on page load
+                                document.querySelectorAll('select[id*="religion"]').forEach(select => {
+                                    const fieldKey = select.id.replace('custom_fields_', '');
+                                    toggleOtherReligion(fieldKey, select.value);
+                                });
                             });
                         </script>
                     </form>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Priest;
+use App\Models\PriestLeave;
 use App\Services\EmailService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -155,6 +156,7 @@ class BookingController extends Controller
                     'location' => $mAct->location,
                     'ministry' => optional($mAct->ministry)->name,
                     'is_all_day' => $mAct->is_all_day,
+                    'is_public' => $mAct->is_public,
                 ]
             ];
         }
@@ -181,7 +183,19 @@ class BookingController extends Controller
     public function show(Booking $booking)
     {
         $booking->load(['user', 'service', 'priest', 'payment', 'actions.performedBy', 'actions.priest']);
-        $priests = Priest::where('is_active', true)->get();
+
+        // Only include priests who are active and NOT on an approved leave that overlaps service_date
+        $serviceDate = $booking->service_date ? ( $booking->service_date instanceof \Carbon\Carbon ? $booking->service_date->toDateString() : \Carbon\Carbon::parse($booking->service_date)->toDateString() ) : null;
+
+        $priests = Priest::where('is_active', true)
+            ->when($serviceDate, function($q) use ($serviceDate) {
+                $q->whereDoesntHave('leaves', function($l) use ($serviceDate) {
+                    $l->where('status', 'approved')
+                      ->whereDate('start_date', '<=', $serviceDate)
+                      ->whereDate('end_date', '>=', $serviceDate);
+                });
+            })
+            ->get();
         
         // Check if user is staff
         $isStaff = auth()->user()->role === 'staff';
@@ -237,6 +251,19 @@ class BookingController extends Controller
 
         if ($booking->status !== 'payment_hold') {
             return back()->with('error', 'Only bookings on payment hold can be verified.');
+        }
+
+        // If approving, ensure selected priest is not on approved leave on the service date
+        if ($request->verification_status === 'approved' && $booking->service_date) {
+            $serviceDate = $booking->service_date instanceof \Carbon\Carbon ? $booking->service_date->toDateString() : \Carbon\Carbon::parse($booking->service_date)->toDateString();
+            $onLeave = PriestLeave::where('priest_id', $request->priest_id)
+                ->where('status', 'approved')
+                ->whereDate('start_date', '<=', $serviceDate)
+                ->whereDate('end_date', '>=', $serviceDate)
+                ->exists();
+            if ($onLeave) {
+                return back()->with('error', 'Selected priest is on leave for the chosen date. Please choose another priest.');
+            }
         }
 
         $status = $request->verification_status === 'approved' ? 'approved' : 'rejected';

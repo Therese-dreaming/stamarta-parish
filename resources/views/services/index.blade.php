@@ -94,23 +94,18 @@
                             @php
                                 $fees = $service->fees ?? [];
                                 $regularFee = null;
-                                $rushFee = null;
                                 $otherFees = [];
                                 
                                 foreach ($fees as $type => $feeData) {
                                     if (is_array($feeData) && isset($feeData['amount'])) {
                                         if (strtolower($type) === 'regular') {
                                             $regularFee = $feeData;
-                                        } elseif (strtolower($type) === 'rush') {
-                                            $rushFee = $feeData;
                                         } else {
                                             $otherFees[$type] = $feeData;
                                         }
                                     } else {
                                         if (strtolower($type) === 'regular') {
                                             $regularFee = ['amount' => $feeData, 'description' => 'Regular'];
-                                        } elseif (strtolower($type) === 'rush') {
-                                            $rushFee = ['amount' => $feeData, 'description' => 'Rush'];
                                         } else {
                                             $otherFees[$type] = ['amount' => $feeData, 'description' => ucfirst($type)];
                                         }
@@ -120,10 +115,6 @@
                             
                             @if($regularFee)
                                 <p class="text-sm text-gray-600">{{ $regularFee['description'] }}: ₱{{ number_format($regularFee['amount'], 2) }}</p>
-                            @endif
-                            
-                            @if($rushFee)
-                                <p class="text-sm text-orange-600 mt-1">{{ $rushFee['description'] }}: ₱{{ number_format($rushFee['amount'], 2) }}</p>
                             @endif
                             
                             @foreach($otherFees as $type => $feeData)

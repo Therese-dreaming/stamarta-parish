@@ -26,8 +26,11 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
+            'date_of_birth' => 'nullable|date|before:today',
             'password' => 'required|string|min:8|confirmed',
             'role' => ['required', Rule::in(['user', 'staff', 'priest', 'ministry_head', 'admin'])],
+        ], [
+            'date_of_birth.before' => 'Date of birth must be before today.',
         ]);
 
         $validated['password'] = bcrypt($validated['password']);

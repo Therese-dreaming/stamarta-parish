@@ -156,9 +156,17 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($bookings as $booking)
+                            @php
+                                $serviceFee = 0;
+                                if ($booking->service) {
+                                    $feeInfo = $booking->service->getFeeForDate($booking->service_date);
+                                    $serviceFee = is_array($feeInfo) ? ($feeInfo['amount'] ?? 0) : 0;
+                                    $serviceFee = is_numeric($serviceFee) ? (float)$serviceFee : 0;
+                                }
+                            @endphp
                             <tr class="hover:bg-gray-50 booking-row transition-colors duration-200" 
                                 data-booking-id="{{ is_array($booking->id) ? 0 : ($booking->id ?? 0) }}" 
-                                data-service-fee="{{ $booking->service ? ($booking->service->getFeeForDate($booking->service_date)['amount'] ?? 0) : 0 }}"
+                                data-service-fee="{{ $serviceFee }}"
                                 data-status="{{ $booking->status }}"
                                 data-total-fee="{{ $booking->payment ? $booking->payment->total_fee : '' }}">
                                 <td class="px-4 py-3 whitespace-nowrap">
@@ -177,15 +185,7 @@
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="text-sm text-gray-900 font-medium">
-                                        @if($booking->service)
-                                            @php
-                                                $feeInfo = $booking->service->getFeeForDate($booking->service_date);
-                                                $feeAmount = $feeInfo['amount'] ?? 0;
-                                            @endphp
-                                            ₱{{ number_format($feeAmount, 2) }}
-                                        @else
-                                            ₱0.00
-                                        @endif
+                                        ₱{{ number_format($serviceFee, 2) }}
                                     </div>
                                     @if($booking->payment && $booking->payment->total_fee)
                                         <div class="text-xs text-gray-500">
@@ -266,6 +266,14 @@
                             default => 'bg-gray-400'
                         };
                         $paymentStatus = $booking->payment->payment_status ?? null;
+                        
+                        // Calculate service fee safely
+                        $serviceFee = 0;
+                        if ($booking->service) {
+                            $feeInfo = $booking->service->getFeeForDate($booking->service_date);
+                            $serviceFee = is_array($feeInfo) ? ($feeInfo['amount'] ?? 0) : 0;
+                            $serviceFee = is_numeric($serviceFee) ? (float)$serviceFee : 0;
+                        }
                     @endphp
                     <div class="relative bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition transform hover:-translate-y-0.5 booking-card" data-status="{{ $booking->status }}">
                         <div class="absolute inset-x-0 top-0 h-1.5 {{ $statusColor }}"></div>
@@ -311,11 +319,7 @@
                                 <div class="flex items-center flex-wrap gap-2 pt-1">
                                     <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                                         <i class="fas fa-money-bill-wave mr-1"></i>
-                                        @php
-                                            $feeInfo = $booking->service ? $booking->service->getFeeForDate($booking->service_date) : ['amount' => 0];
-                                            $feeAmount = $feeInfo['amount'] ?? 0;
-                                        @endphp
-                                        ₱{{ number_format($feeAmount, 2) }}
+                                        ₱{{ number_format($serviceFee, 2) }}
                                     </span>
                                     @if($booking->payment && $booking->payment->total_fee)
                                         <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] bg-gray-50 text-gray-700 border border-gray-200">

@@ -308,24 +308,118 @@
                 </div>
                 <div class="p-4">
                     @if(isset($stats['recent_bookings']) && $stats['recent_bookings']->count() > 0)
+                        <div class="hidden md:grid grid-cols-12 text-[11px] font-medium text-gray-500 px-2 pb-2">
+                            <div class="col-span-5">Booking</div>
+                            <div class="col-span-3">Service Date & Time</div>
+                            <div class="col-span-2">Status</div>
+                            <div class="col-span-1 text-right">Amount</div>
+                            <div class="col-span-1 text-right">Action</div>
+                        </div>
                         <div class="space-y-2">
                             @foreach($stats['recent_bookings'] as $booking)
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-1.5 h-1.5 rounded-full 
-                                        {{ $booking->status === 'pending' ? 'bg-yellow-500' : 
-                                           ($booking->status === 'acknowledged' ? 'bg-blue-500' : 
-                                           ($booking->status === 'payment_hold' ? 'bg-orange-500' : 
-                                           ($booking->status === 'approved' ? 'bg-green-500' : 'bg-gray-500'))) }}">
+                            @php
+                                $serviceDate = $booking->service_date ? ($booking->service_date instanceof \Carbon\Carbon ? $booking->service_date->format('M d, Y') : \Carbon\Carbon::parse($booking->service_date)->format('M d, Y')) : null;
+                                $serviceTime = $booking->service_time ? ($booking->service_time instanceof \Carbon\Carbon ? $booking->service_time->format('h:i A') : \Carbon\Carbon::parse($booking->service_time)->format('h:i A')) : null;
+                                $amount = optional($booking->payment)->total_fee;
+                                $paymentStatus = optional($booking->payment)->payment_status;
+                            @endphp
+                            <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="hidden md:grid md:grid-cols-12 md:items-center md:gap-2">
+                                    <div class="col-span-5 flex items-center space-x-3">
+                                        <div class="w-1.5 h-1.5 rounded-full 
+                                            {{ $booking->status === 'pending' ? 'bg-yellow-500' : 
+                                               ($booking->status === 'acknowledged' ? 'bg-blue-500' : 
+                                               ($booking->status === 'payment_hold' ? 'bg-orange-500' : 
+                                               ($booking->status === 'approved' ? 'bg-green-500' : 
+                                               ($booking->status === 'completed' ? 'bg-emerald-600' : 'bg-gray-500')))) }}">
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">#{{ $booking->id }} — {{ $booking->service->name ?? 'Unknown Service' }}</p>
+                                            <p class="text-xs text-gray-600">{{ $booking->user->name ?? 'Unknown User' }}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900">#{{ $booking->id }} - {{ $booking->service->name ?? 'Unknown Service' }}</p>
-                                        <p class="text-xs text-gray-600">{{ $booking->user->name ?? 'Unknown User' }}</p>
+                                    <div class="col-span-3 text-[12px] text-gray-700">
+                                        @if($serviceDate || $serviceTime)
+                                            <span>{{ $serviceDate ?? 'TBD' }}</span>
+                                            <span class="text-gray-400">•</span>
+                                            <span>{{ $serviceTime ?? '—' }}</span>
+                                        @else
+                                            <span class="text-gray-400">Schedule not set</span>
+                                        @endif
+                                    </div>
+                                    <div class="col-span-2">
+                                        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full 
+                                            {{ $booking->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                               ($booking->status === 'acknowledged' ? 'bg-blue-100 text-blue-800' : 
+                                               ($booking->status === 'payment_hold' ? 'bg-orange-100 text-orange-800' : 
+                                               ($booking->status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                               ($booking->status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800')))) }}">
+                                            {{ ucfirst(str_replace('_', ' ', $booking->status)) }}
+                                        </span>
+                                    </div>
+                                    <div class="col-span-1 text-right">
+                                        @if(!is_null($amount))
+                                            <span class="text-[12px] font-semibold text-gray-900">₱{{ number_format($amount, 2) }}</span>
+                                        @else
+                                            <span class="text-[12px] text-gray-400">—</span>
+                                        @endif
+                                    </div>
+                                    <div class="col-span-1 text-right">
+                                        <a href="{{ route('admin.bookings.show', $booking) }}" class="inline-flex items-center p-2 rounded-md text-gray-500 hover:text-[#0d5c2f] hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#0d5c2f]/20" title="View booking" aria-label="View booking">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </a>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-xs font-medium text-gray-900">{{ ucfirst($booking->status) }}</p>
-                                    <p class="text-xs text-gray-500">{{ $booking->created_at->diffForHumans() }}</p>
+                                <div class="md:hidden space-y-1">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-1.5 h-1.5 mt-1 rounded-full 
+                                                {{ $booking->status === 'pending' ? 'bg-yellow-500' : 
+                                                   ($booking->status === 'acknowledged' ? 'bg-blue-500' : 
+                                                   ($booking->status === 'payment_hold' ? 'bg-orange-500' : 
+                                                   ($booking->status === 'approved' ? 'bg-green-500' : 
+                                                   ($booking->status === 'completed' ? 'bg-emerald-600' : 'bg-gray-500')))) }}">
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">#{{ $booking->id }} — {{ $booking->service->name ?? 'Unknown Service' }}</p>
+                                                <p class="text-xs text-gray-600">{{ $booking->user->name ?? 'Unknown User' }}</p>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('admin.bookings.show', $booking) }}" class="inline-flex items-center p-2 rounded-md text-gray-500 hover:text-[#0d5c2f] hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#0d5c2f]/20" title="View booking" aria-label="View booking">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[12px]">
+                                        <div class="text-gray-700">
+                                            @if($serviceDate || $serviceTime)
+                                                <span>{{ $serviceDate ?? 'TBD' }}</span>
+                                                <span class="text-gray-400">•</span>
+                                                <span>{{ $serviceTime ?? '—' }}</span>
+                                            @else
+                                                <span class="text-gray-400">Schedule not set</span>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full 
+                                                {{ $booking->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                                   ($booking->status === 'acknowledged' ? 'bg-blue-100 text-blue-800' : 
+                                                   ($booking->status === 'payment_hold' ? 'bg-orange-100 text-orange-800' : 
+                                                   ($booking->status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                                   ($booking->status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800')))) }}">
+                                                {{ ucfirst(str_replace('_', ' ', $booking->status)) }}
+                                            </span>
+                                            @if(!is_null($amount))
+                                                <span class="text-[12px] font-semibold text-gray-900">₱{{ number_format($amount, 2) }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500">Created {{ $booking->created_at->diffForHumans() }}</p>
                                 </div>
                             </div>
                             @endforeach
@@ -444,7 +538,20 @@
                         <h2 class="text-lg font-semibold text-gray-900">Monthly Revenue Trends</h2>
                     </div>
                     <div class="p-6">
-                        <canvas id="revenueTrendsChart" width="400" height="200"></canvas>
+                        @php
+                            $hasRevenueData = collect($monthlyRevenue ?? [])->sum('amount') > 0;
+                        @endphp
+                        @if($hasRevenueData)
+                            <canvas id="revenueTrendsChart" width="400" height="200"></canvas>
+                        @else
+                            <div class="flex flex-col items-center justify-center text-center py-10 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                <div class="p-3 bg-gray-200 rounded-full mb-3">
+                                    <i class="fas fa-chart-line text-gray-600"></i>
+                                </div>
+                                <p class="text-sm font-medium text-gray-700">No revenue data yet</p>
+                                <p class="text-xs text-gray-500 mt-1">Verified revenue will appear here once transactions are recorded.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -454,7 +561,20 @@
                         <h2 class="text-lg font-semibold text-gray-900">Payment Method Distribution</h2>
                     </div>
                     <div class="p-6">
-                        <canvas id="paymentMethodsChart" width="400" height="200"></canvas>
+                        @php
+                            $totalPaymentsCount = intval($stats['gcash_payments'] ?? 0) + intval($stats['metrobank_payments'] ?? 0);
+                        @endphp
+                        @if($totalPaymentsCount > 0)
+                            <canvas id="paymentMethodsChart" width="400" height="200"></canvas>
+                        @else
+                            <div class="flex flex-col items-center justify-center text-center py-10 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                <div class="p-3 bg-gray-200 rounded-full mb-3">
+                                    <i class="fas fa-wallet text-gray-600"></i>
+                                </div>
+                                <p class="text-sm font-medium text-gray-700">No payment data yet</p>
+                                <p class="text-xs text-gray-500 mt-1">Once payments are made, their method breakdown will show here.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -466,22 +586,94 @@
                 </div>
                 <div class="p-6">
                     @if(isset($stats['recent_transactions']) && $stats['recent_transactions']->count() > 0)
-                        <div class="space-y-3">
+                        <div class="hidden md:grid grid-cols-12 text-[11px] font-medium text-gray-500 px-2 pb-2">
+                            <div class="col-span-5">Booking</div>
+                            <div class="col-span-3">Method & Status</div>
+                            <div class="col-span-2 text-right">Amount</div>
+                            <div class="col-span-1 text-right">Time</div>
+                            <div class="col-span-1 text-right">Action</div>
+                        </div>
+                        <div class="space-y-2">
                             @foreach($stats['recent_transactions'] as $transaction)
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900">Booking #{{ $transaction->booking_id }}</p>
-                                    <p class="text-xs text-gray-600">{{ $transaction->payment_method_label }}</p>
+                            @php
+                                $booking = $transaction->booking;
+                                $method = $transaction->payment_method_label ?? ($transaction->payment_method ? ucfirst($transaction->payment_method) : 'Unknown');
+                                $status = $transaction->payment_status ?? 'unknown';
+                            @endphp
+                            <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                                <div class="hidden md:grid md:grid-cols-12 md:items-center md:gap-2">
+                                    <div class="col-span-5">
+                                        <p class="text-sm font-medium text-gray-900">#{{ $booking ? $booking->id : $transaction->booking_id }} — {{ ($booking && $booking->service) ? $booking->service->name : 'Unknown Service' }}</p>
+                                        <p class="text-xs text-gray-600">{{ ($booking && $booking->user) ? $booking->user->name : 'Unknown User' }}</p>
+                                    </div>
+                                    <div class="col-span-3 flex items-center space-x-2">
+                                        <span class="text-[12px] text-gray-700">{{ $method }}</span>
+                                        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full 
+                                            {{ $status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                               ($status === 'paid' ? 'bg-blue-100 text-blue-800' : 
+                                               ($status === 'verified' ? 'bg-green-100 text-green-800' : 
+                                               ($status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'))) }}">
+                                            {{ ucfirst($status) }}
+                                        </span>
+                                    </div>
+                                    <div class="col-span-2 text-right">
+                                        <span class="text-[12px] font-semibold text-gray-900">₱{{ number_format($transaction->total_fee, 2) }}</span>
+                                    </div>
+                                    <div class="col-span-1 text-right">
+                                        <span class="text-[11px] text-gray-500">{{ $transaction->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <div class="col-span-1 text-right">
+                                        @if($booking)
+                                        <a href="{{ route('admin.bookings.show', $booking) }}" class="inline-flex items-center p-2 rounded-md text-gray-500 hover:text-[#0d5c2f] hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#0d5c2f]/20" title="View booking" aria-label="View booking">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </a>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-900">₱{{ number_format($transaction->total_fee, 2) }}</p>
-                                    <p class="text-xs text-gray-500">{{ $transaction->created_at->diffForHumans() }}</p>
+                                <div class="md:hidden space-y-1">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">#{{ $booking ? $booking->id : $transaction->booking_id }} — {{ ($booking && $booking->service) ? $booking->service->name : 'Unknown Service' }}</p>
+                                            <p class="text-xs text-gray-600">{{ ($booking && $booking->user) ? $booking->user->name : 'Unknown User' }}</p>
+                                        </div>
+                                        @if($booking)
+                                        <a href="{{ route('admin.bookings.show', $booking) }}" class="inline-flex items-center p-2 rounded-md text-gray-500 hover:text-[#0d5c2f] hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#0d5c2f]/20" title="View booking" aria-label="View booking">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </a>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-center justify-between text-[12px]">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-gray-700">{{ $method }}</span>
+                                            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full 
+                                                {{ $status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                                   ($status === 'paid' ? 'bg-blue-100 text-blue-800' : 
+                                                   ($status === 'verified' ? 'bg-green-100 text-green-800' : 
+                                                   ($status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'))) }}">
+                                                {{ ucfirst($status) }}
+                                            </span>
+                                        </div>
+                                        <span class="text-[12px] font-semibold text-gray-900">₱{{ number_format($transaction->total_fee, 2) }}</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-500">{{ $transaction->created_at->diffForHumans() }}</p>
                                 </div>
                             </div>
                             @endforeach
                         </div>
                     @else
-                        <p class="text-gray-500 text-center py-4">No recent transactions</p>
+                        <div class="flex flex-col items-center justify-center text-center py-10 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                            <div class="p-3 bg-gray-200 rounded-full mb-3">
+                                <i class="fas fa-receipt text-gray-600"></i>
+                            </div>
+                            <p class="text-sm font-medium text-gray-700">No recent transactions</p>
+                            <p class="text-xs text-gray-500 mt-1">When payments are recorded, they will appear here.</p>
+                        </div>
                     @endif
                 </div>
             </div>

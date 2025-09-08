@@ -60,12 +60,16 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'date_of_birth' => 'nullable|date|before:today',
             'password' => ['required', 'confirmed', Password::defaults()],
+        ], [
+            'date_of_birth.before' => 'Date of birth must be before today.',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'date_of_birth' => $request->date_of_birth,
             'password' => Hash::make($request->password),
             'role' => 'user',
             'email_verification_token' => Str::random(64),

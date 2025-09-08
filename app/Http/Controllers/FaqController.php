@@ -64,7 +64,7 @@ class FaqController extends Controller
                 'questions' => [
                     'What services are available?',
                     'What are the service schedules?',
-                    'Do you offer rush services?'
+                    'Do you offer urgent services?'
                 ]
             ],
             [

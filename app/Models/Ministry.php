@@ -51,6 +51,11 @@ class Ministry extends Model
     {
         return $this->hasMany(MinistryActivity::class);
     }
+
+    public function manualCashInflows()
+    {
+        return $this->hasMany(ManualCashInflow::class);
+    }
 }
 
 

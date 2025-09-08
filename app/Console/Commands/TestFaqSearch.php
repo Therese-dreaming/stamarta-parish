@@ -41,7 +41,7 @@ class TestFaqSearch extends Command
             "Contact info",
             "Church location",
             "Service cost",
-            "Rush service"
+            "Urgent service"
         ];
 
         foreach ($testQueries as $query) {
@@ -189,9 +189,9 @@ class TestFaqSearch extends Command
                     $variations[] = 'price';
                     $variations[] = 'fee';
                     break;
-                case 'rush':
-                    $variations[] = 'urgent';
+                case 'urgent':
                     $variations[] = 'emergency';
+                    $variations[] = 'rush';
                     break;
                 case 'blessing':
                     $variations[] = 'bless';

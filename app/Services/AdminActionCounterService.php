@@ -8,6 +8,7 @@ use App\Models\ManualCashInflow;
 use App\Models\MinistryBudgetRequest;
 use App\Models\ParochialActivity;
 use App\Models\User;
+use App\Models\PriestLeave;
 
 class AdminActionCounterService
 {
@@ -23,6 +24,7 @@ class AdminActionCounterService
             'pending_budget_requests' => $this->getPendingBudgetRequestsCount(),
             'pending_activities' => $this->getPendingActivitiesCount(),
             'pending_users' => $this->getPendingUsersCount(),
+            'pending_priest_leaves' => $this->getPendingPriestLeavesCount(),
             'total' => 0, // Will be calculated below
         ];
     }
@@ -81,6 +83,11 @@ class AdminActionCounterService
     {
         // Count users registered in the last 7 days that might need review
         return User::where('created_at', '>=', now()->subDays(7))->count();
+    }
+
+    private function getPendingPriestLeavesCount(): int
+    {
+        return PriestLeave::where('status', 'pending')->count();
     }
 
     /**

@@ -39,10 +39,15 @@ class MemberController extends Controller
             'user_id' => 'required|exists:users,id',
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|regex:/^[0-9]+$/|max:15',
             'position' => 'nullable|string|max:100',
-            'joined_at' => 'nullable|date',
+            'role' => 'required|in:member,officer,assistant_ministry_head',
+            'joined_at' => 'nullable|date|before_or_equal:today',
             'notes' => 'nullable|string',
+        ], [
+            'phone.regex' => 'Phone number must contain only numbers.',
+            'joined_at.before_or_equal' => 'Join date must be today or earlier.',
+            'role.required' => 'Please select a role for the member.',
         ]);
 
         $user = \App\Models\User::find($data['user_id']);
@@ -51,6 +56,14 @@ class MemberController extends Controller
         if ($exists) {
             return back()->with('error', 'This user is already a member of the ministry.')->withInput();
         }
+
+        // Check Assistant Ministry Head limit
+        if ($data['role'] === 'assistant_ministry_head') {
+            if (!MinistryMember::canAddAssistantMinistryHead($ministry->id)) {
+                return back()->with('error', 'Cannot add more than 2 Assistant Ministry Heads per ministry.')->withInput();
+            }
+        }
+
         $data['name'] = $data['name'] ?: $user->name;
         $data['email'] = $data['email'] ?: $user->email;
 
@@ -77,12 +90,24 @@ class MemberController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|regex:/^[0-9]+$/|max:15',
             'position' => 'nullable|string|max:100',
-            'joined_at' => 'nullable|date',
+            'role' => 'required|in:member,officer,assistant_ministry_head',
+            'joined_at' => 'nullable|date|before_or_equal:today',
             'is_active' => 'sometimes|boolean',
             'notes' => 'nullable|string',
+        ], [
+            'phone.regex' => 'Phone number must contain only numbers.',
+            'joined_at.before_or_equal' => 'Join date must be today or earlier.',
+            'role.required' => 'Please select a role for the member.',
         ]);
+
+        // Check Assistant Ministry Head limit (only if changing to assistant_ministry_head)
+        if ($data['role'] === 'assistant_ministry_head' && $member->role !== 'assistant_ministry_head') {
+            if (!MinistryMember::canAddAssistantMinistryHead($ministry->id)) {
+                return back()->with('error', 'Cannot add more than 2 Assistant Ministry Heads per ministry.')->withInput();
+            }
+        }
 
         $member->update($data);
         return redirect()->route('ministry.members.index')->with('success', 'Member updated.');

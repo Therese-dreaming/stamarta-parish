@@ -165,11 +165,6 @@
                                     'question' => 'Are the parents married?',
                                     'field' => 'marriage_contract',
                                     'label' => "Parents' Marriage Contract"
-                                ],
-                                'from_another_parish' => [
-                                    'question' => 'Is the child from another parish?',
-                                    'field' => 'baptismal_permit',
-                                    'label' => 'Baptismal Permit'
                                 ]
                             ];
                             break;
@@ -183,11 +178,6 @@
                                     'question' => 'Are the parents married?',
                                     'field' => 'marriage_contract',
                                     'label' => "Parents' Marriage Contract"
-                                ],
-                                'from_another_parish' => [
-                                    'question' => 'Are any children from another parish?',
-                                    'field' => 'baptismal_permit',
-                                    'label' => 'Baptismal Permit'
                                 ]
                             ];
                             break;
@@ -197,7 +187,6 @@
                                 'baptismal_certificates' => 'Baptismal Certificates',
                                 'confirmation_certificates' => 'Confirmation Certificates',
                                 'birth_certificates' => 'Birth Certificates',
-                                'witnesses_ids' => 'Witnesses IDs',
                                 'pre_cana_certificate' => 'Pre-Cana Certificate'
                             ];
                             $conditionalQuestions = [
@@ -205,11 +194,6 @@
                                     'question' => 'Are you already civilly married?',
                                     'field' => 'civil_marriage_contract',
                                     'label' => 'Civil Marriage Contract'
-                                ],
-                                'currently_cohabiting' => [
-                                    'question' => 'Are you currently cohabiting?',
-                                    'field' => 'affidavit_of_cohabitation',
-                                    'label' => 'Affidavit of Cohabitation'
                                 ]
                             ];
                             break;
@@ -408,7 +392,7 @@ function toggleDocumentUpload(fieldName, value) {
 // Initialize on page load to handle any pre-selected values
 document.addEventListener('DOMContentLoaded', function() {
     // Initially disable all conditional file inputs
-    const conditionalFileInputs = document.querySelectorAll('input[type="file"][id*="marriage_contract"], input[type="file"][id*="baptismal_permit"], input[type="file"][id*="civil_marriage_contract"], input[type="file"][id*="affidavit_of_cohabitation"], input[type="file"][id*="proof_of_ownership"], input[type="file"][id*="special_requests"]');
+    const conditionalFileInputs = document.querySelectorAll('input[type="file"][id*="marriage_contract"], input[type="file"][id*="civil_marriage_contract"], input[type="file"][id*="proof_of_ownership"], input[type="file"][id*="special_requests"]');
     conditionalFileInputs.forEach(input => {
         input.setAttribute('disabled', 'disabled');
         input.required = false;

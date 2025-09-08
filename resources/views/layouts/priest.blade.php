@@ -70,6 +70,21 @@
                         Notifications
                         <span id="notification-count" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-notification-count="0">0</span>
                     </a>
+
+                    <!-- Profile & Leave Management -->
+                    <div class="pt-4">
+                        <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</h3>
+                    </div>
+                    
+                    <a href="{{ route('priest.profile.edit') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.profile.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-user-edit w-5 h-5 mr-3"></i>
+                        Edit Profile
+                    </a>
+                    
+                    <a href="{{ route('priest.leave.create') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.leave.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-calendar-times w-5 h-5 mr-3"></i>
+                        File Leave
+                    </a>
                 </div>
             </nav>
         </div>

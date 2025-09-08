@@ -96,7 +96,76 @@ class ManualCashInflowController extends Controller
     {
         $this->ensureAdmin();
         $manual_cash_inflow->load(['enteredBy', 'approvedBy', 'ministry']);
-        return view('admin.manual-cash-inflows.show', compact('manual_cash_inflow'));
+        
+        // Calculate ministry budget statistics
+        $ministryStats = [];
+        $generalFundStats = [];
+        
+        if ($manual_cash_inflow->ministry) {
+            $ministry = $manual_cash_inflow->ministry;
+            
+            // Get ministry budget information
+            $totalBudget = $ministry->budget ?? 0;
+            
+            // Calculate used budget from approved cash inflows and budget requests
+            $usedBudget = ManualCashInflow::where('ministry_id', $ministry->id)
+                ->where('status', 'approved')
+                ->sum('amount');
+            
+            // Add budget requests if they exist
+            if (class_exists('App\Models\MinistryBudgetRequest')) {
+                $usedBudget += \App\Models\MinistryBudgetRequest::where('ministry_id', $ministry->id)
+                    ->where('status', 'approved')
+                    ->sum('amount');
+            }
+            
+            $remainingBudget = max(0, $totalBudget - $usedBudget);
+            $utilizationPercentage = $totalBudget > 0 ? ($usedBudget / $totalBudget) * 100 : 0;
+            
+            // Get approved requests count
+            $approvedRequests = ManualCashInflow::where('ministry_id', $ministry->id)
+                ->where('status', 'approved')
+                ->count();
+            
+            // Get recent transactions (last 5)
+            $recentTransactions = ManualCashInflow::where('ministry_id', $ministry->id)
+                ->where('status', 'approved')
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get()
+                ->map(function ($transaction) {
+                    return (object) [
+                        'type' => 'inflow',
+                        'amount' => $transaction->amount,
+                        'description' => $transaction->description,
+                        'created_at' => $transaction->created_at,
+                    ];
+                });
+            
+            $ministryStats = [
+                'total_budget' => $totalBudget,
+                'used_budget' => $usedBudget,
+                'remaining_budget' => $remainingBudget,
+                'utilization_percentage' => $utilizationPercentage,
+                'approved_requests' => $approvedRequests,
+                'recent_transactions' => $recentTransactions,
+            ];
+        } else {
+            // General parish fund statistics
+            $totalInflows = ManualCashInflow::whereNull('ministry_id')
+                ->where('status', 'approved')
+                ->sum('amount');
+            
+            $generalFundStats = [
+                'total_inflows' => $totalInflows,
+            ];
+        }
+        
+        return view('admin.manual-cash-inflows.show', compact(
+            'manual_cash_inflow', 
+            'ministryStats', 
+            'generalFundStats'
+        ));
     }
     
     public function edit(ManualCashInflow $manual_cash_inflow)

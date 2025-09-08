@@ -22,12 +22,26 @@
                         @endif
                     </div>
                     <div>
-                        <div class="flex items-center">
-                            <h1 class="text-3xl font-bold text-white">{{ $priest->name }}</h1>
-                            <span class="ml-3 px-3 py-1 rounded-full text-xs font-medium {{ $priest->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                        @php
+                            $onLeaveToday = ($priest->leave_status !== 'active') && $priest->leave_start_date && $priest->leave_end_date && (\Carbon\Carbon::today()->between($priest->leave_start_date, $priest->leave_end_date));
+                            $pendingLeavesCount = $priest->leaves()->where('status', 'pending')->count();
+                        @endphp
+                        <div class="flex items-center flex-wrap gap-2">
+                            <h1 class="text-3xl font-bold text-white mr-2">{{ $priest->name }}</h1>
+                            <span class="px-3 py-1 rounded-full text-xs font-medium {{ $priest->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                 <i class="fas fa-{{ $priest->is_active ? 'check' : 'times' }}-circle mr-1"></i>
                                 {{ $priest->is_active ? 'Active' : 'Inactive' }}
                             </span>
+                            @if($onLeaveToday)
+                                <span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <i class="fas fa-calendar-day mr-1"></i>On Leave Today
+                                </span>
+                            @endif
+                            @if($pendingLeavesCount > 0)
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+                                    <i class="fas fa-hourglass-half mr-1"></i>{{ $pendingLeavesCount }} Pending Leave{{ $pendingLeavesCount > 1 ? 's' : '' }}
+                                </span>
+                            @endif
                         </div>
                         <p class="text-white/80 mt-2 flex items-center">
                             <i class="fas fa-envelope mr-2"></i>{{ $priest->email }}
@@ -160,8 +174,8 @@
                                 <div>
                                     <label class="block text-xs font-medium text-gray-500">Ordination Date</label>
                                     <p class="text-sm text-gray-900">{{ $priest->ordination_date->format('F j, Y') }}</p>
-                                    @if($priest->years_of_service)
-                                        <p class="text-xs text-gray-500 mt-1">{{ $priest->years_of_service }} years of service</p>
+                                    @if($priest->calculated_years_of_service)
+                                        <p class="text-xs text-gray-500 mt-1">{{ $priest->calculated_years_of_service }} years of service</p>
                                     @endif
                                 </div>
                             </div>
@@ -240,6 +254,83 @@
                 </div>
             </div>
             @endif
+
+            <!-- Filed Leaves -->
+            <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div class="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <h3 class="text-base font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-calendar-times mr-2 text-[#0d5c2f]"></i>
+                        Filed Leaves
+                    </h3>
+                    <span class="text-sm text-gray-600">{{ $priest->leaves()->count() }} total</span>
+                </div>
+                <div class="p-4">
+                    @php $leaves = $priest->leaves()->latest()->get(); @endphp
+                    @if($leaves->count() > 0)
+                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dates</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($leaves as $leave)
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-gray-900 capitalize">{{ $leave->leave_type }}</td>
+                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $leave->start_date->format('M d, Y') }} - {{ $leave->end_date->format('M d, Y') }}</td>
+                                        <td class="px-4 py-3">
+                                            @php
+                                                $badge = [
+                                                    'pending' => 'bg-yellow-100 text-yellow-800',
+                                                    'approved' => 'bg-green-100 text-green-800',
+                                                    'rejected' => 'bg-red-100 text-red-800',
+                                                ][$leave->status] ?? 'bg-gray-100 text-gray-800';
+                                            @endphp
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $badge }}">
+                                                {{ ucfirst($leave->status) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <div class="flex items-center justify-end space-x-2">
+                                                <button type="button" onclick="openModal('leave-view-{{ $leave->id }}')" class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600" title="View">
+                                                    <i class="fas fa-eye text-sm"></i>
+                                                </button>
+                                                @if(!isset($isStaff) || !$isStaff)
+                                                    @if($leave->status === 'pending')
+                                                    <button type="button" onclick="openModal('leave-approve-{{ $leave->id }}')" class="w-8 h-8 rounded-lg bg-green-50 hover:bg-green-100 flex items-center justify-center text-green-600" title="Approve">
+                                                        <i class="fas fa-check text-sm"></i>
+                                                    </button>
+                                                    <button type="button" onclick="openModal('leave-reject-{{ $leave->id }}')" class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-600" title="Reject">
+                                                        <i class="fas fa-times text-sm"></i>
+                                                    </button>
+                                                    @elseif($leave->status === 'approved')
+                                                    <button type="button" onclick="openModal('leave-complete-{{ $leave->id }}')" class="w-8 h-8 rounded-lg bg-yellow-50 hover:bg-yellow-100 flex items-center justify-center text-yellow-600" title="Mark Completed">
+                                                        <i class="fas fa-flag-checkered text-sm"></i>
+                                                    </button>
+                                                    @endif
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="flex flex-col items-center justify-center py-12">
+                            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-calendar-times text-gray-400 text-2xl"></i>
+                            </div>
+                            <h4 class="text-lg font-medium text-gray-900 mb-1">No Leaves Filed</h4>
+                            <p class="text-gray-500 text-sm">This priest has not filed any leave applications.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
 
             <!-- Sidebar -->
@@ -345,7 +436,7 @@
                                 <span class="text-xs text-gray-600 flex items-center">
                                     <i class="fas fa-church mr-2 text-[#0d5c2f]"></i>Years of Service
                                 </span>
-                                <span class="text-xs font-medium text-[#0d5c2f]">{{ $priest->years_of_service ?? 'N/A' }}</span>
+                                <span class="text-xs font-medium text-[#0d5c2f]">{{ $priest->calculated_years_of_service ?? 'N/A' }}</span>
                             </div>
                             @endif
                         </div>
@@ -419,6 +510,146 @@
     </div>
 </div>
 
+<!-- Leave Modals -->
+@php $__leaves = $priest->leaves()->latest()->get(); @endphp
+@foreach($__leaves as $leave)
+    <!-- View Leave Modal -->
+    <div id="leave-view-{{ $leave->id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-lg max-w-lg w-full mx-4 animate-fade-in-up">
+            <div class="p-0 overflow-hidden rounded-xl">
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                        <i class="fas fa-file-alt text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Leave Details</h3>
+                        <p class="text-xs text-gray-500">Filed {{ $leave->submitted_at?->diffForHumans() }}</p>
+                    </div>
+                </div>
+                <div class="p-6 space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Type</span>
+                        <span class="font-medium capitalize">{{ $leave->leave_type }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Dates</span>
+                        <span class="font-medium">{{ $leave->start_date->format('M d, Y') }} - {{ $leave->end_date->format('M d, Y') }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 block mb-1">Reason</span>
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800">{{ $leave->reason }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 block mb-1">Contact During Leave</span>
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 whitespace-pre-line">{{ $leave->contact_info }}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 block mb-1">Emergency Contact</span>
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 text-gray-800 whitespace-pre-line">{{ $leave->emergency_contact }}</div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeModal('leave-view-{{ $leave->id }}')" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if((isset($isStaff) && $isStaff) === false && $leave->status === 'pending')
+    <!-- Approve Leave Modal -->
+    <div id="leave-approve-{{ $leave->id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 animate-fade-in-up overflow-hidden">
+            <div class="px-6 py-4 bg-green-50 border-b border-green-100 flex items-center">
+                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mr-3">
+                    <i class="fas fa-check text-green-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">Approve Leave</h3>
+                    <p class="text-xs text-gray-600">This will mark the priest as on leave for the selected dates.</p>
+                </div>
+            </div>
+            <form action="{{ route('admin.leaves.approve', $leave) }}" method="POST" class="p-6 space-y-4">
+                @csrf
+                <div class="text-sm bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Dates</span>
+                        <span class="font-medium">{{ $leave->start_date->format('M d, Y') }} - {{ $leave->end_date->format('M d, Y') }}</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes (optional)</label>
+                    <textarea name="notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]" placeholder="Add an optional note for the record..."></textarea>
+                </div>
+                <div class="flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeModal('leave-approve-{{ $leave->id }}')" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">Approve</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reject Leave Modal -->
+    <div id="leave-reject-{{ $leave->id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 animate-fade-in-up overflow-hidden">
+            <div class="px-6 py-4 bg-red-50 border-b border-red-100 flex items-center">
+                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mr-3">
+                    <i class="fas fa-times text-red-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">Reject Leave</h3>
+                    <p class="text-xs text-gray-600">Provide a reason; the priest will remain active.</p>
+                </div>
+            </div>
+            <form action="{{ route('admin.leaves.reject', $leave) }}" method="POST" class="p-6 space-y-4">
+                @csrf
+                <div class="text-sm bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Dates</span>
+                        <span class="font-medium">{{ $leave->start_date->format('M d, Y') }} - {{ $leave->end_date->format('M d, Y') }}</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason / Notes</label>
+                    <textarea name="notes" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]" placeholder="State the reason for rejection..."></textarea>
+                </div>
+                <div class="flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeModal('leave-reject-{{ $leave->id }}')" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Reject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+@endforeach
+
+@foreach($__leaves as $leave)
+    @if((isset($isStaff) && $isStaff) === false && $leave->status === 'approved')
+    <!-- Complete Leave Modal -->
+    <div id="leave-complete-{{ $leave->id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 animate-fade-in-up">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mr-4">
+                        <i class="fas fa-flag-checkered text-yellow-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Mark Leave as Completed</h3>
+                        <p class="text-sm text-gray-500">This will reactivate the priest if no other active leaves exist.</p>
+                    </div>
+                </div>
+                <form action="{{ route('admin.leaves.complete', $leave) }}" method="POST" class="space-y-4">
+                    @csrf
+                    <div class="flex items-center justify-end space-x-3">
+                        <button type="button" onclick="closeModal('leave-complete-{{ $leave->id }}')" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                        <button type="submit" class="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">Mark Completed</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
+
 <style>
 .scrollbar-hide {
     -ms-overflow-style: none;
@@ -459,6 +690,13 @@ function openDeleteModal() {
     }
 }
 
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -468,7 +706,10 @@ function closeModal(modalId) {
 
 // Close modals when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
-    const modals = ['status-modal', 'delete-modal'];
+    // Collect all modal ids, including dynamic leave modals
+    const staticModals = ['status-modal', 'delete-modal'];
+    const leaveModals = Array.from(document.querySelectorAll('[id^="leave-"]')).map(el => el.id);
+    const modals = staticModals.concat(leaveModals);
     
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);

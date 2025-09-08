@@ -127,6 +127,22 @@
                             </div>
 
                             <div>
+                                <label for="years_of_service" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2 text-[#0d5c2f]"></i>Years of Service
+                                </label>
+                                <input type="number" id="years_of_service" name="years_of_service" value="{{ old('years_of_service') }}" min="0" max="100"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] bg-white">
+                                <p class="text-sm text-gray-500 mt-1 flex items-center">
+                                    <i class="fas fa-info-circle mr-1"></i>Leave empty to auto-calculate from ordination date
+                                </p>
+                                @error('years_of_service')
+                                    <p class="text-red-600 text-sm mt-1 flex items-center">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            <div>
                                 <label for="photo" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                                     <i class="fas fa-camera mr-2 text-[#0d5c2f]"></i>Photo
                                 </label>
@@ -173,6 +189,128 @@
                 </div>
             </div>
 
+            <!-- Leave Status -->
+            <div class="mt-8">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                        <i class="fas fa-calendar-times mr-2 text-[#0d5c2f]"></i>Leave Status
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="leave_status" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <i class="fas fa-user-clock mr-2 text-[#0d5c2f]"></i>Status *
+                            </label>
+                            <select id="leave_status" name="leave_status" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] bg-white">
+                                <option value="active" {{ old('leave_status') == 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="on_leave" {{ old('leave_status') == 'on_leave' ? 'selected' : '' }}>On Leave</option>
+                                <option value="pilgrimage" {{ old('leave_status') == 'pilgrimage' ? 'selected' : '' }}>Pilgrimage</option>
+                                <option value="sabbatical" {{ old('leave_status') == 'sabbatical' ? 'selected' : '' }}>Sabbatical</option>
+                                <option value="retired" {{ old('leave_status') == 'retired' ? 'selected' : '' }}>Retired</option>
+                            </select>
+                            @error('leave_status')
+                                <p class="text-red-600 text-sm mt-1 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="leave_reason" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <i class="fas fa-comment mr-2 text-[#0d5c2f]"></i>Leave Reason
+                            </label>
+                            <input type="text" id="leave_reason" name="leave_reason" value="{{ old('leave_reason') }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] bg-white"
+                                   placeholder="Reason for leave (if applicable)">
+                            @error('leave_reason')
+                                <p class="text-red-600 text-sm mt-1 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" id="leave-dates" style="display: none;">
+                        <div>
+                            <label for="leave_start_date" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <i class="fas fa-calendar-plus mr-2 text-[#0d5c2f]"></i>Leave Start Date
+                            </label>
+                            <input type="date" id="leave_start_date" name="leave_start_date" value="{{ old('leave_start_date') }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] bg-white">
+                            @error('leave_start_date')
+                                <p class="text-red-600 text-sm mt-1 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="leave_end_date" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <i class="fas fa-calendar-minus mr-2 text-[#0d5c2f]"></i>Leave End Date
+                            </label>
+                            <input type="date" id="leave_end_date" name="leave_end_date" value="{{ old('leave_end_date') }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] bg-white">
+                            @error('leave_end_date')
+                                <p class="text-red-600 text-sm mt-1 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Account Creation -->
+            <div class="mt-8">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                        <i class="fas fa-user-plus mr-2 text-[#0d5c2f]"></i>User Account Creation
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="create_user_account" name="create_user_account" value="1" 
+                                   {{ old('create_user_account') ? 'checked' : '' }}
+                                   class="rounded border-gray-300 text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                            <label for="create_user_account" class="ml-3 text-sm text-gray-700">
+                                Create user account for priest login
+                            </label>
+                        </div>
+
+                        <div id="password-fields" style="display: none;">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                        <i class="fas fa-lock mr-2 text-[#0d5c2f]"></i>Password
+                                    </label>
+                                    <input type="password" id="password" name="password"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] bg-white"
+                                           placeholder="Leave empty for auto-generated password">
+                                    <p class="text-sm text-gray-500 mt-1 flex items-center">
+                                        <i class="fas fa-info-circle mr-1"></i>Minimum 8 characters
+                                    </p>
+                                    @error('password')
+                                        <p class="text-red-600 text-sm mt-1 flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                                        </p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                        <i class="fas fa-lock mr-2 text-[#0d5c2f]"></i>Confirm Password
+                                    </label>
+                                    <input type="password" id="password_confirmation" name="password_confirmation"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] bg-white"
+                                           placeholder="Confirm password">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Bio -->
             <div class="mt-8">
                 <div class="bg-gray-50 rounded-lg p-4">
@@ -203,4 +341,41 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle leave status change
+    const leaveStatusSelect = document.getElementById('leave_status');
+    const leaveDatesDiv = document.getElementById('leave-dates');
+    
+    function toggleLeaveDates() {
+        const status = leaveStatusSelect.value;
+        if (status === 'active' || status === 'retired') {
+            leaveDatesDiv.style.display = 'none';
+        } else {
+            leaveDatesDiv.style.display = 'block';
+        }
+    }
+    
+    leaveStatusSelect.addEventListener('change', toggleLeaveDates);
+    toggleLeaveDates(); // Initial call
+    
+    // Handle user account creation checkbox
+    const createUserCheckbox = document.getElementById('create_user_account');
+    const passwordFields = document.getElementById('password-fields');
+    
+    function togglePasswordFields() {
+        if (createUserCheckbox.checked) {
+            passwordFields.style.display = 'block';
+        } else {
+            passwordFields.style.display = 'none';
+        }
+    }
+    
+    createUserCheckbox.addEventListener('change', togglePasswordFields);
+    togglePasswordFields(); // Initial call
+});
+</script>
+@endpush
 @endsection 

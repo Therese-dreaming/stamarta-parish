@@ -57,6 +57,10 @@
                         <span class="text-sm text-gray-600">Activities</span>
                     </div>
                     <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(96, 165, 250, 0.25); border-color: rgba(96, 165, 250, 0.6);"></div>
+                        <span class="text-sm text-gray-600">Ministry Activities</span>
+                    </div>
+                    <div class="flex items-center">
                         <div class="w-4 h-4 rounded mr-2 border-2" style="background-color: rgba(139, 92, 246, 0.25); border-color: rgba(139, 92, 246, 0.6);"></div>
                         <span class="text-sm text-gray-600">Multiple Events</span>
                     </div>
@@ -96,35 +100,68 @@
     </div>
 
     <!-- Events Display Section -->
-    <div id="eventsSection" class="bg-white rounded-xl shadow-sm border border-gray-200 hidden">
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 id="selectedDateTitle" class="text-xl font-semibold text-gray-900">Events for Selected Date</h3>
-                <button onclick="hideEventsSection()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
+    <div id="eventsSection" class="bg-white rounded-xl shadow-lg border border-gray-200 hidden">
+        <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-t-xl">
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 id="selectedDateTitle" class="text-xl font-semibold text-white">Events for Selected Date</h3>
+                        <p class="text-white/80 text-sm mt-1">View all scheduled events and activities</p>
+                    </div>
+                    <button onclick="hideEventsSection()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-2 transition-colors">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
             </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        </div>
+        
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Bookings Section -->
-                <div class="space-y-4">
-                    <h4 class="text-lg font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-calendar-check mr-2 text-[#0d5c2f]"></i>
-                        Bookings
-                    </h4>
-                    <div id="bookingsList" class="space-y-3">
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-[#0d5c2f] rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-calendar-check text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900">Bookings</h4>
+                            <p class="text-sm text-gray-500">Service appointments</p>
+                        </div>
+                    </div>
+                    <div id="bookingsList" class="space-y-4">
                         <!-- Bookings will be populated by JavaScript -->
                     </div>
                 </div>
 
                 <!-- Activities Section -->
-                <div class="space-y-4">
-                    <h4 class="text-lg font-semibold text-gray-900 flex items-center">
-                        <i class="fas fa-church mr-2 text-yellow-500"></i>
-                        Parochial Activities
-                    </h4>
-                    <div id="activitiesList" class="space-y-3">
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-church text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900">Parochial Activities</h4>
+                            <p class="text-sm text-gray-500">Church events</p>
+                        </div>
+                    </div>
+                    <div id="activitiesList" class="space-y-4">
                         <!-- Activities will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Ministry Activities Section -->
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-sm">
+                            <i class="fas fa-users text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900">Ministry Activities</h4>
+                            <p class="text-sm text-gray-500">Ministry events</p>
+                        </div>
+                    </div>
+                    <div id="ministryActivitiesList" class="space-y-4">
+                        <!-- Ministry Activities will be populated by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -211,8 +248,10 @@ class AdminCalendar {
                 dayDiv.style.borderColor = eventColor.replace('0.25)', '0.6)'); // Darker border
                 dayDiv.style.borderWidth = '2px';
                 dayDiv.style.borderStyle = 'solid';
-                
-                // Add click handler
+            }
+            
+            // Only add click handler if there are events to show
+            if (dayEvents.length > 0) {
                 dayDiv.addEventListener('click', () => this.showDayEvents(dateString, dayEvents));
             }
         }
@@ -263,6 +302,8 @@ class AdminCalendar {
         
         if (uniqueTypes.length === 1 && uniqueTypes[0] === 'activity') {
             return '#fbbf24'; // All activities
+        } else if (uniqueTypes.length === 1 && uniqueTypes[0] === 'ministry_activity') {
+            return 'rgba(96, 165, 250, 0.25)'; // All ministry activities
         } else if (uniqueTypes.length === 1 && uniqueTypes[0] === 'booking' && uniqueStatuses.length === 1) {
             return this.getStatusColor(uniqueStatuses[0]); // All same status bookings
         } else {
@@ -288,6 +329,7 @@ class AdminCalendar {
         const selectedDateTitle = document.getElementById('selectedDateTitle');
         const bookingsList = document.getElementById('bookingsList');
         const activitiesList = document.getElementById('activitiesList');
+        const ministryActivitiesList = document.getElementById('ministryActivitiesList');
         
         // Fix timezone issue by creating date properly
         const displayDate = new Date(dateString + 'T00:00:00');
@@ -304,36 +346,63 @@ class AdminCalendar {
             })}`;
         }
         
-        // Separate bookings and activities
+        // Separate bookings, activities, and ministry activities
         const bookings = events.filter(event => event.type === 'booking');
         const activities = events.filter(event => event.type === 'activity');
+        const ministryActivities = events.filter(event => event.type === 'ministry_activity');
         
         // Populate bookings section
         if (bookings.length === 0) {
-            bookingsList.innerHTML = '<p class="text-gray-500 italic">No bookings scheduled for this date.</p>';
+            bookingsList.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-calendar-check text-gray-400 text-2xl"></i>
+                    </div>
+                    <h4 class="text-base font-semibold text-gray-900 mb-2">No Bookings</h4>
+                    <p class="text-sm text-gray-500">No bookings scheduled for this date</p>
+                </div>
+            `;
         } else {
             let bookingsHTML = '';
             bookings.forEach(booking => {
                 bookingsHTML += `
-                    <div class="bg-gray-50 rounded-lg p-4 border-l-4" style="border-left-color: ${booking.backgroundColor}">
-                        <div class="flex items-center justify-between mb-2">
-                            <h5 class="font-semibold text-gray-900">${booking.title}</h5>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                ${this.getStatusBadgeClass(booking.status)}">
-                                ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
-                            </span>
-                        </div>
-                        <div class="text-sm text-gray-600 space-y-1">
-                            <p><strong>Customer:</strong> ${booking.extendedProps.user_name}</p>
-                            <p><strong>Service:</strong> ${booking.extendedProps.service_name}</p>
-                            <p><strong>Phone:</strong> ${booking.extendedProps.contact_phone}</p>
-                            <p><strong>Time:</strong> ${this.formatTime(booking.start)}</p>
-                        </div>
-                        <div class="mt-3">
-                            <a href="/admin/bookings/${booking.booking_id}" 
-                               class="inline-flex items-center px-3 py-1 bg-[#0d5c2f] text-white text-xs rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-                                <i class="fas fa-eye mr-1"></i>View Details
-                            </a>
+                    <div class="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <h5 class="text-lg font-semibold text-gray-900 group-hover:text-[#0d5c2f] transition-colors mb-1">${booking.title}</h5>
+                                    <p class="text-sm text-gray-500">${booking.extendedProps.service_name}</p>
+                                </div>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${this.getStatusBadgeClass(booking.status)}">
+                                    ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace('_', ' ')}
+                                </span>
+                            </div>
+                            
+                            <div class="space-y-3 mb-4">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-user w-4 h-4 mr-3 text-gray-400"></i>
+                                    <span>${booking.extendedProps.user_name}</span>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-phone w-4 h-4 mr-3 text-gray-400"></i>
+                                    <span>${booking.extendedProps.contact_phone}</span>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-clock w-4 h-4 mr-3 text-gray-400"></i>
+                                    <span>${this.formatTime(booking.start)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    <span>Booking ID: ${booking.booking_id}</span>
+                                </div>
+                                <a href="/admin/bookings/${booking.booking_id}" 
+                                   class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white text-sm font-medium rounded-xl hover:bg-[#0d5c2f]/90 transition-all duration-200 transform hover:scale-105 shadow-sm">
+                                    <i class="fas fa-eye mr-2"></i>View Details
+                                </a>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -343,28 +412,148 @@ class AdminCalendar {
         
         // Populate activities section
         if (activities.length === 0) {
-            activitiesList.innerHTML = '<p class="text-gray-500 italic">No parochial activities scheduled for this date.</p>';
+            activitiesList.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-church text-yellow-400 text-2xl"></i>
+                    </div>
+                    <h4 class="text-base font-semibold text-gray-900 mb-2">No Activities</h4>
+                    <p class="text-sm text-gray-500">No parochial activities scheduled for this date</p>
+                </div>
+            `;
         } else {
             let activitiesHTML = '';
             activities.forEach(activity => {
                 activitiesHTML += `
-                    <div class="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
-                        <div class="flex items-center justify-between mb-2">
-                            <h5 class="font-semibold text-gray-900">${activity.title}</h5>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Activity
-                            </span>
-                        </div>
-                        <div class="text-sm text-gray-600 space-y-1">
-                            ${activity.extendedProps.description ? `<p><strong>Description:</strong> ${activity.extendedProps.description}</p>` : ''}
-                            ${activity.extendedProps.location ? `<p><strong>Location:</strong> ${activity.extendedProps.location}</p>` : ''}
-                            ${activity.extendedProps.organizer ? `<p><strong>Organizer:</strong> ${activity.extendedProps.organizer}</p>` : ''}
-                            <p><strong>Time:</strong> ${this.formatTime(activity.start)} - ${this.formatTime(activity.end)}</p>
+                    <div class="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <h5 class="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors mb-1">${activity.title}</h5>
+                                    <p class="text-sm text-gray-500">Parochial Activity</p>
+                                </div>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Activity
+                                </span>
+                            </div>
+                            
+                            <div class="space-y-3 mb-4">
+                                ${activity.extendedProps.description ? `
+                                    <div class="flex items-start text-sm text-gray-600">
+                                        <i class="fas fa-align-left w-4 h-4 mr-3 text-gray-400 mt-0.5"></i>
+                                        <span>${activity.extendedProps.description}</span>
+                                    </div>
+                                ` : ''}
+                                ${activity.extendedProps.location ? `
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt w-4 h-4 mr-3 text-gray-400"></i>
+                                        <span>${activity.extendedProps.location}</span>
+                                    </div>
+                                ` : ''}
+                                ${activity.extendedProps.organizer ? `
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-user-tie w-4 h-4 mr-3 text-gray-400"></i>
+                                        <span>${activity.extendedProps.organizer}</span>
+                                    </div>
+                                ` : ''}
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-clock w-4 h-4 mr-3 text-gray-400"></i>
+                                    <span>${this.formatTime(activity.start)} - ${this.formatTime(activity.end)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    <span>Activity ID: ${activity.activity_id}</span>
+                                </div>
+                                <a href="/admin/parochial-activities/${activity.activity_id}" 
+                                   class="inline-flex items-center px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-xl hover:bg-yellow-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
+                                    <i class="fas fa-eye mr-2"></i>View Details
+                                </a>
+                            </div>
                         </div>
                     </div>
                 `;
             });
             activitiesList.innerHTML = activitiesHTML;
+        }
+        
+        // Populate ministry activities section
+        if (ministryActivities.length === 0) {
+            ministryActivitiesList.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-users text-blue-400 text-2xl"></i>
+                    </div>
+                    <h4 class="text-base font-semibold text-gray-900 mb-2">No Ministry Activities</h4>
+                    <p class="text-sm text-gray-500">No ministry activities scheduled for this date</p>
+                </div>
+            `;
+        } else {
+            let ministryActivitiesHTML = '';
+            ministryActivities.forEach(activity => {
+                const isPublic = activity.extendedProps.is_public !== false; // Default to true if not specified
+                const ministryName = activity.extendedProps.ministry || 'Unknown Ministry';
+                const isAllDay = activity.extendedProps.is_all_day || false;
+                
+                ministryActivitiesHTML += `
+                    <div class="group bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <h5 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">${activity.title}</h5>
+                                    <p class="text-sm text-gray-500">${ministryName}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Ministry
+                                    </span>
+                                    ${isPublic ? 
+                                        '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Public</span>' :
+                                        '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Internal</span>'
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3 mb-4">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-users w-4 h-4 mr-3 text-gray-400"></i>
+                                    <span>${ministryName}</span>
+                                </div>
+                                ${activity.extendedProps.description ? `
+                                    <div class="flex items-start text-sm text-gray-600">
+                                        <i class="fas fa-align-left w-4 h-4 mr-3 text-gray-400 mt-0.5"></i>
+                                        <span>${activity.extendedProps.description}</span>
+                                    </div>
+                                ` : ''}
+                                ${activity.extendedProps.location ? `
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-map-marker-alt w-4 h-4 mr-3 text-gray-400"></i>
+                                        <span>${activity.extendedProps.location}</span>
+                                    </div>
+                                ` : ''}
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i class="fas fa-clock w-4 h-4 mr-3 text-gray-400"></i>
+                                    <span>${isAllDay ? 'All Day' : (this.formatTime(activity.start) + (activity.end ? ' - ' + this.formatTime(activity.end) : ''))}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    <span>Activity ID: ${activity.activity_id}</span>
+                                </div>
+                                <a href="/admin/ministries/ministry-activities/${activity.activity_id}" 
+                                   class="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
+                                    <i class="fas fa-eye mr-2"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            ministryActivitiesList.innerHTML = ministryActivitiesHTML;
         }
         
         // Show the events section

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -22,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'date_of_birth',
         'email_verification_token',
         'email_verified_at',
         'password_reset_token',
@@ -48,6 +50,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'date_of_birth' => 'date',
         ];
     }
 
@@ -105,5 +108,85 @@ class User extends Authenticatable
     public function hasAnyRole($roles)
     {
         return in_array($this->role, (array) $roles);
+    }
+
+    /**
+     * Get the user's age based on date of birth
+     */
+    public function getAgeAttribute()
+    {
+        if (!$this->date_of_birth) {
+            return null;
+        }
+        
+        return $this->date_of_birth->age;
+    }
+
+    /**
+     * Check if user is of legal age (18 or older)
+     */
+    public function isOfLegalAge()
+    {
+        return $this->age !== null && $this->age >= 18;
+    }
+
+    /**
+     * Check if user can book wedding (18+ and no existing wedding booking)
+     */
+    public function canBookWedding()
+    {
+        // Check if user is of legal age
+        if (!$this->isOfLegalAge()) {
+            return false;
+        }
+
+        // Check if user has any existing wedding booking (pending or completed)
+        $weddingServiceIds = \App\Models\Service::where('service_type', 'wedding')
+            ->orWhere('name', 'like', '%wedding%')
+            ->orWhere('name', 'like', '%marriage%')
+            ->pluck('id');
+
+        if ($weddingServiceIds->isEmpty()) {
+            return true; // No wedding services defined, allow booking
+        }
+
+        $existingWeddingBooking = $this->bookings()
+            ->whereIn('service_id', $weddingServiceIds)
+            ->whereIn('status', [
+                Booking::STATUS_PENDING,
+                Booking::STATUS_ACKNOWLEDGED,
+                Booking::STATUS_PAYMENT_HOLD,
+                Booking::STATUS_APPROVED,
+                Booking::STATUS_COMPLETED
+            ])
+            ->exists();
+
+        return !$existingWeddingBooking;
+    }
+
+    /**
+     * Get existing wedding booking if any
+     */
+    public function getWeddingBooking()
+    {
+        $weddingServiceIds = \App\Models\Service::where('service_type', 'wedding')
+            ->orWhere('name', 'like', '%wedding%')
+            ->orWhere('name', 'like', '%marriage%')
+            ->pluck('id');
+
+        if ($weddingServiceIds->isEmpty()) {
+            return null;
+        }
+
+        return $this->bookings()
+            ->whereIn('service_id', $weddingServiceIds)
+            ->whereIn('status', [
+                Booking::STATUS_PENDING,
+                Booking::STATUS_ACKNOWLEDGED,
+                Booking::STATUS_PAYMENT_HOLD,
+                Booking::STATUS_APPROVED,
+                Booking::STATUS_COMPLETED
+            ])
+            ->first();
     }
 }

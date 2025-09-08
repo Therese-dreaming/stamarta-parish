@@ -183,7 +183,7 @@
                                     <label class="block text-xs font-medium text-gray-500 mb-1">Fee Type</label>
                                     <input type="text" name="fee_types[]" value="{{ $feeType }}"
                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                                           placeholder="e.g., regular, rush">
+                                           placeholder="e.g., regular">
                                 </div>
                                 <div class="group">
                                     <label class="block text-xs font-medium text-gray-500 mb-1">Amount (₱)</label>
@@ -379,7 +379,7 @@ function addFee() {
                 <label class="block text-xs font-medium text-gray-500 mb-1">Fee Type</label>
                 <input type="text" name="fee_types[]" 
                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                       placeholder="e.g., regular, rush">
+                       placeholder="e.g., regular">
             </div>
             <div class="group">
                 <label class="block text-xs font-medium text-gray-500 mb-1">Amount (₱)</label>

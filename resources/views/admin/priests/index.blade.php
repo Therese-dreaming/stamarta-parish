@@ -82,6 +82,16 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($priests as $priest)
+                                @php
+                                    $today = \Carbon\Carbon::today(config('app.timezone'));
+                                    $onLeaveToday = $priest->leaves()
+                                        ->where('status', 'approved')
+                                        ->whereDate('start_date', '<=', $today)
+                                        ->whereDate('end_date', '>=', $today)
+                                        ->exists();
+                                    $pendingLeaves = $priest->leaves()->where('status', 'pending')->count();
+                                    $isActiveEffective = $priest->is_active && !$onLeaveToday;
+                                @endphp
                                 <tr class="hover:bg-gray-50 transition-colors priest-row">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
@@ -93,7 +103,19 @@
                                                 </div>
                                             @endif
                                             <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900 priest-name">{{ $priest->name }}</div>
+                                                <div class="text-sm font-medium text-gray-900 priest-name flex items-center space-x-2">
+                                                    <span>{{ $priest->name }}</span>
+                                                    @if($onLeaveToday)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-100 text-yellow-800" title="On leave {{ $priest->leave_start_date?->format('M d') }} - {{ $priest->leave_end_date?->format('M d, Y') }}">
+                                                            <i class="fas fa-calendar-times mr-1"></i>On Leave
+                                                        </span>
+                                                    @endif
+                                                    @if($pendingLeaves > 0)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-800" title="{{ $pendingLeaves }} pending leave{{ $pendingLeaves > 1 ? 's' : '' }}">
+                                                            <i class="fas fa-hourglass-half mr-1"></i>Pending {{ $pendingLeaves }}
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 <div class="text-sm text-gray-500 flex items-center">
                                                     <i class="fas fa-envelope mr-1 text-xs"></i>{{ $priest->email }}
                                                 </div>
@@ -109,7 +131,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($priest->is_active)
+                                        @if($isActiveEffective)
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 <i class="fas fa-check-circle mr-1"></i>Active
                                             </span>
@@ -118,12 +140,22 @@
                                                 <i class="fas fa-times-circle mr-1"></i>Inactive
                                             </span>
                                         @endif
+                                        @if($onLeaveToday)
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-100 text-yellow-800">
+                                                <i class="fas fa-calendar-day mr-1"></i>On Leave Today
+                                            </span>
+                                        @endif
+                                        @if($pendingLeaves > 0)
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-800">
+                                                <i class="fas fa-hourglass-half mr-1"></i>{{ $pendingLeaves }} Pending
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        @if($priest->years_of_service)
+                                        @if($priest->calculated_years_of_service)
                                             <div class="flex items-center">
                                                 <i class="fas fa-calendar-alt mr-2 text-[#0d5c2f]"></i>
-                                                {{ $priest->years_of_service }} years
+                                                {{ $priest->calculated_years_of_service }} years
                                             </div>
                                         @else
                                             <div class="flex items-center text-gray-500">
@@ -166,6 +198,12 @@
                 <div id="card-view" class="view-content hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         @foreach($priests as $priest)
+                        @php
+                            $onLeaveToday = ($priest->leave_status !== 'active') 
+                                && $priest->leave_start_date && $priest->leave_end_date 
+                                && (\Carbon\Carbon::today()->between($priest->leave_start_date, $priest->leave_end_date));
+                            $pendingLeaves = $priest->leaves()->where('status', 'pending')->count();
+                        @endphp
                         <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 priest-card overflow-hidden">
                             <div class="h-3 bg-[#0d5c2f]"></div>
                             <div class="p-6">
@@ -178,7 +216,19 @@
                                         </div>
                                     @endif
                                     <div class="ml-4 flex-1">
-                                        <h3 class="text-lg font-semibold text-gray-900 priest-name">{{ $priest->name }}</h3>
+                                        <h3 class="text-lg font-semibold text-gray-900 priest-name flex items-center space-x-2">
+                                            <span>{{ $priest->name }}</span>
+                                            @if($onLeaveToday)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-yellow-100 text-yellow-800" title="On leave {{ $priest->leave_start_date?->format('M d') }} - {{ $priest->leave_end_date?->format('M d, Y') }}">
+                                                    <i class="fas fa-calendar-times mr-1"></i>On Leave
+                                                </span>
+                                            @endif
+                                            @if($pendingLeaves > 0)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-800" title="{{ $pendingLeaves }} pending leave{{ $pendingLeaves > 1 ? 's' : '' }}">
+                                                    <i class="fas fa-hourglass-half mr-1"></i>Pending {{ $pendingLeaves }}
+                                                </span>
+                                            @endif
+                                        </h3>
                                         <p class="text-sm text-gray-500 flex items-center">
                                             <i class="fas fa-envelope mr-1"></i>{{ $priest->email }}
                                         </p>
@@ -196,12 +246,12 @@
                                     </div>
                                     <div class="flex items-center text-sm text-gray-600">
                                         <i class="fas fa-calendar-alt mr-2 text-[#0d5c2f] w-4"></i>
-                                        <span>{{ $priest->years_of_service ? $priest->years_of_service . ' years' : 'N/A' }}</span>
+                                        <span>{{ $priest->calculated_years_of_service ? $priest->calculated_years_of_service . ' years' : 'N/A' }}</span>
                                     </div>
                                 </div>
 
                                 <div class="flex items-center justify-between">
-                                    @if($priest->is_active)
+                                    @if($isActiveEffective)
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             <i class="fas fa-check-circle mr-1"></i>Active
                                         </span>
@@ -222,13 +272,12 @@
                                             <i class="fas fa-edit text-sm"></i>
                                         </a>
                                         <button type="button" onclick="openModal('toggle-status-modal-{{ $priest->id }}')"
-                                                class="w-8 h-8 rounded-lg bg-{{ $priest->is_active ? 'yellow' : 'green' }}-50 hover:bg-{{ $priest->is_active ? 'yellow' : 'green' }}-100 flex items-center justify-center text-{{ $priest->is_active ? 'yellow' : 'green' }}-600 transition-colors" 
-                                                title="{{ $priest->is_active ? 'Deactivate' : 'Activate' }}">
+                                                class="w-8 h-8 rounded-lg bg-{{ $priest->is_active ? 'yellow' : 'green' }}-50 hover:bg-{{ $priest->is_active ? 'yellow' : 'green' }}-100 flex items-center justify-center text-{{ $priest->is_active ? 'yellow' : 'green' }}-600 transition-colors" title="{{ $priest->is_active ? 'Deactivate' : 'Activate' }}">
                                             <i class="fas fa-{{ $priest->is_active ? 'pause' : 'play' }} text-sm"></i>
                                         </button>
                                         <button type="button" onclick="openModal('delete-modal-{{ $priest->id }}')"
                                                 class="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-600 transition-colors" title="Delete">
-                                            <i class="fas fa-trash text-sm"></i>
+                                            <i class="fas fa-trash text sm"></i>
                                         </button>
                                         @endif
                                     </div>

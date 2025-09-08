@@ -106,11 +106,7 @@
                                                         @php $amt = is_array($fees['regular']) ? ($fees['regular']['amount'] ?? 0) : $fees['regular']; @endphp
                                                         <p class="text-sm font-medium text-gray-900">Regular: ₱{{ number_format($amt, 2) }}</p>
                                                     @endif
-                                                    @if(isset($fees['rush']))
-                                                        @php $amt = is_array($fees['rush']) ? ($fees['rush']['amount'] ?? 0) : $fees['rush']; @endphp
-                                                        <p class="text-sm font-medium text-gray-900">Rush: ₱{{ number_format($amt, 2) }}</p>
-                                                    @endif
-                                                    @php $others = collect($fees)->except(['regular','rush']); @endphp
+                                                    @php $others = collect($fees)->except(['regular']); @endphp
                                                     @foreach($others as $type => $feeData)
                                                         @php $label = is_array($feeData) ? ($feeData['description'] ?? ucfirst($type)) : ucfirst($type); $amount = is_array($feeData) ? ($feeData['amount'] ?? 0) : $feeData; @endphp
                                                         <p class="text-sm font-medium text-gray-900">{{ $label }}: ₱{{ number_format($amount, 2) }}</p>
