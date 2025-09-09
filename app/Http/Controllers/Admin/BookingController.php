@@ -235,8 +235,13 @@ class BookingController extends Controller
         // Send payment instructions email
         EmailService::sendPaymentInstructions($booking);
 
-        // Create notification
+        // Create notification for user
         NotificationService::bookingAcknowledged($booking);
+
+        // If called by staff, notify admins
+        if (auth()->user()->role === 'staff') {
+            NotificationService::staffBookingAcknowledged($booking, auth()->user()->name);
+        }
 
         return back()->with('success', 'Booking acknowledged successfully. Payment fee set to ₱' . number_format($request->total_fee, 2));
     }
@@ -293,12 +298,31 @@ class BookingController extends Controller
         // Send appropriate email based on verification status
         if ($request->verification_status === 'approved') {
             EmailService::sendBookingApproved($booking);
-            NotificationService::bookingApproved($booking);
+            // Create notifications for user
             NotificationService::paymentVerified($booking);
+            NotificationService::bookingApproved($booking);
+            
+            // Notify the assigned priest
+            if ($request->priest_id) {
+                $priest = \App\Models\Priest::find($request->priest_id);
+                if ($priest) {
+                    NotificationService::priestBookingAssigned($booking, $priest);
+                }
+            }
+            
+            // If called by staff, notify admins
+            if (auth()->user()->role === 'staff') {
+                NotificationService::staffBookingApproved($booking, auth()->user()->name);
+            }
         } else {
             EmailService::sendBookingRejected($booking);
+            // Create notification for user
             NotificationService::bookingRejected($booking, $request->notes);
-            NotificationService::paymentRejected($booking, $request->notes);
+            
+            // If called by staff, notify admins
+            if (auth()->user()->role === 'staff') {
+                NotificationService::staffBookingRejected($booking, auth()->user()->name, $request->notes);
+            }
         }
 
         $message = $request->verification_status === 'approved' 
@@ -327,9 +351,6 @@ class BookingController extends Controller
             'performed_by' => auth()->id(),
         ]);
 
-        // Create notification
-        NotificationService::bookingCompleted($booking);
-
         return back()->with('success', 'Booking marked as completed successfully.');
     }
 
@@ -355,8 +376,10 @@ class BookingController extends Controller
         // Send rejection email
         EmailService::sendBookingRejected($booking);
 
-        // Create notification
-        NotificationService::bookingRejected($booking, $request->notes);
+        // If called by staff, notify admins
+        if (auth()->user()->role === 'staff') {
+            NotificationService::staffBookingRejected($booking, auth()->user()->name, $request->notes);
+        }
 
         return back()->with('success', 'Booking rejected successfully.');
     }
@@ -402,9 +425,6 @@ class BookingController extends Controller
         $file = $request->file('certificate');
         $path = $file->store('certificates', 'public');
         $booking->update(['certificate_path' => $path]);
-
-        // Notify admin/staff and user
-        NotificationService::certificateUploaded($booking, $file->getClientOriginalName());
 
         return back()->with('success', 'Certificate uploaded successfully.');
     }

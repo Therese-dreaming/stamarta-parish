@@ -261,8 +261,11 @@ class BookingController extends Controller
         // Send confirmation email
         EmailService::sendBookingConfirmation($booking);
 
-        // Create notifications
+        // Create notification for user
         NotificationService::bookingCreated($booking);
+
+        // Create notification for admins
+        NotificationService::userBookingCreated($booking);
 
         // Clear session data
         $request->session()->forget(['booking.step1', 'booking.step2', 'booking.service_id']);
@@ -778,6 +781,12 @@ class BookingController extends Controller
             // Send payment received email
             EmailService::sendPaymentReceived($booking);
 
+            // Create notification for user
+            NotificationService::paymentSubmitted($booking);
+
+            // Create notification for admins
+            NotificationService::userPaymentSubmitted($booking);
+
             return redirect()->route('booking.my-bookings')->with('success', 'Payment proof submitted successfully! Your booking is now on payment hold and will be reviewed shortly.');
         } catch (\Exception $e) {
             \Log::error('Payment submission error: ' . $e->getMessage());
@@ -804,6 +813,9 @@ class BookingController extends Controller
         $booking->update([
             'status' => 'cancelled',
         ]);
+
+        // Create notification for admins
+        NotificationService::userBookingCancelled($booking);
 
         return redirect()->route('booking.my-bookings')->with('success', 'Booking cancelled successfully.');
     }

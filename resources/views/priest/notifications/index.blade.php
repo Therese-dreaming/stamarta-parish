@@ -3,315 +3,255 @@
 @section('title', 'Notifications')
 
 @section('content')
-<div class="bg-white rounded-lg shadow-sm border border-gray-200">
+<div class="space-y-6">
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">Notifications</h1>
-                <p class="text-gray-600 mt-1 text-sm">Manage your notifications and stay updated</p>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button id="delete-selected" class="hidden inline-flex items-center px-3 py-2 border border-red-200 text-xs font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none transition-colors" onclick="document.getElementById('delete-modal').classList.remove('hidden')">
-                    <i class="fas fa-trash-alt mr-1.5"></i>
-                    Delete Selected
-                </button>
-                <button id="mark-all-read" class="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-[#0d5c2f] hover:bg-[#0d5c2f]/90 focus:outline-none transition-colors">
-                    <i class="fas fa-check-double mr-1.5"></i>
-                    Mark All as Read
-                </button>
-                <button id="refresh-notifications" class="inline-flex items-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors">
-                    <i class="fas fa-sync-alt mr-1.5"></i>
-                    Refresh
-                </button>
-            </div>
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Notifications</h1>
+            <p class="text-gray-600">Stay updated on your leave requests and booking assignments</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="mark-all-read" class="bg-[#0d5c2f] text-white px-4 py-2 rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
+                <i class="fas fa-check-double mr-2"></i>Mark All as Read
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8">
+            <a href="{{ route('priest.notifications.index') }}" 
+               class="flex items-center px-1 py-2 text-sm font-medium border-b-2 {{ $type === 'all' ? 'border-[#0d5c2f] text-[#0d5c2f]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                All
+                <span class="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs">{{ $counts['all'] }}</span>
+            </a>
+            <a href="{{ route('priest.notifications.index', ['type' => 'unread']) }}" 
+               class="flex items-center px-1 py-2 text-sm font-medium border-b-2 {{ $type === 'unread' ? 'border-[#0d5c2f] text-[#0d5c2f]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Unread
+                <span class="ml-2 bg-red-100 text-red-900 py-0.5 px-2.5 rounded-full text-xs">{{ $counts['unread'] }}</span>
+            </a>
+            <a href="{{ route('priest.notifications.index', ['type' => 'leave_actions']) }}" 
+               class="flex items-center px-1 py-2 text-sm font-medium border-b-2 {{ $type === 'leave_actions' ? 'border-[#0d5c2f] text-[#0d5c2f]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Leave Actions
+                <span class="ml-2 bg-blue-100 text-blue-900 py-0.5 px-2.5 rounded-full text-xs">{{ $counts['leave_actions'] }}</span>
+            </a>
+            <a href="{{ route('priest.notifications.index', ['type' => 'booking_assignments']) }}" 
+               class="flex items-center px-1 py-2 text-sm font-medium border-b-2 {{ $type === 'booking_assignments' ? 'border-[#0d5c2f] text-[#0d5c2f]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Booking Assignments
+                <span class="ml-2 bg-green-100 text-green-900 py-0.5 px-2.5 rounded-full text-xs">{{ $counts['booking_assignments'] }}</span>
+            </a>
+            <a href="{{ route('priest.notifications.index', ['type' => 'read']) }}" 
+               class="flex items-center px-1 py-2 text-sm font-medium border-b-2 {{ $type === 'read' ? 'border-[#0d5c2f] text-[#0d5c2f]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Read
+                <span class="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs">{{ $counts['read'] }}</span>
+            </a>
         </div>
     </div>
 
     <!-- Notifications List -->
-    <div class="p-6">
-        <div id="notifications-container">
-            @if($notifications->count() > 0)
-                <div class="space-y-3">
-                    @foreach($notifications as $notification)
-                        @php
-                            $message = strtolower($notification->message ?? '');
-                            $icon = 'fas fa-bell';
-                            $iconBg = 'bg-blue-100';
-                            $iconColor = 'text-blue-600';
-                            if (str_contains($message, 'booking')) { $icon = 'fas fa-calendar-check'; $iconBg = 'bg-green-100'; $iconColor = 'text-green-600'; }
-                            elseif (str_contains($message, 'payment')) { $icon = 'fas fa-credit-card'; $iconBg = 'bg-purple-100'; $iconColor = 'text-purple-600'; }
-                            elseif (str_contains($message, 'approved') || str_contains($message, 'confirmed')) { $icon = 'fas fa-check-circle'; $iconBg = 'bg-green-100'; $iconColor = 'text-green-600'; }
-                            elseif (str_contains($message, 'rejected') || str_contains($message, 'cancelled')) { $icon = 'fas fa-times-circle'; $iconBg = 'bg-red-100'; $iconColor = 'text-red-600'; }
-                            elseif (str_contains($message, 'reminder')) { $icon = 'fas fa-clock'; $iconBg = 'bg-orange-100'; $iconColor = 'text-orange-600'; }
-                        @endphp
-                        <div class="notification-item rounded-lg p-4 transition-colors border border-gray-200 {{ $notification->read_at ? 'bg-gray-50' : 'bg-blue-50/50 border-l-4 border-[#0d5c2f]' }}" data-notification-id="{{ $notification->id }}">
-                            <div class="flex items-start space-x-4">
-                                <div class="flex-shrink-0">
-                                    <div class="w-10 h-10 {{ $iconBg }} rounded-full flex items-center justify-center">
-                                        <i class="{{ $icon }} {{ $iconColor }} text-sm"></i>
+    <div class="bg-white rounded-lg shadow">
+        <div class="divide-y divide-gray-200">
+            @forelse($notifications as $notification)
+                @php
+                    // Determine icon and styling based on action type
+                    $icon = 'fas fa-bell';
+                    $iconBg = 'bg-blue-100';
+                    $iconColor = 'text-blue-600';
+                    
+                    switch($notification->action) {
+                        case 'priest_leave_approved':
+                            $icon = 'fas fa-check-circle';
+                            $iconBg = 'bg-green-100';
+                            $iconColor = 'text-green-600';
+                            break;
+                        case 'priest_leave_rejected':
+                            $icon = 'fas fa-times-circle';
+                            $iconBg = 'bg-red-100';
+                            $iconColor = 'text-red-600';
+                            break;
+                        case 'priest_booking_assigned':
+                            $icon = 'fas fa-calendar-check';
+                            $iconBg = 'bg-purple-100';
+                            $iconColor = 'text-purple-600';
+                            break;
+                    }
+                @endphp
+                <div class="p-6 hover:bg-gray-50 transition-colors {{ !$notification->is_read ? 'bg-blue-50/30 border-l-4 border-[#0d5c2f]' : '' }}">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 {{ $iconBg }} rounded-full flex items-center justify-center">
+                                <i class="{{ $icon }} {{ $iconColor }} text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-900 font-medium leading-5 mb-2">{{ $notification->message }}</p>
+                                    <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                        <span>{{ $notification->created_at->format('M j, Y g:i A') }}</span>
+                                        @if($notification->created_at->diffInHours() < 24)
+                                            <span class="text-[#0d5c2f]">{{ $notification->created_at->diffForHumans() }}</span>
+                                        @endif
+                                        @if(!$notification->is_read)
+                                            <span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full"></span>
+                                        @endif
                                     </div>
+                                    @if($notification->data && count($notification->data) > 0)
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            @if(isset($notification->data['leave_type']))
+                                                <span class="inline-block bg-blue-100 px-2 py-1 rounded mr-2">
+                                                    <i class="fas fa-calendar-alt mr-1"></i>{{ $notification->data['leave_type'] }}
+                                                </span>
+                                            @endif
+                                            @if(isset($notification->data['start_date']))
+                                                <span class="inline-block bg-green-100 px-2 py-1 rounded mr-2">
+                                                    <i class="fas fa-calendar mr-1"></i>{{ \Carbon\Carbon::parse($notification->data['start_date'])->format('M j') }} - {{ \Carbon\Carbon::parse($notification->data['end_date'])->format('M j, Y') }}
+                                                </span>
+                                            @endif
+                                            @if(isset($notification->data['service_name']))
+                                                <span class="inline-block bg-purple-100 px-2 py-1 rounded mr-2">
+                                                    <i class="fas fa-church mr-1"></i>{{ $notification->data['service_name'] }}
+                                                </span>
+                                            @endif
+                                            @if(isset($notification->data['booking_date']))
+                                                <span class="inline-block bg-indigo-100 px-2 py-1 rounded mr-2">
+                                                    <i class="fas fa-calendar mr-1"></i>{{ \Carbon\Carbon::parse($notification->data['booking_date'])->format('M j, Y') }}
+                                                </span>
+                                            @endif
+                                            @if(isset($notification->data['user_name']))
+                                                <span class="inline-block bg-orange-100 px-2 py-1 rounded mr-2">
+                                                    <i class="fas fa-user mr-1"></i>{{ $notification->data['user_name'] }}
+                                                </span>
+                                            @endif
+                                            @if(isset($notification->data['reason']))
+                                                <span class="inline-block bg-gray-100 px-2 py-1 rounded mr-2">
+                                                    <i class="fas fa-comment mr-1"></i>{{ $notification->data['reason'] }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1">
-                                            <p class="text-sm text-gray-900 font-medium leading-5 mb-1">{{ $notification->title }}</p>
-                                            <p class="text-sm text-gray-600">{{ $notification->display_message }}</p>
-                                            <div class="flex items-center space-x-2 mt-2">
-                                                <p class="text-xs text-gray-500">{{ $notification->created_at->diffForHumans() }}</p>
-                                                @if(!$notification->read_at)
-                                                    <span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full"></span>
-                                                @endif
-                                            </div>
-                                            @if($notification->type === 'admin_staff')
-                                                <div class="mt-2 text-xs text-gray-500">
-                                                    <i class="fas fa-user-shield mr-1"></i> From: {{ $notification->createdBy->name ?? 'System' }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="flex items-center space-x-2 ml-4">
-                                            @if(!$notification->read_at)
-                                                <button class="mark-read-btn inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-md text-[#0d5c2f] bg-[#0d5c2f]/10 hover:bg-[#0d5c2f]/20 focus:outline-none transition-colors" data-id="{{ $notification->id }}">
-                                                    Mark as Read
-                                                </button>
-                                            @endif
-                                            <input type="checkbox" class="notification-checkbox h-4 w-4 text-[#0d5c2f] focus:ring-[#0d5c2f] border-gray-300 rounded" value="{{ $notification->id }}">
-                                        </div>
-                                    </div>
+                                <div class="flex items-center space-x-2 ml-4">
+                                    @if(!$notification->is_read)
+                                        <button class="mark-read-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium" data-id="{{ $notification->id }}">
+                                            Mark read
+                                        </button>
+                                    @endif
+                                    <button class="delete-btn text-xs text-red-600 hover:text-red-800 font-medium" data-id="{{ $notification->id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="text-center py-12">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-bell text-3xl text-gray-400"></i>
                     </div>
-                    <p class="text-gray-900 text-base font-semibold">No notifications found</p>
-                    <p class="text-gray-500 text-sm mt-1">You're all caught up!</p>
                 </div>
-            @endif
-        </div>
-
-        <!-- Pagination -->
-        @if($notifications->hasPages())
-            <div id="pagination-container" class="mt-6 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    @if($notifications->onFirstPage())
-                        <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">Previous</span>
-                    @else
-                        <a href="{{ $notifications->previousPageUrl() }}" class="pagination-link px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" data-page="{{ $notifications->currentPage() - 1 }}">Previous</a>
-                    @endif
-                    
-                    <span class="px-3 py-2 text-sm text-gray-700">
-                        Page {{ $notifications->currentPage() }} of {{ $notifications->lastPage() }}
-                    </span>
-                    
-                    @if($notifications->hasMorePages())
-                        <a href="{{ $notifications->nextPageUrl() }}" class="pagination-link px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" data-page="{{ $notifications->currentPage() + 1 }}">Next</a>
-                    @else
-                        <span class="px-3 py-2 text-sm text-gray-400 bg-gray-100 rounded-md cursor-not-allowed">Next</span>
-                    @endif
+            @empty
+                <div class="p-12 text-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bell-slash text-gray-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
+                    <p class="text-gray-500">
+                        @if($type === 'unread')
+                            You have no unread notifications.
+                        @elseif($type === 'read')
+                            You have no read notifications.
+                        @elseif($type === 'leave_actions')
+                            No leave action notifications found.
+                        @elseif($type === 'booking_assignments')
+                            No booking assignment notifications found.
+                        @else
+                            You don't have any notifications yet.
+                        @endif
+                    </p>
                 </div>
-                
-                <div class="text-sm text-gray-700">
-                    Showing {{ $notifications->firstItem() ?? 0 }} to {{ $notifications->lastItem() ?? 0 }} of {{ $notifications->total() }} results
-                </div>
-            </div>
-        @endif
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
-            </div>
-            <h3 class="text-lg font-medium text-gray-900 mt-4">Delete Notifications</h3>
-            <div class="mt-2 px-7">
-                <p class="text-sm text-gray-500">
-                    Are you sure you want to delete the selected notifications? This action cannot be undone.
-                </p>
-            </div>
-            <div class="flex items-center justify-center space-x-3 mt-6">
-                <button id="cancel-delete" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
-                    Cancel
-                </button>
-                <button id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                    Delete
-                </button>
-            </div>
+            @endforelse
         </div>
     </div>
+
+    <!-- Pagination -->
+    @if($notifications->hasPages())
+        <div class="flex justify-center">
+            {{ $notifications->links() }}
+        </div>
+    @endif
 </div>
 
-@endsection
-
-@push('scripts')
 <script>
-let currentPage = 1;
-let selectedNotifications = new Set();
-
-// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    setupEventListeners();
-    updateDeleteButton();
-});
-
-function setupEventListeners() {
-    // Mark all as read
-    document.getElementById('mark-all-read').addEventListener('click', markAllAsRead);
-    
-    // Refresh notifications
-    document.getElementById('refresh-notifications').addEventListener('click', function() {
-        window.location.reload();
-    });
-
-    // Delete modal
-    document.getElementById('cancel-delete').addEventListener('click', function() {
-        document.getElementById('delete-modal').classList.add('hidden');
-    });
-
-    document.getElementById('confirm-delete').addEventListener('click', deleteSelectedNotifications);
-    
-    // Setup notification event listeners
-    setupNotificationEventListeners();
-}
-
-function setupNotificationEventListeners() {
-    // Checkbox change events
-    document.querySelectorAll('.notification-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const notificationId = this.value;
-            if (this.checked) {
-                selectedNotifications.add(notificationId);
-            } else {
-                selectedNotifications.delete(notificationId);
-            }
-            updateDeleteButton();
-        });
-    });
-
-    // Mark as read buttons
-    document.querySelectorAll('.mark-read-btn').forEach(button => {
-        button.addEventListener('click', function() {
+    // Mark as read functionality
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
             const notificationId = this.dataset.id;
-            markAsRead(notificationId);
+            const notificationItem = this.closest('.p-6');
+            
+            fetch('{{ route("priest.notifications.mark-as-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    notification_ids: [notificationId]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationItem.classList.remove('bg-blue-50/30', 'border-l-4', 'border-[#0d5c2f]');
+                    this.remove();
+                    // Update unread count
+                    location.reload();
+                }
+            });
         });
     });
 
-    // Pagination
-    document.querySelectorAll('.pagination-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.dataset.page;
-            if (page) {
-                currentPage = parseInt(page);
-                // For now, just follow the link
-                window.location.href = this.href;
-            }
-        });
-    });
-}
-
-function markAsRead(notificationId) {
-    fetch('{{ route("priest.notifications.mark-as-read") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ notification_ids: [notificationId] })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update the notification item
-            const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
-            if (notificationItem) {
-                notificationItem.classList.remove('bg-blue-50/50', 'border-[#0d5c2f]');
-                notificationItem.classList.add('bg-gray-50', 'border-gray-200');
+    // Delete functionality
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this notification?')) {
+                const notificationId = this.dataset.id;
+                const notificationItem = this.closest('.p-6');
                 
-                const markReadBtn = notificationItem.querySelector('.mark-read-btn');
-                if (markReadBtn) markReadBtn.remove();
+                fetch('{{ route("priest.notifications.delete") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        notification_ids: [notificationId]
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        notificationItem.remove();
+                        // Update counts
+                        location.reload();
+                    }
+                });
             }
-            
-            // Update notification count in header
-            updateHeaderNotificationCount();
-        }
-    })
-    .catch(error => console.error('Error marking notification as read:', error));
-}
+        });
+    });
 
-function markAllAsRead() {
-            fetch('{{ route("priest.notifications.mark-all-as-read") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Reload page to show updated state
-            window.location.reload();
-        }
-    })
-    .catch(error => console.error('Error marking all notifications as read:', error));
-}
-
-function updateDeleteButton() {
-    const deleteButton = document.getElementById('delete-selected');
-    if (deleteButton) {
-        if (selectedNotifications.size > 0) {
-            deleteButton.classList.remove('hidden');
-            deleteButton.textContent = `Delete Selected (${selectedNotifications.size})`;
-        } else {
-            deleteButton.classList.add('hidden');
-            deleteButton.textContent = 'Delete Selected';
-        }
-    }
-}
-
-function deleteSelectedNotifications() {
-    if (selectedNotifications.size === 0) return;
-
-    fetch('{{ route("priest.notifications.delete") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ 
-            notification_ids: Array.from(selectedNotifications)
+    // Mark all as read
+    document.getElementById('mark-all-read').addEventListener('click', function() {
+        fetch('{{ route("priest.notifications.mark-all-as-read") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Hide modal
-            document.getElementById('delete-modal').classList.add('hidden');
-            
-            // Clear selection
-            selectedNotifications.clear();
-            updateDeleteButton();
-            
-            // Reload page to show updated notifications
-            window.location.reload();
-        }
-    })
-    .catch(error => console.error('Error deleting notifications:', error));
-}
-
-function updateHeaderNotificationCount() {
-    if (typeof updateNotificationCount === 'function') {
-        updateNotificationCount();
-    }
-}
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    });
+});
 </script>
-@endpush 
+@endsection

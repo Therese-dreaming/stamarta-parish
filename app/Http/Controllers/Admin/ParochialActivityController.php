@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ParochialActivity;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -87,7 +88,12 @@ class ParochialActivityController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();
 
-        ParochialActivity::create($validated);
+        $activity = ParochialActivity::create($validated);
+
+        // If called by staff, notify admins
+        if (auth()->user()->role === 'staff') {
+            NotificationService::staffActivityCreated($activity, auth()->user()->name);
+        }
 
         return redirect()->route('admin.parochial-activities.index')
             ->with('success', 'Parochial activity created successfully.');

@@ -262,4 +262,25 @@ class DashboardController extends Controller
         arsort($serviceCounts);
         return array_slice($serviceCounts, 0, 6, true);
     }
+
+    public function getStaffActionCounts()
+    {
+        $counts = [
+            'pending_bookings' => Booking::where('status', 'pending')->count(),
+            'acknowledged_bookings' => Booking::where('status', 'acknowledged')->count(),
+            'payment_verification' => Booking::where('status', 'payment_hold')->count(),
+            'pending_activities' => 0, // Placeholder for future implementation
+            'pending_pages' => 0, // Placeholder for future implementation
+        ];
+
+        $total = array_sum($counts);
+        $has_actions = $total > 0;
+
+        return response()->json([
+            'has_actions' => $has_actions,
+            'counts' => $counts,
+            'total' => $total,
+            'formatted_total' => $total > 99 ? '99+' : $total,
+        ]);
+    }
 } 

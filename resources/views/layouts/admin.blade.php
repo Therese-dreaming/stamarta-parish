@@ -115,6 +115,7 @@
                 <a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                     <i class="fas fa-users w-4 h-4 mr-2"></i>
                     Users
+                    <span id="pending-users-count" class="ml-auto bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-count="0">0</span>
                 </a>
 
                 <!-- Ministries -->
@@ -186,7 +187,7 @@
                     <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Notifications</h3>
                 </div>
                 
-                <a href="{{ route('admin.notifications.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.notifications.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                <a href="{{ route('admin.admin.notifications.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('admin.admin.notifications.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                     <i class="fas fa-bell w-4 h-4 mr-2"></i>
                     Notifications
                     <span id="notification-count" class="ml-auto bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 hidden" data-notification-count="0">0</span>
@@ -233,10 +234,10 @@
                                             </div>
                                             <div>
                                                 <h3 class="text-sm font-semibold text-gray-900">Notifications</h3>
-                                                <p class="text-xs text-gray-500">Monitor system events and updates</p>
+                                                <p class="text-xs text-gray-500">Monitor user activities and system events</p>
                                             </div>
                                         </div>
-                                        <a href="{{ route('admin.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium">View All</a>
+                                        <a href="{{ route('admin.admin.notifications.index') }}" class="text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium">View All</a>
                                     </div>
                                 </div>
                                 
@@ -356,102 +357,65 @@
 
         // Update notification count
         function updateNotificationCount() {
-            fetch('{{ route("admin.notifications.unread-count") }}')
+            fetch('{{ route("admin.admin.notifications.unread-count") }}')
             .then(response => response.json())
             .then(data => {
                 const countElement = document.getElementById('notification-count');
-                const headerCount = document.getElementById('header-notification-count');
-                if (countElement) {
+                const headerCountElement = document.getElementById('header-notification-count');
+                
+                if (data.count > 0) {
                     countElement.textContent = data.count;
-                    if (data.count > 0) {
-                        countElement.classList.remove('hidden');
-                    } else {
-                        countElement.classList.add('hidden');
-                    }
-                }
-                if (headerCount) {
-                    if (data.count > 0) {
-                        headerCount.textContent = data.count;
-                        headerCount.classList.remove('hidden');
-                    } else {
-                        headerCount.classList.add('hidden');
-                    }
+                    countElement.classList.remove('hidden');
+                    headerCountElement.textContent = data.count;
+                    headerCountElement.classList.remove('hidden');
+                } else {
+                    countElement.classList.add('hidden');
+                    headerCountElement.classList.add('hidden');
                 }
             })
-            .catch(error => console.error('Error fetching notification count:', error));
+            .catch(error => {
+                console.error('Error fetching notification count:', error);
+            });
         }
-
-        // Update count on page load
-        updateNotificationCount();
-
-        // Update count every 30 seconds
-        setInterval(updateNotificationCount, 30000);
 
         // Load header notifications
         function loadHeaderNotifications() {
-            fetch('{{ route("admin.notifications.unread-count") }}?limit=5')
+            fetch('{{ route("admin.admin.notifications.unread-count") }}?limit=5')
             .then(response => response.json())
             .then(data => {
                 const notificationsList = document.getElementById('header-notifications-list');
-                const headerCount = document.getElementById('header-notification-count');
                 
-                // Update header count
-                if (data.count > 0) {
-                    headerCount.textContent = data.count;
-                    headerCount.classList.remove('hidden');
-                } else {
-                    headerCount.classList.add('hidden');
-                }
-                
-                // Load recent notifications (match user's design)
                 if (data.notifications && data.notifications.length > 0) {
-                    let html = '';
-                    data.notifications.forEach(notification => {
-                        const borderColor = notification.is_read ? 'border-gray-100' : 'border-[#0d5c2f]';
-                        let icon = 'fas fa-bell';
-                        let iconBg = 'bg-blue-100';
-                        let iconColor = 'text-blue-600';
-                        const msg = (notification.message || '').toLowerCase();
-                        if (msg.includes('booking')) { icon = 'fas fa-calendar-check'; iconBg = 'bg-green-100'; iconColor = 'text-green-600'; }
-                        else if (msg.includes('payment')) { icon = 'fas fa-credit-card'; iconBg = 'bg-purple-100'; iconColor = 'text-purple-600'; }
-                        else if (msg.includes('approved') || msg.includes('verified') || msg.includes('completed')) { icon = 'fas fa-check-circle'; iconBg = 'bg-green-100'; iconColor = 'text-green-600'; }
-                        else if (msg.includes('rejected') || msg.includes('cancel')) { icon = 'fas fa-times-circle'; iconBg = 'bg-red-100'; iconColor = 'text-red-600'; }
-                        else if (msg.includes('certificate')) { icon = 'fas fa-file-certificate'; iconBg = 'bg-indigo-100'; iconColor = 'text-indigo-600'; }
-
-                        html += `
-                            <div class="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header border-l-4 ${borderColor} ${!notification.is_read ? 'bg-blue-50/50' : ''}" data-id="${notification.id}" data-read="${notification.is_read}">
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-10 h-10 ${iconBg} rounded-full flex items-center justify-center">
-                                            <i class="${icon} ${iconColor} text-sm"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-start justify-between">
-                                            <div class="flex-1">
-                                                <p class="text-sm text-gray-900 font-medium leading-5 mb-1">${notification.message}</p>
-                                                <div class="flex items-center space-x-2">
-                                                    <p class="text-xs text-gray-500">${notification.created_at}</p>
-                                                    ${!notification.is_read ? '<span class="inline-block w-2 h-2 bg-[#0d5c2f] rounded-full"></span>' : ''}
-                                                </div>
-                                            </div>
-                                            ${!notification.is_read ? '<button class="mark-read-header-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium flex-shrink-0 ml-3">Mark read</button>' : ''}
-                                        </div>
+                    notificationsList.innerHTML = data.notifications.map(notification => `
+                        <div class="px-6 py-3 hover:bg-gray-50 transition-colors notification-item-header ${!notification.is_read ? 'bg-blue-50/30 border-l-4 border-[#0d5c2f]' : ''}" data-id="${notification.id}">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-bell text-gray-600 text-xs"></i>
                                     </div>
                                 </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-900 font-medium leading-4 mb-1">${notification.message}</p>
+                                    <p class="text-xs text-gray-500">${notification.created_at}</p>
+                                    ${notification.booking ? `<p class="text-xs text-[#0d5c2f] mt-1">Booking #${notification.booking.id}</p>` : ''}
+                                </div>
+                                ${!notification.is_read ? `
+                                    <button class="mark-read-btn text-xs text-[#0d5c2f] hover:text-[#0d5c2f]/80 font-medium" data-id="${notification.id}">
+                                        Mark read
+                                    </button>
+                                ` : ''}
                             </div>
-                        `;
-                    });
-                    notificationsList.innerHTML = html;
+                        </div>
+                    `).join('');
                     
                     // Add event listeners for mark as read buttons
-                    document.querySelectorAll('.mark-read-header-btn').forEach(btn => {
+                    document.querySelectorAll('.mark-read-btn').forEach(btn => {
                         btn.addEventListener('click', function(e) {
                             e.stopPropagation();
                             const notificationItem = this.closest('.notification-item-header');
                             const notificationId = notificationItem.dataset.id;
                             
-                            fetch('{{ route("admin.notifications.mark-as-read") }}', {
+                            fetch('{{ route("admin.admin.notifications.mark-as-read") }}', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -464,10 +428,6 @@
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success) {
-                                    notificationItem.classList.remove('border-[#0d5c2f]');
-                                    notificationItem.classList.add('border-gray-300');
-                                    notificationItem.dataset.read = 'true';
-                                    this.remove();
                                     updateNotificationCount();
                                     loadHeaderNotifications();
                                 }
@@ -476,50 +436,28 @@
                     });
                 } else {
                     notificationsList.innerHTML = `
-                        <div class="px-6 py-12 text-center">
-                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-bell-slash text-gray-400 text-xl"></i>
+                        <div class="px-6 py-8 text-center">
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-bell-slash text-gray-400"></i>
                             </div>
-                            <p class="text-sm text-gray-500 font-medium mb-1">No new notifications</p>
-                            <p class="text-xs text-gray-400">You're all caught up!</p>
+                            <p class="text-sm text-gray-500">No notifications</p>
                         </div>
                     `;
                 }
             })
             .catch(error => {
-                console.error('Error loading header notifications:', error);
-                document.getElementById('header-notifications-list').innerHTML = '<div class="px-4 py-3 text-center text-red-500 text-sm">Error loading notifications</div>';
+                console.error('Error loading notifications:', error);
+                document.getElementById('header-notifications-list').innerHTML = `
+                    <div class="px-6 py-8 text-center">
+                        <p class="text-sm text-red-500">Error loading notifications</p>
+                    </div>
+                `;
             });
         }
 
-        // Mark all as read from header
-        document.getElementById('mark-all-read-header').addEventListener('click', function() {
-            fetch('{{ route("admin.notifications.mark-all-as-read") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    type: 'all'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateNotificationCount();
-                    loadHeaderNotifications();
-                }
-            });
-        });
-
-        // Load header notifications on page load
-        loadHeaderNotifications();
-
         // Update admin action counts
         function updateAdminActionCounts() {
-            const route = '{{ Auth::user()->role === "staff" ? route("staff.notifications.admin-action-counts") : route("admin.notifications.admin-action-counts") }}';
-            fetch(route)
+            fetch('{{ route("admin.admin-action-counts") }}')
             .then(response => response.json())
             .then(data => {
                 if (data.has_actions) {
@@ -529,13 +467,14 @@
                         totalElement.textContent = data.formatted_total;
                     }
 
-                    // Update individual counts
-                    updateCountElement('pending-bookings-count', data.counts.pending_bookings);
-                    updateCountElement('payment-verification-count', data.counts.payment_verification);
-                    updateCountElement('pending-cash-inflows-count', data.counts.pending_cash_inflows);
-                    updateCountElement('pending-budget-requests-count', data.counts.pending_budget_requests);
-                    updateCountElement('pending-activities-count', data.counts.pending_activities);
-                    updateCountElement('pending-priest-leaves-count', data.counts.pending_priest_leaves);
+                    // Update individual navigation counts
+                    updateNavigationCount('pending-bookings-count', data.counts.pending_bookings + data.counts.acknowledged_bookings);
+                    updateNavigationCount('payment-verification-count', data.counts.payment_verification);
+                    updateNavigationCount('pending-cash-inflows-count', data.counts.pending_cash_inflows);
+                    updateNavigationCount('pending-budget-requests-count', data.counts.pending_budget_requests);
+                    updateNavigationCount('pending-activities-count', data.counts.pending_activities);
+                    updateNavigationCount('pending-users-count', data.counts.pending_users);
+                    updateNavigationCount('pending-priest-leaves-count', 0); // Placeholder for future implementation
 
                     // Update breakdown
                     const breakdownElement = document.getElementById('admin-actions-breakdown');
@@ -543,6 +482,9 @@
                         let breakdownHtml = '';
                         if (data.counts.pending_bookings > 0) {
                             breakdownHtml += `<div>• ${data.counts.pending_bookings} pending bookings</div>`;
+                        }
+                        if (data.counts.acknowledged_bookings > 0) {
+                            breakdownHtml += `<div>• ${data.counts.acknowledged_bookings} acknowledged bookings</div>`;
                         }
                         if (data.counts.payment_verification > 0) {
                             breakdownHtml += `<div>• ${data.counts.payment_verification} payments to verify</div>`;
@@ -559,24 +501,34 @@
                         if (data.counts.pending_users > 0) {
                             breakdownHtml += `<div>• ${data.counts.pending_users} new users</div>`;
                         }
-                        if (data.counts.pending_priest_leaves > 0) {
-                            breakdownHtml += `<div>• ${data.counts.pending_priest_leaves} priest leaves to review</div>`;
-                        }
-                        breakdownElement.innerHTML = breakdownHtml || '<div class="text-green-600">All caught up! No pending actions.</div>';
+                        breakdownElement.innerHTML = breakdownHtml;
                     }
                 } else {
                     // Hide all count elements if no actions needed
-                    hideAllCountElements();
+                    updateNavigationCount('pending-bookings-count', 0);
+                    updateNavigationCount('payment-verification-count', 0);
+                    updateNavigationCount('pending-cash-inflows-count', 0);
+                    updateNavigationCount('pending-budget-requests-count', 0);
+                    updateNavigationCount('pending-activities-count', 0);
+                    updateNavigationCount('pending-users-count', 0);
+                    updateNavigationCount('pending-priest-leaves-count', 0);
+                    
+                    const breakdownElement = document.getElementById('admin-actions-breakdown');
+                    if (breakdownElement) {
+                        breakdownElement.innerHTML = '<div class="text-green-600">All caught up! No pending actions.</div>';
+                    }
                 }
             })
             .catch(error => console.error('Error fetching admin action counts:', error));
         }
 
-        function updateCountElement(elementId, count) {
+        // Helper function to update individual navigation counts
+        function updateNavigationCount(elementId, count) {
             const element = document.getElementById(elementId);
             if (element) {
+                element.textContent = count;
+                element.dataset.count = count;
                 if (count > 0) {
-                    element.textContent = count > 99 ? '99+' : count;
                     element.classList.remove('hidden');
                 } else {
                     element.classList.add('hidden');
@@ -584,34 +536,36 @@
             }
         }
 
-        function hideAllCountElements() {
-            const countElements = [
-                'total-admin-actions',
-                'pending-bookings-count',
-                'payment-verification-count',
-                'pending-cash-inflows-count',
-                'pending-budget-requests-count',
-                'pending-activities-count',
-                'pending-priest-leaves-count'
-            ];
-            
-            countElements.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.classList.add('hidden');
+
+        // Mark all as read from header
+        document.getElementById('mark-all-read-header').addEventListener('click', function() {
+            fetch('{{ route("admin.admin.notifications.mark-all-as-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateNotificationCount();
+                    loadHeaderNotifications();
                 }
             });
+        });
 
-            const breakdownElement = document.getElementById('admin-actions-breakdown');
-            if (breakdownElement) {
-                breakdownElement.innerHTML = '<div class="text-green-600">All caught up! No pending actions.</div>';
-            }
-        }
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationCount();
+            loadHeaderNotifications();
+        });
 
-        // Update admin action counts on page load
+        // Update notification count every 30 seconds
+        setInterval(updateNotificationCount, 30000);
+        
+        // Update admin action counts on page load and every 30 seconds
         updateAdminActionCounts();
-
-        // Update admin action counts every 30 seconds
         setInterval(updateAdminActionCounts, 30000);
     </script>
 </body>

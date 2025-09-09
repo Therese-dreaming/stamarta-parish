@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Priest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Priest;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -118,6 +119,9 @@ class LeaveController extends Controller
                 'status' => 'pending',
                 'submitted_at' => now(),
             ]);
+            
+            // Notify admins about the leave request
+            NotificationService::priestLeaveFiled($leave);
             
             DB::commit();
             

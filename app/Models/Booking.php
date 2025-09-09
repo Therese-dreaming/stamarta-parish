@@ -176,6 +176,19 @@ class Booking extends Model
         if (!$this->payment) {
             return 'Contact office';
         }
+        
+        // If payment exists but total_fee is null/empty, show service fee as fallback
+        if ($this->payment->total_fee === null || $this->payment->total_fee === '') {
+            if ($this->service && $this->service->fees) {
+                $feeInfo = $this->service->getFeeForDate($this->service_date);
+                $feeAmount = is_array($feeInfo) ? ($feeInfo['amount'] ?? 0) : 0;
+                if (is_numeric($feeAmount) && $feeAmount > 0) {
+                    return '₱' . number_format((float)$feeAmount, 2);
+                }
+            }
+            return 'Contact office';
+        }
+        
         return $this->payment->formatted_total_fee;
     }
 } 

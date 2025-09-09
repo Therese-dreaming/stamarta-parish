@@ -3,272 +3,302 @@
 @section('title', 'Notifications')
 
 @section('content')
-<div class="max-w-4xl mx-auto pt-5 pb-8">
-    <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-        <div class="px-6 py-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 bg-[#0d5c2f] rounded-xl flex items-center justify-center">
-                        <i class="fas fa-bell text-white text-lg"></i>
-                    </div>
+<div class="font-[Poppins] min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-2xl shadow-xl overflow-hidden mb-8">
+            <div class="px-8 py-8 relative">
+                <div class="absolute right-0 top-0 w-24 h-24 bg-white/10 rounded-bl-full"></div>
+                <div class="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-tr-full"></div>
+                <div class="absolute top-1/2 right-1/4 w-8 h-8 bg-white/5 rounded-full"></div>
+                <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Notifications</h1>
-                        <p class="text-gray-600">Stay updated with your activities</p>
+                        <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Notifications</h1>
+                        <p class="text-white/90 text-lg">Stay updated with your booking status and important updates</p>
                     </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <button id="mark-all-read" class="inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white text-sm font-medium rounded-lg hover:bg-[#0d5c2f]/90 transition-colors">
-                        <i class="fas fa-check-double mr-2"></i>
-                        Mark All Read
-                    </button>
-                    <button id="refresh-notifications" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-sync-alt mr-2"></i>
-                        Refresh
-                    </button>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-white">{{ $counts['unread'] }}</div>
+                            <div class="text-white/80 text-sm">Unread</div>
+                        </div>
+                        @if($counts['unread'] > 0)
+                            <button id="mark-all-read-btn" class="inline-flex items-center px-6 py-3 bg-white/15 text-white rounded-xl hover:bg-white/25 transition-all duration-200 font-medium shadow-lg">
+                                <i class="fas fa-check-double mr-2"></i>
+                                Mark All Read
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Notifications List -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div id="notifications-container" class="p-6">
-            @if($notifications->count() > 0)
-                <div class="space-y-4">
-                    @foreach($notifications as $notification)
-                        @php
-                            // Determine icon and styling based on notification type
-                            $icon = 'fas fa-bell';
-                            $iconBg = 'bg-blue-100';
-                            $iconColor = 'text-blue-600';
-                            
-                            if (str_contains(strtolower($notification->message), 'booking')) {
-                                $icon = 'fas fa-calendar-check';
-                                $iconBg = 'bg-green-100';
-                                $iconColor = 'text-green-600';
-                            } elseif (str_contains(strtolower($notification->message), 'payment')) {
-                                $icon = 'fas fa-credit-card';
-                                $iconBg = 'bg-purple-100';
-                                $iconColor = 'text-purple-600';
-                            } elseif (str_contains(strtolower($notification->message), 'approved') || str_contains(strtolower($notification->message), 'confirmed')) {
-                                $icon = 'fas fa-check-circle';
-                                $iconBg = 'bg-green-100';
-                                $iconColor = 'text-green-600';
-                            } elseif (str_contains(strtolower($notification->message), 'rejected') || str_contains(strtolower($notification->message), 'cancelled')) {
-                                $icon = 'fas fa-times-circle';
-                                $iconBg = 'bg-red-100';
-                                $iconColor = 'text-red-600';
-                            } elseif (str_contains(strtolower($notification->message), 'reminder')) {
-                                $icon = 'fas fa-clock';
-                                $iconBg = 'bg-orange-100';
-                                $iconColor = 'text-orange-600';
-                            }
-                        @endphp
-                        
-                        <div class="notification-item border rounded-xl p-5 hover:shadow-md transition-all duration-200 {{ $notification->read_at ? 'border-gray-200 bg-gray-50/50' : 'border-[#0d5c2f] bg-blue-50/30' }}" data-notification-id="{{ $notification->id }}">
-                            <div class="flex items-start space-x-4">
-                                <!-- Icon -->
-                                <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 {{ $iconBg }} rounded-xl flex items-center justify-center">
-                                        <i class="{{ $icon }} {{ $iconColor }} text-lg"></i>
-                                    </div>
-                                </div>
-                                
-                                <!-- Content -->
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1">
-                                            <div class="flex items-center space-x-3 mb-2">
-                                                @if(!$notification->read_at)
-                                                    <span class="new-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0d5c2f] text-white">
-                                                        New
-                                                    </span>
-                                                @endif
-                                                <span class="text-sm text-gray-500">
-                                                    {{ $notification->created_at->diffForHumans() }}
-                                                </span>
-                                            </div>
+        <!-- Filter Tabs -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 mb-8 overflow-hidden">
+            <div class="px-8 py-6 border-b border-gray-100">
+                <div class="flex space-x-1 bg-gray-100 p-1 rounded-xl">
+                    <a href="{{ route('user.notifications.index', ['type' => 'all']) }}" 
+                       class="flex items-center px-6 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ $type === 'all' ? 'bg-white text-[#0d5c2f] shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }}">
+                        <i class="fas fa-list mr-2"></i>
+                        All
+                        <span class="ml-2 bg-gray-200 text-gray-700 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ $counts['all'] }}</span>
+                    </a>
+                    <a href="{{ route('user.notifications.index', ['type' => 'unread']) }}" 
+                       class="flex items-center px-6 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ $type === 'unread' ? 'bg-white text-[#0d5c2f] shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }}">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Unread
+                        <span class="ml-2 bg-red-100 text-red-700 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ $counts['unread'] }}</span>
+                    </a>
+                    <a href="{{ route('user.notifications.index', ['type' => 'read']) }}" 
+                       class="flex items-center px-6 py-3 text-sm font-medium rounded-lg transition-all duration-200 {{ $type === 'read' ? 'bg-white text-[#0d5c2f] shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50' }}">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Read
+                        <span class="ml-2 bg-green-100 text-green-700 py-0.5 px-2.5 rounded-full text-xs font-medium">{{ $counts['read'] }}</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="p-6">
+                @forelse($notifications as $notification)
+                    <div class="mb-6 last:mb-0">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 {{ !$notification->is_read ? 'ring-2 ring-[#0d5c2f]/20 border-[#0d5c2f]/30' : '' }}">
+                            <div class="p-6">
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0">
+                                        @php
+                                            $icon = 'fas fa-bell';
+                                            $iconBg = 'bg-blue-100';
+                                            $iconColor = 'text-blue-600';
                                             
-                                            <h3 class="text-sm font-semibold text-gray-900 mb-1">
-                                                {{ $notification->title }}
-                                            </h3>
-                                            
-                                            <p class="text-sm text-gray-600 leading-relaxed">
-                                                {{ $notification->display_message }}
-                                            </p>
-                                            
-                                            @if($notification->type === 'user')
-                                                <div class="mt-2 inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                                                    <i class="fas fa-user mr-1"></i>
-                                                    Account related
-                                                </div>
-                                            @endif
+                                            switch($notification->action) {
+                                                case 'booking_created':
+                                                    $icon = 'fas fa-calendar-plus';
+                                                    $iconBg = 'bg-green-100';
+                                                    $iconColor = 'text-green-600';
+                                                    break;
+                                                case 'booking_acknowledged':
+                                                    $icon = 'fas fa-check-circle';
+                                                    $iconBg = 'bg-yellow-100';
+                                                    $iconColor = 'text-yellow-600';
+                                                    break;
+                                                case 'booking_rejected':
+                                                    $icon = 'fas fa-times-circle';
+                                                    $iconBg = 'bg-red-100';
+                                                    $iconColor = 'text-red-600';
+                                                    break;
+                                                case 'payment_submitted':
+                                                    $icon = 'fas fa-credit-card';
+                                                    $iconBg = 'bg-purple-100';
+                                                    $iconColor = 'text-purple-600';
+                                                    break;
+                                                case 'payment_verified':
+                                                    $icon = 'fas fa-check-double';
+                                                    $iconBg = 'bg-green-100';
+                                                    $iconColor = 'text-green-600';
+                                                    break;
+                                                case 'booking_approved':
+                                                    $icon = 'fas fa-star';
+                                                    $iconBg = 'bg-[#0d5c2f]/10';
+                                                    $iconColor = 'text-[#0d5c2f]';
+                                                    break;
+                                            }
+                                        @endphp
+                                        <div class="w-12 h-12 {{ $iconBg }} rounded-xl flex items-center justify-center shadow-sm">
+                                            <i class="{{ $icon }} {{ $iconColor }} text-lg"></i>
                                         </div>
-                                        
-                                        <!-- Actions -->
-                                        <div class="flex items-center space-x-3 ml-4">
-                                            @if(!$notification->read_at)
-                                                <button class="mark-read-btn inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-[#0d5c2f] bg-[#0d5c2f]/10 hover:bg-[#0d5c2f]/20 transition-colors" data-id="{{ $notification->id }}">
-                                                    <i class="fas fa-check mr-1"></i>
-                                                    Mark Read
-                                                </button>
-                                            @endif
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-sm text-gray-900 font-medium leading-5 mb-2">
+                                                    {{ $notification->message }}
+                                                </p>
+                                                @if($notification->booking && $notification->booking->payment)
+                                                    <div class="mb-2">
+                                                        <span class="text-xs text-gray-500 font-medium">Total Fee:</span>
+                                                        <span class="text-xs text-[#0d5c2f] font-semibold ml-1">
+                                                            {{ $notification->booking->payment->formatted_total_fee }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex items-center text-xs text-gray-500">
+                                                        <i class="fas fa-clock mr-1"></i>
+                                                        {{ $notification->created_at->diffForHumans() }}
+                                                    </div>
+                                                    @if($notification->booking)
+                                                        <div class="flex items-center text-xs text-[#0d5c2f] font-medium">
+                                                            <i class="fas fa-hashtag mr-1"></i>
+                                                            Booking #{{ $notification->booking->id }}
+                                                        </div>
+                                                    @endif
+                                                    @if(!$notification->is_read)
+                                                        <div class="flex items-center text-xs text-[#0d5c2f] font-medium">
+                                                            <div class="w-2 h-2 bg-[#0d5c2f] rounded-full mr-1"></div>
+                                                            New
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2 ml-4">
+                                                @if(!$notification->is_read)
+                                                    <button class="mark-read-btn inline-flex items-center px-4 py-2 bg-[#0d5c2f] text-white text-sm font-medium rounded-lg hover:bg-[#0d5c2f]/90 transition-colors duration-200 shadow-sm" 
+                                                            data-id="{{ $notification->id }}">
+                                                        <i class="fas fa-check mr-2"></i>
+                                                        Mark Read
+                                                    </button>
+                                                @else
+                                                    <div class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg">
+                                                        <i class="fas fa-check mr-2"></i>
+                                                        Read
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="text-center py-16">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-bell-slash text-gray-400 text-2xl"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No notifications found</h3>
-                    <p class="text-gray-500">You're all caught up! Check back later for updates.</p>
-                </div>
-            @endif
+                @empty
+                    <div class="text-center py-16">
+                        <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-bell-slash text-gray-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">No notifications</h3>
+                        <p class="text-gray-500 text-lg max-w-md mx-auto">
+                            @if($type === 'unread')
+                                You're all caught up! No unread notifications.
+                            @elseif($type === 'read')
+                                No read notifications yet.
+                            @else
+                                You don't have any notifications yet. We'll notify you about important updates here.
+                            @endif
+                        </p>
+                    </div>
+                @endforelse
+            </div>
         </div>
 
         <!-- Pagination -->
         @if($notifications->hasPages())
-            <div id="pagination-container" class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                        @if($notifications->onFirstPage())
-                            <span class="px-3 py-2 text-sm text-gray-400 bg-white border border-gray-200 rounded-lg cursor-not-allowed">Previous</span>
-                        @else
-                            <a href="{{ $notifications->previousPageUrl() }}" class="pagination-link px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" data-page="{{ $notifications->currentPage() - 1 }}">Previous</a>
-                        @endif
-                        
-                        <span class="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg">
-                            Page {{ $notifications->currentPage() }} of {{ $notifications->lastPage() }}
-                        </span>
-                        
-                        @if($notifications->hasMorePages())
-                            <a href="{{ $notifications->nextPageUrl() }}" class="pagination-link px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" data-page="{{ $notifications->currentPage() + 1 }}">Next</a>
-                        @else
-                            <span class="px-3 py-2 text-sm text-gray-400 bg-white border border-gray-200 rounded-lg cursor-not-allowed">Next</span>
-                        @endif
-                    </div>
-                    
-                    <div class="text-sm text-gray-600">
-                        Showing {{ $notifications->firstItem() ?? 0 }} to {{ $notifications->lastItem() ?? 0 }} of {{ $notifications->total() }} results
-                    </div>
-                </div>
+            <div class="mt-8">
+                {{ $notifications->appends(request()->query())->links() }}
             </div>
         @endif
     </div>
 </div>
 
-@endsection
+<!-- Mark as Read Modal -->
+<div id="mark-read-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-16 h-16 bg-[#0d5c2f]/10 rounded-full mx-auto mb-4">
+                    <i class="fas fa-check text-[#0d5c2f] text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 text-center mb-2">Mark as Read</h3>
+                <p class="text-gray-600 text-center mb-6">Are you sure you want to mark this notification as read?</p>
+                <div class="flex space-x-3">
+                    <button id="cancel-mark-read" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button id="confirm-mark-read" class="flex-1 px-4 py-3 bg-[#0d5c2f] text-white rounded-lg hover:bg-[#0d5c2f]/90 transition-colors font-medium">
+                        Mark as Read
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-@push('scripts')
 <script>
-let currentPage = 1;
-
-// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    setupEventListeners();
-});
+    let currentNotificationId = null;
+    const modal = document.getElementById('mark-read-modal');
+    const modalContent = document.getElementById('modal-content');
 
-function setupEventListeners() {
-    // Mark all as read
-    document.getElementById('mark-all-read').addEventListener('click', markAllAsRead);
-    
-    // Refresh notifications
-    document.getElementById('refresh-notifications').addEventListener('click', function() {
-        window.location.reload();
-    });
-    
-    // Setup notification event listeners
-    setupNotificationEventListeners();
-}
-
-function setupNotificationEventListeners() {
-    // Mark as read buttons
-    document.querySelectorAll('.mark-read-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const notificationId = this.dataset.id;
-            markAsRead(notificationId);
-        });
-    });
-
-    // Pagination
-    document.querySelectorAll('.pagination-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.dataset.page;
-            if (page) {
-                currentPage = parseInt(page);
-                // For now, just follow the link
-                window.location.href = this.href;
-            }
-        });
-    });
-}
-
-function markAsRead(notificationId) {
-    fetch('{{ route("user.notifications.mark-as-read") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ notification_ids: [notificationId] })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update the notification item
-            const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
-            if (notificationItem) {
-                notificationItem.classList.remove('border-[#0d5c2f]', 'bg-blue-50/30');
-                notificationItem.classList.add('border-gray-200', 'bg-gray-50/50');
-                
-                // Remove the "New" badge
-                const newBadge = notificationItem.querySelector('.new-badge');
-                if (newBadge) {
-                    newBadge.remove();
-                }
-                
-                const markReadBtn = notificationItem.querySelector('.mark-read-btn');
-                if (markReadBtn) markReadBtn.remove();
-            }
-            
-            // Update notification count in header
-            updateHeaderNotificationCount();
-        }
-    })
-    .catch(error => console.error('Error marking notification as read:', error));
-}
-
-function markAllAsRead() {
-    fetch('{{ route("user.notifications.mark-all-as-read") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Reload page to show updated state
-            window.location.reload();
-        }
-    })
-    .catch(error => console.error('Error marking all notifications as read:', error));
-}
-
-function updateHeaderNotificationCount() {
-    // This function will be called to update the notification count in the header
-    // The header has its own update mechanism, so we just need to trigger it
-    if (typeof updateNotificationCount === 'function') {
-        updateNotificationCount();
+    // Modal functions
+    function showModal() {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
-}
+
+    function hideModal() {
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Mark all as read
+    document.getElementById('mark-all-read-btn')?.addEventListener('click', function() {
+        if (confirm('Mark all notifications as read?')) {
+            fetch('{{ route("user.notifications.mark-all-as-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+    });
+
+    // Mark individual notification as read with modal
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            currentNotificationId = this.dataset.id;
+            showModal();
+        });
+    });
+
+    // Modal event listeners
+    document.getElementById('cancel-mark-read').addEventListener('click', hideModal);
+    document.getElementById('confirm-mark-read').addEventListener('click', function() {
+        if (currentNotificationId) {
+            fetch('{{ route("user.notifications.mark-as-read") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    notification_ids: [currentNotificationId]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    hideModal();
+                    location.reload();
+                }
+            });
+        }
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            hideModal();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            hideModal();
+        }
+    });
+});
 </script>
-@endpush 
+@endsection

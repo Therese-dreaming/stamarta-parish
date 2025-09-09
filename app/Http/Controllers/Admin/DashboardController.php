@@ -178,4 +178,27 @@ class DashboardController extends Controller
             'roleDistribution'
         ));
     }
+
+    public function getAdminActionCounts()
+    {
+        $counts = [
+            'pending_bookings' => Booking::where('status', 'pending')->count(),
+            'acknowledged_bookings' => Booking::where('status', 'acknowledged')->count(),
+            'payment_verification' => Booking::where('status', 'payment_hold')->count(),
+            'pending_cash_inflows' => 0, // Placeholder for future implementation
+            'pending_budget_requests' => 0, // Placeholder for future implementation
+            'pending_activities' => 0, // Placeholder for future implementation
+            'pending_users' => User::whereNull('email_verified_at')->count(),
+        ];
+
+        $total = array_sum($counts);
+        $has_actions = $total > 0;
+
+        return response()->json([
+            'has_actions' => $has_actions,
+            'counts' => $counts,
+            'total' => $total,
+            'formatted_total' => $total > 99 ? '99+' : $total,
+        ]);
+    }
 } 

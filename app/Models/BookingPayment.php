@@ -51,10 +51,10 @@ class BookingPayment extends Model
     public function getFormattedTotalFeeAttribute()
     {
         $fee = $this->total_fee;
-        if (!$fee || !is_numeric($fee)) {
-            return '₱0.00';
+        if ($fee === null || $fee === '' || !is_numeric($fee)) {
+            return 'Contact office';
         }
-        return '₱' . number_format($fee, 2);
+        return '₱' . number_format((float)$fee, 2);
     }
 
     public function getPaymentStatusBadgeAttribute()

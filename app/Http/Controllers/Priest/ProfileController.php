@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Priest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Priest;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -42,8 +43,18 @@ class ProfileController extends Controller
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ]);
         
+        // Track changes for notification
+        $changes = [];
+        
         // Update user information
         $user = Auth::user();
+        if ($user->name !== $request->name) {
+            $changes[] = 'name';
+        }
+        if ($user->email !== $request->email) {
+            $changes[] = 'email';
+        }
+        
         $user->name = $request->name;
         $user->email = $request->email;
         
@@ -53,18 +64,33 @@ class ProfileController extends Controller
                 return back()->withErrors(['current_password' => 'The current password is incorrect.']);
             }
             $user->password = Hash::make($request->password);
+            $changes[] = 'password';
         }
         
         $user->save();
         
-        // Update priest information
-        $priest->update([
+        // Track priest information changes
+        $priestData = [
             'phone' => $request->phone,
             'address' => $request->address,
             'birth_date' => $request->birth_date,
             'ordination_date' => $request->ordination_date,
             'years_of_service' => $request->years_of_service,
-        ]);
+        ];
+        
+        foreach ($priestData as $field => $value) {
+            if ($priest->$field != $value) {
+                $changes[] = $field;
+            }
+        }
+        
+        // Update priest information
+        $priest->update($priestData);
+        
+        // Notify admins if there were changes
+        if (!empty($changes)) {
+            NotificationService::priestProfileEdited($priest, $changes);
+        }
         
         return redirect()->route('priest.profile.edit')
             ->with('success', 'Profile updated successfully!');

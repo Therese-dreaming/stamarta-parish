@@ -109,11 +109,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 	Route::get('/booking/cancel/{booking}', [App\Http\Controllers\BookingController::class, 'cancelBooking'])->name('booking.cancel');
 	
 	// User Notification Routes
-	Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('user.notifications.index');
-	Route::post('/notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('user.notifications.mark-as-read');
-	Route::post('/notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('user.notifications.mark-all-as-read');
-	Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('user.notifications.unread-count');
-	Route::post('/notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('user.notifications.delete');
+	Route::get('/notifications', [App\Http\Controllers\UserNotificationController::class, 'index'])->name('user.notifications.index');
+	Route::post('/notifications/mark-as-read', [App\Http\Controllers\UserNotificationController::class, 'markAsRead'])->name('user.notifications.mark-as-read');
+	Route::post('/notifications/mark-all-as-read', [App\Http\Controllers\UserNotificationController::class, 'markAllAsRead'])->name('user.notifications.mark-all-as-read');
+	Route::get('/notifications/unread-count', [App\Http\Controllers\UserNotificationController::class, 'getUnreadCount'])->name('user.notifications.unread-count');
+	Route::post('/notifications/delete', [App\Http\Controllers\UserNotificationController::class, 'delete'])->name('user.notifications.delete');
 	
 	// Service Rating Routes
 	Route::post('/service-rating', [App\Http\Controllers\ServiceRatingController::class, 'store'])->name('service.rating.store');
@@ -153,6 +153,7 @@ Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
 	// Dashboard
 	Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+	Route::get('admin-action-counts', [DashboardController::class, 'getAdminActionCounts'])->name('admin-action-counts');
 	
 	// CMS Routes
 	Route::prefix('cms')->name('cms.')->group(function () {
@@ -211,14 +212,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	Route::get('parochial-activities-calendar', [App\Http\Controllers\Admin\ParochialActivityController::class, 'calendar'])->name('parochial-activities.calendar');
 	Route::get('blocking-activities', [App\Http\Controllers\Admin\ParochialActivityController::class, 'getBlockingActivities'])->name('parochial-activities.blocking');
 	
-	// Notification Routes
-	Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-	Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
-	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-	Route::get('notifications/admin-action-counts', [App\Http\Controllers\NotificationController::class, 'getAdminActionCounts'])->name('notifications.admin-action-counts');
-	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
-
+	// Admin Notification Routes
+	Route::get('notifications', [App\Http\Controllers\AdminNotificationController::class, 'index'])->name('admin.notifications.index');
+	Route::post('notifications/mark-as-read', [App\Http\Controllers\AdminNotificationController::class, 'markAsRead'])->name('admin.notifications.mark-as-read');
+	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\AdminNotificationController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-as-read');
+	Route::get('notifications/unread-count', [App\Http\Controllers\AdminNotificationController::class, 'getUnreadCount'])->name('admin.notifications.unread-count');
+	Route::post('notifications/delete', [App\Http\Controllers\AdminNotificationController::class, 'delete'])->name('admin.notifications.delete');
+	
 	// Ministries - Fund Overview (admin)
 	Route::get('ministries/{ministry}/fund', [MinistryFundController::class, 'index'])->name('ministries.fund');
 
@@ -259,6 +259,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(function () {
 	// Dashboard (only staff-specific controller)
 	Route::get('/', [App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
+	Route::get('staff-action-counts', [App\Http\Controllers\Staff\DashboardController::class, 'getStaffActionCounts'])->name('staff-action-counts');
 	
 	// Booking Management (using admin controller)
 	Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
@@ -317,13 +318,12 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
 	Route::get('users', [UserController::class, 'index'])->name('users.index');
 	Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 	
-	// Notification Routes
-	Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-	Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
-	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-	Route::get('notifications/admin-action-counts', [App\Http\Controllers\NotificationController::class, 'getAdminActionCounts'])->name('notifications.admin-action-counts');
-	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
+	// Staff Notification Routes
+	Route::get('notifications', [App\Http\Controllers\StaffNotificationController::class, 'index'])->name('notifications.index');
+	Route::post('notifications/mark-as-read', [App\Http\Controllers\StaffNotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\StaffNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+	Route::get('notifications/unread-count', [App\Http\Controllers\StaffNotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+	Route::post('notifications/delete', [App\Http\Controllers\StaffNotificationController::class, 'delete'])->name('notifications.delete');
 });
 
 // Priest Routes
@@ -338,19 +338,19 @@ Route::prefix('priest')->name('priest.')->middleware(['auth', 'priest'])->group(
 	Route::get('bookings/{booking}/download-document/{documentType}', [App\Http\Controllers\Priest\BookingController::class, 'downloadDocument'])->name('bookings.download-document');
 	Route::get('bookings/{booking}/download-payment-proof', [App\Http\Controllers\Priest\BookingController::class, 'downloadPaymentProof'])->name('bookings.download-payment-proof');
 		
-	// Notification Routes
-	Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-	Route::post('notifications/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
-	Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-	Route::post('notifications/delete', [App\Http\Controllers\NotificationController::class, 'delete'])->name('notifications.delete');
-	
 	// Priest Profile and Leave Management
 	Route::get('profile', [App\Http\Controllers\Priest\ProfileController::class, 'edit'])->name('profile.edit');
 	Route::put('profile', [App\Http\Controllers\Priest\ProfileController::class, 'update'])->name('profile.update');
 	Route::get('leave', [App\Http\Controllers\Priest\LeaveController::class, 'create'])->name('leave.create');
 	Route::post('leave', [App\Http\Controllers\Priest\LeaveController::class, 'store'])->name('leave.store');
 	Route::get('leave/existing', [App\Http\Controllers\Priest\LeaveController::class, 'getExistingLeaves'])->name('leave.existing');
+	
+	// Priest Notification Routes
+	Route::get('notifications', [App\Http\Controllers\PriestNotificationController::class, 'index'])->name('notifications.index');
+	Route::post('notifications/mark-as-read', [App\Http\Controllers\PriestNotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\PriestNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+	Route::get('notifications/unread-count', [App\Http\Controllers\PriestNotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+	Route::post('notifications/delete', [App\Http\Controllers\PriestNotificationController::class, 'delete'])->name('notifications.delete');
 });
 
 // Ministry Head Routes

@@ -3,39 +3,21 @@
 namespace App\Services;
 
 use App\Models\Notification;
-use App\Models\User;
 use App\Models\Booking;
 
 class NotificationService
 {
     /**
-     * Create a notification for admin/staff actions
+     * Create a user notification
      */
-    public static function createAdminStaffNotification($action, $message, $data = [], $userId = null, $bookingId = null)
+    public static function createUserNotification($action, $message, $userId, $bookingId = null, $data = [])
     {
         return Notification::create([
-            'type' => Notification::TYPE_ADMIN_STAFF,
-            'action' => $action,
-            'message' => $message,
-            'data' => $data,
             'user_id' => $userId,
-            'created_by' => auth()->id() ?? null,
-            'booking_id' => $bookingId,
-        ]);
-    }
-
-    /**
-     * Create a notification for user actions
-     */
-    public static function createUserNotification($action, $message, $data = [], $userId = null, $bookingId = null)
-    {
-        return Notification::create([
             'type' => Notification::TYPE_USER,
             'action' => $action,
             'message' => $message,
             'data' => $data,
-            'user_id' => $userId,
-            'created_by' => auth()->id() ?? null,
             'booking_id' => $bookingId,
         ]);
     }
@@ -45,33 +27,16 @@ class NotificationService
      */
     public static function bookingCreated(Booking $booking)
     {
-        // Notify admin/staff about new booking
-        self::createAdminStaffNotification(
+        return self::createUserNotification(
             Notification::ACTION_BOOKING_CREATED,
-            "New booking #{$booking->id} created by {$booking->user->name} for {$booking->service->name}",
-            [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
-                'service_name' => $booking->service->name,
-                'service_date' => $booking->service_date->format('M d, Y'),
-                'service_time' => $booking->formatted_time
-            ],
-            null, // Notify all admin/staff
-            $booking->id
-        );
-
-        // Notify user about their booking
-        self::createUserNotification(
-            Notification::ACTION_BOOKING_CREATED,
-            "Your booking #{$booking->id} for {$booking->service->name} has been submitted successfully",
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'service_date' => $booking->service_date->format('M d, Y'),
-                'service_time' => $booking->formatted_time
-            ],
+            "Your booking #{$booking->id} for {$booking->service->name} has been submitted successfully. We will review your request and contact you soon.",
             $booking->user_id,
-            $booking->id
+            $booking->id,
+            [
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'status' => $booking->status,
+            ]
         );
     }
 
@@ -80,70 +45,17 @@ class NotificationService
      */
     public static function bookingAcknowledged(Booking $booking)
     {
-        $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
-        
-        // Notify user about their booking being acknowledged (generic message)
-        self::createUserNotification(
+        return self::createUserNotification(
             Notification::ACTION_BOOKING_ACKNOWLEDGED,
-            "Your booking #{$booking->id} has been acknowledged by parish staff",
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'acknowledged_by' => $userName
-            ],
+            "Your booking #{$booking->id} has been acknowledged by our staff. You can now submit your payment proof.",
             $booking->user_id,
-            $booking->id
-        );
-
-        // Notify admin about staff action (specific staff name)
-        self::createAdminStaffNotification(
-            Notification::ACTION_STAFF_ACKNOWLEDGED,
-            "Staff member {$userName} acknowledged booking #{$booking->id} for {$booking->user->name}",
+            $booking->id,
             [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
                 'service_name' => $booking->service->name,
-                'staff_name' => $userName,
-                'action_type' => 'acknowledged'
-            ],
-            null, // Notify all admin
-            $booking->id
-        );
-    }
-
-    /**
-     * Notify when a booking is approved
-     */
-    public static function bookingApproved(Booking $booking)
-    {
-        $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
-        
-        // Notify user about their booking being approved (generic message)
-        self::createUserNotification(
-            Notification::ACTION_BOOKING_APPROVED,
-            "Your booking #{$booking->id} has been approved by parish staff",
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'approved_by' => $userName
-            ],
-            $booking->user_id,
-            $booking->id
-        );
-
-        // Notify admin about staff action (specific staff name)
-        self::createAdminStaffNotification(
-            Notification::ACTION_STAFF_APPROVED,
-            "Staff member {$userName} approved booking #{$booking->id} for {$booking->user->name}",
-            [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
-                'service_name' => $booking->service->name,
-                'staff_name' => $userName,
-                'action_type' => 'approved'
-            ],
-            null, // Notify all admin
-            $booking->id
+                'service_date' => $booking->service_date,
+                'total_fee' => $booking->total_fee,
+                'status' => $booking->status,
+            ]
         );
     }
 
@@ -152,72 +64,41 @@ class NotificationService
      */
     public static function bookingRejected(Booking $booking, $reason = null)
     {
-        $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
-        
-        // Notify user about their booking being rejected (generic message)
-        self::createUserNotification(
-            Notification::ACTION_BOOKING_REJECTED,
-            "Your booking #{$booking->id} has been rejected by parish staff" . ($reason ? ": {$reason}" : ""),
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'rejected_by' => $userName,
-                'reason' => $reason
-            ],
-            $booking->user_id,
-            $booking->id
-        );
+        $message = "Your booking #{$booking->id} for {$booking->service->name} has been rejected.";
+        if ($reason) {
+            $message .= " Reason: {$reason}";
+        }
 
-        // Notify admin about staff action (specific staff name)
-        self::createAdminStaffNotification(
-            Notification::ACTION_STAFF_REJECTED,
-            "Staff member {$userName} rejected booking #{$booking->id} for {$booking->user->name}" . ($reason ? ": {$reason}" : ""),
+        return self::createUserNotification(
+            Notification::ACTION_BOOKING_REJECTED,
+            $message,
+            $booking->user_id,
+            $booking->id,
             [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
                 'service_name' => $booking->service->name,
-                'staff_name' => $userName,
-                'action_type' => 'rejected',
-                'reason' => $reason
-            ],
-            null, // Notify all admin
-            $booking->id
+                'service_date' => $booking->service_date,
+                'reason' => $reason,
+                'status' => $booking->status,
+            ]
         );
     }
 
     /**
-     * Notify when a booking is completed
+     * Notify when payment proof is submitted
      */
-    public static function bookingCompleted(Booking $booking)
+    public static function paymentSubmitted(Booking $booking)
     {
-        $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
-        
-        // Notify user about their booking being completed (generic message)
-        self::createUserNotification(
-            Notification::ACTION_BOOKING_COMPLETED,
-            "Your booking #{$booking->id} has been completed by parish staff",
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'completed_by' => $userName
-            ],
+        return self::createUserNotification(
+            Notification::ACTION_PAYMENT_SUBMITTED,
+            "Payment proof for booking #{$booking->id} has been submitted successfully. Our staff will verify your payment and contact you soon.",
             $booking->user_id,
-            $booking->id
-        );
-
-        // Notify admin about staff action (specific staff name)
-        self::createAdminStaffNotification(
-            Notification::ACTION_STAFF_COMPLETED,
-            "Staff member {$userName} marked booking #{$booking->id} as completed for {$booking->user->name}",
+            $booking->id,
             [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
                 'service_name' => $booking->service->name,
-                'staff_name' => $userName,
-                'action_type' => 'completed'
-            ],
-            null, // Notify all admin
-            $booking->id
+                'service_date' => $booking->service_date,
+                'amount' => $booking->total_fee,
+                'status' => $booking->status,
+            ]
         );
     }
 
@@ -226,177 +107,37 @@ class NotificationService
      */
     public static function paymentVerified(Booking $booking)
     {
-        $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
-        
-        // Notify user about their payment being verified (generic message)
-        self::createUserNotification(
+        return self::createUserNotification(
             Notification::ACTION_PAYMENT_VERIFIED,
-            "Payment for booking #{$booking->id} has been verified by parish staff",
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'payment_amount' => $booking->payment->total_fee ?? 'N/A',
-                'verified_by' => $userName
-            ],
+            "Your payment for booking #{$booking->id} has been verified successfully.",
             $booking->user_id,
-            $booking->id
-        );
-
-        // Notify admin about staff action (specific staff name)
-        self::createAdminStaffNotification(
-            Notification::ACTION_STAFF_PAYMENT_VERIFIED,
-            "Staff member {$userName} verified payment for booking #{$booking->id} ({$booking->user->name})",
+            $booking->id,
             [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
                 'service_name' => $booking->service->name,
-                'staff_name' => $userName,
-                'action_type' => 'payment_verified',
-                'payment_amount' => $booking->payment->total_fee ?? 'N/A'
-            ],
-            null, // Notify all admin
-            $booking->id
-        );
-    }
-
-    /**
-     * Notify when payment is rejected
-     */
-    public static function paymentRejected(Booking $booking, $reason = null)
-    {
-        $userName = auth()->user() ? auth()->user()->name : 'Parish Staff';
-        
-        // Notify user about their payment being rejected (generic message)
-        self::createUserNotification(
-            Notification::ACTION_PAYMENT_REJECTED,
-            "Payment for booking #{$booking->id} has been rejected by parish staff" . ($reason ? ": {$reason}" : ""),
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'rejected_by' => $userName,
-                'reason' => $reason
-            ],
-            $booking->user_id,
-            $booking->id
-        );
-
-        // Notify admin about staff action (specific staff name)
-        self::createAdminStaffNotification(
-            Notification::ACTION_STAFF_PAYMENT_REJECTED,
-            "Staff member {$userName} rejected payment for booking #{$booking->id} ({$booking->user->name})" . ($reason ? ": {$reason}" : ""),
-            [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
-                'service_name' => $booking->service->name,
-                'staff_name' => $userName,
-                'action_type' => 'payment_rejected',
-                'reason' => $reason
-            ],
-            null, // Notify all admin
-            $booking->id
-        );
-    }
-
-    /**
-     * Notify when a new user registers
-     */
-    public static function userRegistered(User $user)
-    {
-        self::createAdminStaffNotification(
-            Notification::ACTION_USER_REGISTERED,
-            "New user registered: {$user->name} ({$user->email})",
-            [
-                'user_id' => $user->id,
-                'user_name' => $user->name,
-                'user_email' => $user->email
+                'service_date' => $booking->service_date,
+                'amount' => $booking->total_fee,
+                'status' => $booking->status,
             ]
         );
     }
 
     /**
-     * Notify when a priest is assigned to a booking
+     * Notify when booking is approved (after payment verification)
      */
-    public static function priestAssigned(Booking $booking, $priestName)
+    public static function bookingApproved(Booking $booking)
     {
-        self::createUserNotification(
-            Notification::ACTION_PRIEST_ASSIGNED,
-            "Priest {$priestName} has been assigned to your booking #{$booking->id}",
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'priest_name' => $priestName
-            ],
+        return self::createUserNotification(
+            Notification::ACTION_BOOKING_APPROVED,
+            "Congratulations! Your booking #{$booking->id} for {$booking->service->name} has been approved. Your service is scheduled for " . $booking->service_date->format('F j, Y') . ".",
             $booking->user_id,
-            $booking->id
-        );
-    }
-
-    /**
-     * Notify when a priest is changed for a booking
-     */
-    public static function priestChanged(Booking $booking, $oldPriestName, $newPriestName)
-    {
-        self::createUserNotification(
-            Notification::ACTION_PRIEST_CHANGED,
-            "Priest for your booking #{$booking->id} has been changed from {$oldPriestName} to {$newPriestName}",
+            $booking->id,
             [
-                'booking_id' => $booking->id,
                 'service_name' => $booking->service->name,
-                'old_priest_name' => $oldPriestName,
-                'new_priest_name' => $newPriestName
-            ],
-            $booking->user_id,
-            $booking->id
+                'service_date' => $booking->service_date,
+                'priest_name' => $booking->priest ? $booking->priest->name : 'TBA',
+                'status' => $booking->status,
+            ]
         );
-    }
-
-    /**
-     * Notify when a certificate is uploaded
-     */
-    public static function certificateUploaded(Booking $booking, string $filename)
-    {
-        $uploader = auth()->user() ? auth()->user()->name : 'Parish Staff';
-        // Notify admin/staff that a certificate was uploaded by staff/admin
-        self::createAdminStaffNotification(
-            Notification::ACTION_STAFF_CERTIFICATE_UPLOADED,
-            "{$uploader} uploaded a certificate for booking #{$booking->id} ({$booking->user->name})",
-            [
-                'booking_id' => $booking->id,
-                'user_name' => $booking->user->name,
-                'service_name' => $booking->service->name,
-                'staff_name' => $uploader,
-                'file' => $filename,
-            ],
-            null,
-            $booking->id
-        );
-
-        // Notify user that their certificate is now available
-        self::createUserNotification(
-            Notification::ACTION_CERTIFICATE_UPLOADED,
-            "Your certificate for booking #{$booking->id} is now available",
-            [
-                'booking_id' => $booking->id,
-                'service_name' => $booking->service->name,
-                'file' => $filename,
-            ],
-            $booking->user_id,
-            $booking->id
-        );
-    }
-
-    /**
-     * Get unread notification count for a user
-     */
-    public static function getUnreadCount($userId = null)
-    {
-        $query = Notification::unread();
-        
-        if ($userId) {
-            $query->forUser($userId);
-        }
-        
-        return $query->count();
     }
 
     /**
@@ -407,12 +148,443 @@ class NotificationService
         $query = Notification::whereIn('id', $notificationIds);
         
         if ($userId) {
-            $query->forUser($userId);
+            $query->where('user_id', $userId);
         }
         
         return $query->update([
             'is_read' => true,
-            'read_at' => now()
+            'read_at' => now(),
         ]);
     }
-} 
+
+    /**
+     * Mark all notifications as read for a user
+     */
+    public static function markAllAsRead($userId)
+    {
+        return Notification::where('user_id', $userId)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+    }
+
+    /**
+     * Create an admin notification
+     */
+    public static function createAdminNotification($action, $message, $data = [], $bookingId = null)
+    {
+        // Get all admin users
+        $adminUsers = \App\Models\User::where('role', 'admin')->pluck('id');
+        
+        $notifications = [];
+        foreach ($adminUsers as $adminId) {
+            $notifications[] = Notification::create([
+                'user_id' => $adminId,
+                'type' => Notification::TYPE_ADMIN,
+                'action' => $action,
+                'message' => $message,
+                'data' => $data,
+                'booking_id' => $bookingId,
+            ]);
+        }
+        
+        return $notifications;
+    }
+
+    /**
+     * Create a staff notification
+     */
+    public static function createStaffNotification($action, $message, $data = [], $bookingId = null)
+    {
+        // Get all staff users
+        $staffUsers = \App\Models\User::where('role', 'staff')->pluck('id');
+        
+        $notifications = [];
+        foreach ($staffUsers as $staffId) {
+            $notifications[] = Notification::create([
+                'user_id' => $staffId,
+                'type' => Notification::TYPE_STAFF,
+                'action' => $action,
+                'message' => $message,
+                'data' => $data,
+                'booking_id' => $bookingId,
+            ]);
+        }
+        
+        return $notifications;
+    }
+
+    /**
+     * Create a priest notification
+     */
+    public static function createPriestNotification($action, $message, $data = [], $bookingId = null)
+    {
+        // Get all priest users
+        $priestUsers = \App\Models\User::where('role', 'priest')->pluck('id');
+        
+        $notifications = [];
+        foreach ($priestUsers as $priestId) {
+            $notifications[] = Notification::create([
+                'user_id' => $priestId,
+                'type' => Notification::TYPE_PRIEST,
+                'action' => $action,
+                'message' => $message,
+                'data' => $data,
+                'booking_id' => $bookingId,
+            ]);
+        }
+        
+        return $notifications;
+    }
+
+    /**
+     * Notify admins and staff when a user creates a booking
+     */
+    public static function userBookingCreated(Booking $booking)
+    {
+        // Notify admins
+        self::createAdminNotification(
+            Notification::ACTION_USER_BOOKING_CREATED,
+            "New booking #{$booking->id} created by {$booking->user->name} for {$booking->service->name} on " . $booking->service_date->format('F j, Y'),
+            [
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'total_fee' => $booking->total_fee,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+
+        // Notify staff
+        self::createStaffNotification(
+            Notification::ACTION_USER_BOOKING_CREATED,
+            "New booking #{$booking->id} created by {$booking->user->name} for {$booking->service->name} on " . $booking->service_date->format('F j, Y'),
+            [
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'total_fee' => $booking->total_fee,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+    }
+
+    /**
+     * Notify admins and staff when a user submits payment
+     */
+    public static function userPaymentSubmitted(Booking $booking)
+    {
+        // Notify admins
+        self::createAdminNotification(
+            Notification::ACTION_USER_PAYMENT_SUBMITTED,
+            "Payment proof submitted by {$booking->user->name} for booking #{$booking->id} - {$booking->service->name}",
+            [
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'amount' => $booking->total_fee,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+
+        // Notify staff
+        self::createStaffNotification(
+            Notification::ACTION_USER_PAYMENT_SUBMITTED,
+            "Payment proof submitted by {$booking->user->name} for booking #{$booking->id} - {$booking->service->name}",
+            [
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'amount' => $booking->total_fee,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+    }
+
+    /**
+     * Notify admins and staff when a user cancels a booking
+     */
+    public static function userBookingCancelled(Booking $booking, $reason = null)
+    {
+        $message = "Booking #{$booking->id} cancelled by {$booking->user->name} for {$booking->service->name}";
+        if ($reason) {
+            $message .= ". Reason: {$reason}";
+        }
+
+        // Notify admins
+        self::createAdminNotification(
+            Notification::ACTION_USER_BOOKING_CANCELLED,
+            $message,
+            [
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'reason' => $reason,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+
+        // Notify staff
+        self::createStaffNotification(
+            Notification::ACTION_USER_BOOKING_CANCELLED,
+            $message,
+            [
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'reason' => $reason,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+    }
+
+    /**
+     * Notify admins and staff when a user sends a contact message
+     */
+    public static function userContactMessage($user, $subject, $message)
+    {
+        // Notify admins
+        self::createAdminNotification(
+            Notification::ACTION_USER_CONTACT_MESSAGE,
+            "New contact message from {$user->name}: {$subject}",
+            [
+                'user_name' => $user->name,
+                'user_email' => $user->email,
+                'subject' => $subject,
+                'message' => $message,
+            ]
+        );
+
+        // Notify staff
+        self::createStaffNotification(
+            Notification::ACTION_USER_CONTACT_MESSAGE,
+            "New contact message from {$user->name}: {$subject}",
+            [
+                'user_name' => $user->name,
+                'user_email' => $user->email,
+                'subject' => $subject,
+                'message' => $message,
+            ]
+        );
+    }
+
+    /**
+     * Notify admins when staff acknowledges a booking
+     */
+    public static function staffBookingAcknowledged(Booking $booking, $staffName)
+    {
+        return self::createAdminNotification(
+            Notification::ACTION_STAFF_BOOKING_ACKNOWLEDGED,
+            "Staff {$staffName} acknowledged booking #{$booking->id} for {$booking->service->name}",
+            [
+                'staff_name' => $staffName,
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'total_fee' => $booking->total_fee,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+    }
+
+    /**
+     * Notify admins when staff approves a booking
+     */
+    public static function staffBookingApproved(Booking $booking, $staffName)
+    {
+        return self::createAdminNotification(
+            Notification::ACTION_STAFF_BOOKING_APPROVED,
+            "Staff {$staffName} approved booking #{$booking->id} for {$booking->service->name}",
+            [
+                'staff_name' => $staffName,
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'priest_name' => $booking->priest ? $booking->priest->name : 'TBA',
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+    }
+
+    /**
+     * Notify admins when staff rejects a booking
+     */
+    public static function staffBookingRejected(Booking $booking, $staffName, $reason = null)
+    {
+        $message = "Staff {$staffName} rejected booking #{$booking->id} for {$booking->service->name}";
+        if ($reason) {
+            $message .= ". Reason: {$reason}";
+        }
+
+        return self::createAdminNotification(
+            Notification::ACTION_STAFF_BOOKING_REJECTED,
+            $message,
+            [
+                'staff_name' => $staffName,
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'reason' => $reason,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+    }
+
+    /**
+     * Notify admins when staff creates a page
+     */
+    public static function staffPageCreated($page, $staffName)
+    {
+        return self::createAdminNotification(
+            Notification::ACTION_STAFF_PAGE_CREATED,
+            "Staff {$staffName} created a new page: {$page->title}",
+            [
+                'staff_name' => $staffName,
+                'page_title' => $page->title,
+                'page_slug' => $page->slug,
+                'page_status' => $page->status,
+            ]
+        );
+    }
+
+    /**
+     * Notify admins when staff creates a parochial activity
+     */
+    public static function staffActivityCreated($activity, $staffName)
+    {
+        return self::createAdminNotification(
+            Notification::ACTION_STAFF_ACTIVITY_CREATED,
+            "Staff {$staffName} created a new parochial activity: {$activity->title}",
+            [
+                'staff_name' => $staffName,
+                'activity_title' => $activity->title,
+                'activity_date' => $activity->date,
+                'activity_status' => $activity->status,
+            ]
+        );
+    }
+
+    /**
+     * Notify admins when a priest edits their profile
+     */
+    public static function priestProfileEdited($priest, $changes = [])
+    {
+        $message = "Priest {$priest->name} updated their profile";
+        if (!empty($changes)) {
+            $message .= ". Changes: " . implode(', ', $changes);
+        }
+
+        return self::createAdminNotification(
+            Notification::ACTION_PRIEST_PROFILE_EDITED,
+            $message,
+            [
+                'priest_name' => $priest->name,
+                'priest_id' => $priest->id,
+                'changes' => $changes,
+            ]
+        );
+    }
+
+    /**
+     * Notify admins when a priest files a leave
+     */
+    public static function priestLeaveFiled($leave)
+    {
+        return self::createAdminNotification(
+            Notification::ACTION_PRIEST_LEAVE_FILED,
+            "Priest {$leave->priest->name} filed a leave request for {$leave->leave_type} from " . $leave->start_date->format('M j') . " to " . $leave->end_date->format('M j, Y'),
+            [
+                'priest_name' => $leave->priest->name,
+                'priest_id' => $leave->priest->id,
+                'leave_type' => $leave->leave_type,
+                'start_date' => $leave->start_date,
+                'end_date' => $leave->end_date,
+                'reason' => $leave->reason,
+                'status' => $leave->status,
+            ],
+            null // No booking ID for leave requests
+        );
+    }
+
+    /**
+     * Notify priest when their leave is approved
+     */
+    public static function priestLeaveApproved($leave)
+    {
+        return self::createPriestNotification(
+            Notification::ACTION_PRIEST_LEAVE_APPROVED,
+            "Your leave request for {$leave->leave_type} from " . $leave->start_date->format('M j') . " to " . $leave->end_date->format('M j, Y') . " has been approved",
+            [
+                'leave_type' => $leave->leave_type,
+                'start_date' => $leave->start_date,
+                'end_date' => $leave->end_date,
+                'reason' => $leave->reason,
+                'status' => $leave->status,
+            ]
+        );
+    }
+
+    /**
+     * Notify priest when their leave is rejected
+     */
+    public static function priestLeaveRejected($leave, $reason = null)
+    {
+        $message = "Your leave request for {$leave->leave_type} from " . $leave->start_date->format('M j') . " to " . $leave->end_date->format('M j, Y') . " has been rejected";
+        if ($reason) {
+            $message .= ". Reason: {$reason}";
+        }
+
+        return self::createPriestNotification(
+            Notification::ACTION_PRIEST_LEAVE_REJECTED,
+            $message,
+            [
+                'leave_type' => $leave->leave_type,
+                'start_date' => $leave->start_date,
+                'end_date' => $leave->end_date,
+                'reason' => $reason,
+                'status' => $leave->status,
+            ]
+        );
+    }
+
+    /**
+     * Notify priest when they are assigned to a booking
+     */
+    public static function priestBookingAssigned($booking, $priest)
+    {
+        return self::createPriestNotification(
+            Notification::ACTION_PRIEST_BOOKING_ASSIGNED,
+            "You have been assigned to a booking for {$booking->service->name} on " . $booking->service_date->format('F j, Y') . " at {$booking->service_time}",
+            [
+                'service_name' => $booking->service->name,
+                'service_date' => $booking->service_date,
+                'service_time' => $booking->service_time,
+                'user_name' => $booking->user->name,
+                'user_email' => $booking->user->email,
+                'total_fee' => $booking->total_fee,
+                'status' => $booking->status,
+            ],
+            $booking->id
+        );
+    }
+}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PriestLeave;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -25,6 +26,9 @@ class PriestLeaveController extends Controller
                 'is_active' => ($leave->start_date->lte($today) && $leave->end_date->gte($today)) ? 0 : $leave->priest->is_active,
             ]);
         }
+
+        // Notify the priest about leave approval
+        NotificationService::priestLeaveApproved($leave);
 
         return back()->with('success', 'Leave approved successfully.');
     }
@@ -51,6 +55,9 @@ class PriestLeaveController extends Controller
                 'is_active' => $hasAnotherActiveLeaveToday ? 0 : 1,
             ]);
         }
+
+        // Notify the priest about leave rejection
+        NotificationService::priestLeaveRejected($leave, $request->input('notes'));
 
         return back()->with('success', 'Leave rejected.');
     }

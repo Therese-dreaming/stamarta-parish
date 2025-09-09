@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Models\Media;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -65,6 +66,11 @@ class PageController extends Controller
         }
 
         $page = Page::create($validated);
+
+        // If called by staff, notify admins
+        if (auth()->user()->role === 'staff') {
+            NotificationService::staffPageCreated($page, auth()->user()->name);
+        }
 
         return redirect()->route('admin.cms.pages.index')
             ->with('success', 'Page created successfully.');

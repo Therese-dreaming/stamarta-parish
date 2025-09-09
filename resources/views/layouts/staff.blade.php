@@ -71,6 +71,7 @@
                             <div class="flex items-center">
                                 <i class="fas fa-bookmark w-5 h-5 mr-3"></i>
                                 Bookings
+                                <span id="pending-bookings-count" class="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-count="0">0</span>
                             </div>
                             <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
                         </button>
@@ -94,6 +95,7 @@
                     <a href="{{ route('staff.parochial-activities.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('staff.parochial-activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                         <i class="fas fa-church w-5 h-5 mr-3"></i>
                         Activities
+                        <span id="pending-activities-count" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-count="0">0</span>
                     </a>
 
                     <!-- Content Management -->
@@ -104,6 +106,7 @@
                     <a href="{{ route('staff.cms.pages.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('staff.cms.pages.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
                         <i class="fas fa-file-alt w-5 h-5 mr-3"></i>
                         Pages
+                        <span id="pending-pages-count" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" data-count="0">0</span>
                     </a>
                     
                     <a href="{{ route('staff.cms.media.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('staff.cms.media.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
@@ -363,7 +366,7 @@
                     headerCount.classList.add('hidden');
                 }
                 
-                // Load recent notifications (match user's design)
+                // Load recent notifications
                 if (data.notifications && data.notifications.length > 0) {
                     let html = '';
                     data.notifications.forEach(notification => {
@@ -372,11 +375,10 @@
                         let iconBg = 'bg-blue-100';
                         let iconColor = 'text-blue-600';
                         const msg = (notification.message || '').toLowerCase();
-                        if (msg.includes('booking')) { icon = 'fas fa-calendar-check'; iconBg = 'bg-green-100'; iconColor = 'text-green-600'; }
+                        if (msg.includes('booking')) { icon = 'fas fa-calendar-plus'; iconBg = 'bg-green-100'; iconColor = 'text-green-600'; }
                         else if (msg.includes('payment')) { icon = 'fas fa-credit-card'; iconBg = 'bg-purple-100'; iconColor = 'text-purple-600'; }
-                        else if (msg.includes('approved') || msg.includes('verified') || msg.includes('completed')) { icon = 'fas fa-check-circle'; iconBg = 'bg-green-100'; iconColor = 'text-green-600'; }
-                        else if (msg.includes('rejected') || msg.includes('cancel')) { icon = 'fas fa-times-circle'; iconBg = 'bg-red-100'; iconColor = 'text-red-600'; }
-                        else if (msg.includes('certificate')) { icon = 'fas fa-file-certificate'; iconBg = 'bg-indigo-100'; iconColor = 'text-indigo-600'; }
+                        else if (msg.includes('cancelled') || msg.includes('cancel')) { icon = 'fas fa-calendar-times'; iconBg = 'bg-red-100'; iconColor = 'text-red-600'; }
+                        else if (msg.includes('contact') || msg.includes('message')) { icon = 'fas fa-envelope'; iconBg = 'bg-indigo-100'; iconColor = 'text-indigo-600'; }
 
                         html += `
                             <div class="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer notification-item-header border-l-4 ${borderColor} ${!notification.is_read ? 'bg-blue-50/50' : ''}" data-id="${notification.id}" data-read="${notification.is_read}">
@@ -459,10 +461,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    type: 'all'
-                })
+                }
             })
             .then(response => response.json())
             .then(data => {
@@ -476,58 +475,45 @@
         // Load header notifications on page load
         loadHeaderNotifications();
 
-        // Update admin action counts
-        function updateAdminActionCounts() {
-            fetch('{{ route("staff.notifications.admin-action-counts") }}')
+        // Update staff action counts
+        function updateStaffActionCounts() {
+            fetch('{{ route("staff.staff-action-counts") }}')
             .then(response => response.json())
             .then(data => {
                 if (data.has_actions) {
-                    // Update total count
-                    const totalElement = document.getElementById('total-admin-actions');
-                    if (totalElement) {
-                        totalElement.textContent = data.formatted_total;
-                    }
-
-                    // Update breakdown
-                    const breakdownElement = document.getElementById('admin-actions-breakdown');
-                    if (breakdownElement) {
-                        let breakdownHtml = '';
-                        if (data.counts.pending_bookings > 0) {
-                            breakdownHtml += `<div>• ${data.counts.pending_bookings} pending bookings</div>`;
-                        }
-                        if (data.counts.payment_verification > 0) {
-                            breakdownHtml += `<div>• ${data.counts.payment_verification} payments to verify</div>`;
-                        }
-                        if (data.counts.pending_cash_inflows > 0) {
-                            breakdownHtml += `<div>• ${data.counts.pending_cash_inflows} cash inflows pending</div>`;
-                        }
-                        if (data.counts.pending_budget_requests > 0) {
-                            breakdownHtml += `<div>• ${data.counts.pending_budget_requests} budget requests pending</div>`;
-                        }
-                        if (data.counts.pending_activities > 0) {
-                            breakdownHtml += `<div>• ${data.counts.pending_activities} activities need review</div>`;
-                        }
-                        if (data.counts.pending_users > 0) {
-                            breakdownHtml += `<div>• ${data.counts.pending_users} new users</div>`;
-                        }
-                        breakdownElement.innerHTML = breakdownHtml;
-                    }
+                    // Update individual navigation counts
+                    updateNavigationCount('pending-bookings-count', data.counts.pending_bookings + data.counts.acknowledged_bookings);
+                    updateNavigationCount('pending-activities-count', data.counts.pending_activities);
+                    updateNavigationCount('pending-pages-count', data.counts.pending_pages);
                 } else {
                     // Hide all count elements if no actions needed
-                    const breakdownElement = document.getElementById('admin-actions-breakdown');
-                    if (breakdownElement) {
-                        breakdownElement.innerHTML = '<div class="text-green-600">All caught up! No pending actions.</div>';
-                    }
+                    updateNavigationCount('pending-bookings-count', 0);
+                    updateNavigationCount('pending-activities-count', 0);
+                    updateNavigationCount('pending-pages-count', 0);
                 }
             })
-            .catch(error => console.error('Error fetching admin action counts:', error));
+            .catch(error => console.error('Error fetching staff action counts:', error));
         }
 
-        // Update admin action counts on page load
-        updateAdminActionCounts();
+        // Helper function to update individual navigation counts
+        function updateNavigationCount(elementId, count) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = count;
+                element.dataset.count = count;
+                if (count > 0) {
+                    element.classList.remove('hidden');
+                } else {
+                    element.classList.add('hidden');
+                }
+            }
+        }
 
-        // Update admin action counts every 30 seconds
-        setInterval(updateAdminActionCounts, 30000);
+        // Update staff action counts on page load
+        updateStaffActionCounts();
+
+        // Update staff action counts every 30 seconds
+        setInterval(updateStaffActionCounts, 30000);
     </script>
 </body>
 </html> 
