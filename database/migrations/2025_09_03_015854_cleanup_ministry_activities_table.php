@@ -14,18 +14,50 @@ return new class extends Migration
         // Remove the redundant budget columns from ministry_activities
         // Keep only the basic budget planning fields (estimated_budget, budget_breakdown, has_budget_request)
         Schema::table('ministry_activities', function (Blueprint $table) {
-            // Drop the consolidated budget request columns that duplicate the normalized tables
-            $table->dropForeign(['budget_requested_by_user_id']);
-            $table->dropForeign(['budget_approved_by_user_id']);
-            $table->dropColumn([
-                'budget_request_amount',
-                'budget_request_details', 
-                'budget_request_status',
-                'budget_requested_by_user_id',
-                'budget_approved_by_user_id',
-                'budget_approved_at',
-                'budget_request_files'
-            ]);
+            // Check if foreign keys exist before trying to drop them
+            if (Schema::hasColumn('ministry_activities', 'budget_requested_by_user_id')) {
+                try {
+                    $table->dropForeign(['budget_requested_by_user_id']);
+                } catch (Exception $e) {
+                    // Foreign key doesn't exist, continue
+                }
+            }
+            
+            if (Schema::hasColumn('ministry_activities', 'budget_approved_by_user_id')) {
+                try {
+                    $table->dropForeign(['budget_approved_by_user_id']);
+                } catch (Exception $e) {
+                    // Foreign key doesn't exist, continue
+                }
+            }
+            
+            // Drop columns if they exist
+            $columnsToDrop = [];
+            if (Schema::hasColumn('ministry_activities', 'budget_request_amount')) {
+                $columnsToDrop[] = 'budget_request_amount';
+            }
+            if (Schema::hasColumn('ministry_activities', 'budget_request_details')) {
+                $columnsToDrop[] = 'budget_request_details';
+            }
+            if (Schema::hasColumn('ministry_activities', 'budget_request_status')) {
+                $columnsToDrop[] = 'budget_request_status';
+            }
+            if (Schema::hasColumn('ministry_activities', 'budget_requested_by_user_id')) {
+                $columnsToDrop[] = 'budget_requested_by_user_id';
+            }
+            if (Schema::hasColumn('ministry_activities', 'budget_approved_by_user_id')) {
+                $columnsToDrop[] = 'budget_approved_by_user_id';
+            }
+            if (Schema::hasColumn('ministry_activities', 'budget_approved_at')) {
+                $columnsToDrop[] = 'budget_approved_at';
+            }
+            if (Schema::hasColumn('ministry_activities', 'budget_request_files')) {
+                $columnsToDrop[] = 'budget_request_files';
+            }
+            
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
         });
     }
 

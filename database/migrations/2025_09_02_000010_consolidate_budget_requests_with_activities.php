@@ -12,6 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if the required columns exist before trying to migrate data
+        if (!Schema::hasColumn('ministry_activities', 'budget_request_amount')) {
+            // Skip data migration if columns don't exist yet
+            return;
+        }
+
         // Since all columns already exist, just migrate the data
         // Update existing budget requests to link to activities
         DB::statement('
