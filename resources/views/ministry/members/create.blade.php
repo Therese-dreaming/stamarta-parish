@@ -331,7 +331,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     results.classList.remove('hidden');
-                    results.innerHTML = list.map((u, idx) => `
+                    const safeItems = list
+                        .map((u) => {
+                            const id = u?.id ?? u?.user_id ?? null;
+                            const name = u?.name ?? u?.full_name ?? u?.username ?? '';
+                            const email = u?.email ?? u?.user_email ?? '';
+                            if (!id || !name) return null;
+                            return { id, name, email };
+                        })
+                        .filter(Boolean);
+
+                    if (safeItems.length === 0) {
+                        results.classList.add('hidden');
+                        results.innerHTML = '';
+                        return;
+                    }
+
+                    results.innerHTML = safeItems.map((u, idx) => `
                         <button type="button" class="user-option w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition-colors duration-200 ${idx === 0 ? 'bg-gray-50' : ''}" data-id="${u.id}" data-name="${u.name}" data-email="${u.email}">
                             <div class="flex items-center">
                                 <div class="w-8 h-8 rounded-full bg-[#0d5c2f] flex items-center justify-center mr-3">
@@ -339,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                                 <div class="flex-1">
                                     <div class="font-medium text-sm text-gray-900">${u.name}</div>
-                                    <div class="text-xs text-gray-600">${u.email}</div>
+                                    <div class="text-xs text-gray-600">${u.email || '&nbsp;'}</div>
                                 </div>
                             </div>
                         </button>
@@ -362,18 +378,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Select user function
     function selectUser(id, name, email) {
         selectedUserId.value = id;
-        document.querySelector('input[name="name"]').value = name;
-        document.querySelector('input[name="email"]').value = email;
+        const nameInput = document.querySelector('input[name="name"]');
+        const emailInput = document.querySelector('input[name="email"]');
+        if (nameInput) nameInput.value = name || '';
+        if (emailInput) emailInput.value = email || '';
         
         // Update display
-        selectedUserName.textContent = name;
-        selectedUserEmail.textContent = email;
+        selectedUserName.textContent = name || '';
+        selectedUserEmail.textContent = email || '';
         selectedUserDisplay.classList.remove('hidden');
         
         // Hide results and update search input
         results.classList.add('hidden');
         results.innerHTML = '';
-        searchInput.value = `${name} <${email}>`;
+        searchInput.value = `${name || 'Selected User'}${email ? ' <' + email + '>' : ''}`;
         
         // Enable submit button
         submitBtn.disabled = false;

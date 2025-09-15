@@ -64,8 +64,8 @@ class MemberController extends Controller
             }
         }
 
-        $data['name'] = $data['name'] ?: $user->name;
-        $data['email'] = $data['email'] ?: $user->email;
+        $data['name'] = ($data['name'] ?? null) ?: $user->name;
+        $data['email'] = ($data['email'] ?? null) ?: $user->email;
 
         $ministry->members()->create($data);
         return redirect()->route('ministry.members.index')->with('success', 'Member added.');
