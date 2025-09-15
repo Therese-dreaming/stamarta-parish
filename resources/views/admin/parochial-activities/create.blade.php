@@ -251,6 +251,7 @@
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50">
                                 <option value="weekly" {{ old('recurring_pattern.type') == 'weekly' ? 'selected' : '' }}>Weekly</option>
                                 <option value="monthly" {{ old('recurring_pattern.type') == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                                <option value="yearly" {{ old('recurring_pattern.type') == 'yearly' ? 'selected' : '' }}>Yearly</option>
                             </select>
                         </div>
 

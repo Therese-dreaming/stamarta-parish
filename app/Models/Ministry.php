@@ -10,11 +10,11 @@ class Ministry extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'slug',
-        'description',
-        'head_user_id',
-        'is_active',
+        'name',             // Ministry name displayed in lists and forms, used for identification and organization
+        'slug',             // URL-friendly identifier for routing, auto-generated from name if not provided
+        'description',      // Detailed description of ministry purpose and activities, used for documentation
+        'head_user_id',     // User ID of ministry head, used for authorization and role assignment
+        'is_active',        // Boolean flag for ministry status, used for filtering and access control
     ];
 
     public function head()

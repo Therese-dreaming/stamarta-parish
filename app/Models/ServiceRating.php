@@ -10,11 +10,11 @@ class ServiceRating extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'service_id',
-        'booking_id',
-        'rating',
-        'comment'
+        'user_id',              // Links rating to specific user, used for user-specific rating tracking and authentication
+        'service_id',           // Links rating to specific service, used for service rating aggregation and display
+        'booking_id',           // Links rating to specific booking, used for booking-specific feedback and validation
+        'rating',               // Numeric rating (1-5 stars), used for service quality assessment and average calculations
+        'comment',              // Optional text feedback from user, used for detailed service feedback and improvement insights
     ];
 
     protected $casts = [

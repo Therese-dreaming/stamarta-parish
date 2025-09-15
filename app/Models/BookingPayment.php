@@ -10,16 +10,16 @@ class BookingPayment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'booking_id',
-        'total_fee',
-        'payment_method',
-        'payment_reference',
-        'payment_proof',
-        'payment_notes',
-        'payment_status',
-        'payment_submitted_at',
-        'payment_verified_at',
-        'verified_by',
+        'booking_id',            // Links payment to specific booking, used for one-to-one relationship with booking records
+        'total_fee',             // Total amount to be paid for the service, set by admin during acknowledgment and displayed in payment views
+        'payment_method',        // Payment method used (gcash, metrobank), determines UI display and processing workflow
+        'payment_reference',     // Transaction reference number provided by user, used for payment verification and tracking
+        'payment_proof',         // File path to uploaded payment proof document, used for verification and download functionality
+        'payment_notes',         // Optional notes from user about payment, displayed in admin views for additional context
+        'payment_status',        // Payment workflow status (pending, paid, verified, rejected), determines UI badges and workflow progression
+        'payment_submitted_at',  // Timestamp when user submitted payment proof, used for tracking and display in timeline views
+        'payment_verified_at',   // Timestamp when admin verified payment, used for audit trail and completion tracking
+        'verified_by',           // User ID who verified the payment, used for accountability and audit trail purposes
     ];
 
     protected $casts = [

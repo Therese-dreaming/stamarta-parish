@@ -14,17 +14,17 @@ class MinistryActivity extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ministry_id',
-        'title',
-        'description',
-        'start_at',
-        'end_at',
-        'is_all_day',
-        'location',
-        'is_public',
-        'estimated_budget',
-        'budget_breakdown',
-        'has_budget_request',
+        'ministry_id',          // Links activity to specific ministry, used for organization and access control
+        'title',                // Activity title displayed in lists and calendars, used for identification
+        'description',          // Detailed description of the activity, used for documentation and planning
+        'start_at',             // Activity start date and time, used for scheduling and conflict detection
+        'end_at',               // Activity end date and time, used for duration calculation and scheduling
+        'is_all_day',           // Boolean flag for all-day events, used for calendar display and time handling
+        'location',             // Activity venue or location, used for planning and conflict detection
+        'is_public',            // Boolean flag for public visibility, used for filtering and booking conflicts
+        'estimated_budget',     // Total estimated cost in decimal format, used for budget planning and reporting
+        'budget_breakdown',     // JSON array of budget items and amounts, used for detailed budget tracking
+        'has_budget_request',   // Boolean flag indicating if budget request was submitted, used for workflow tracking
     ];
 
     protected $casts = [

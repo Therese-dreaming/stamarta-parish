@@ -10,13 +10,13 @@ class Faq extends Model
     use HasFactory;
 
     protected $fillable = [
-        'question',
-        'answer',
-        'category',
-        'keywords',
-        'is_active',
-        'order',
-        'created_by'
+        'question',         // FAQ question text displayed to users, used in search functionality and chatbot responses
+        'answer',           // Detailed answer content for the FAQ, displayed in expandable sections and search results
+        'category',         // FAQ grouping category (general, booking, payment, etc.), used for filtering and organization
+        'keywords',         // JSON array of search keywords, used for enhanced search matching and chatbot intelligence
+        'is_active',        // Boolean flag to show/hide FAQ from public display, used for content management and moderation
+        'order',            // Integer for custom display ordering within categories, used for prioritized FAQ presentation
+        'created_by'        // User ID who created the FAQ, used for audit trail and content management accountability
     ];
 
     protected $casts = [

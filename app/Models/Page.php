@@ -11,18 +11,19 @@ class Page extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title',
-        'slug',
-        'content',
-        'content_blocks',
-        'layout',
-        'image_media_id',
-        'meta_title',
-        'meta_description',
-        'is_published',
-        'published_at',
-        'created_by',
-        'updated_by',
+        'title',                // Page title displayed in headers and navigation, used for identification and SEO
+        'slug',                 // URL-friendly identifier for routing, auto-generated from title if not provided
+        'content',              // Main page content in HTML format, used as fallback when content_blocks are not available
+        'content_blocks',       // JSON array of structured content blocks, used for flexible page layout and content management
+        'layout',               // Page layout type (one_column, image_left_text_right, etc.), used for display formatting
+        'image_media_id',       // Reference to featured image in media table, used for page headers and social sharing
+        'meta_title',           // SEO title for search engines, used in page head and search results
+        'meta_description',     // SEO description for search engines, used in page head and search result snippets
+        'is_published',         // Boolean flag for publication status, used for draft/published content management
+        'published_at',         // Timestamp when page was published, used for publication tracking and display
+        'created_by',           // User ID who created the page, used for audit trail and content ownership
+        'updated_by',           // User ID who last updated the page, used for audit trail and change tracking
+        'updated_at',           // Timestamp when page was last modified, used for change tracking and sorting
     ];
 
     protected $casts = [

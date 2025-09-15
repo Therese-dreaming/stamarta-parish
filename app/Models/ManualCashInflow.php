@@ -10,19 +10,19 @@ class ManualCashInflow extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ministry_id',
-        'head_user_id',
-        'amount',
-        'source_type',
-        'description',
-        'source_details',
-        'other_source_specify',
-        'reference_no',
-        'notes',
-        'entered_by_user_id',
-        'approved_by_user_id',
-        'approved_at',
-        'status',
+        'ministry_id',          // Links cash inflow to specific ministry for fund tracking and budget management
+        'head_user_id',         // Ministry head who submitted the inflow, used for authorization and filtering
+        'amount',               // Cash inflow amount in decimal format, used for financial calculations and reporting
+        'source_type',          // Type of income source (diocese, donation, fundraising, etc.), used for categorization and filtering
+        'description',          // Brief description of the cash inflow, displayed in lists and detail views
+        'source_details',       // Additional details about the income source, used for comprehensive documentation
+        'other_source_specify', // Custom specification when source_type is 'other', used for flexible categorization
+        'reference_no',         // Unique reference number for tracking, auto-generated if not provided
+        'notes',                // Additional notes and comments, used for internal documentation and rejection reasons
+        'entered_by_user_id',   // User who created the inflow record, used for audit trail and accountability
+        'approved_by_user_id',  // Admin who approved/rejected the inflow, used for approval workflow tracking
+        'approved_at',          // Timestamp when inflow was approved, used for audit trail and reporting
+        'status',               // Workflow status (pending, approved, rejected), determines UI display and permissions
     ];
 
     protected $casts = [

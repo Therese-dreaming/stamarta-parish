@@ -19,15 +19,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'date_of_birth',
-        'email_verification_token',
-        'email_verified_at',
-        'password_reset_token',
-        'password_reset_expires_at',
+        'name',                         // User's full name, used for display and identification throughout the system
+        'email',                        // User's email address, used for authentication, communication, and notifications
+        'password',                     // Hashed user password, used for authentication and security
+        'role',                         // User's role (admin, priest, ministry_head, staff, user), used for authorization and access control
+        'date_of_birth',                // User's birth date, used for age calculation and legal age verification
+        'email_verification_token',     // Token for email verification, used for account activation and security
+        'email_verified_at',            // Timestamp when email was verified, used for account status and access control
+        'password_reset_token',         // Token for password reset, used for secure password recovery process
+        'password_reset_expires_at',    // Expiration time for password reset token, used for security and token validation
+        'remember_token',               // Token for "remember me" functionality, used for persistent login sessions
     ];
 
     /**

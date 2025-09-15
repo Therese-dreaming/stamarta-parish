@@ -10,11 +10,11 @@ class BookingAction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'booking_id',
-        'action_type',
-        'notes',
-        'performed_by',
-        'priest_id',
+        'booking_id',        // Links action to specific booking, used for tracking booking workflow history
+        'action_type',       // Type of action performed (acknowledged, approved, rejected, completed), determines UI display and workflow state
+        'notes',             // Optional notes explaining the action, displayed in timeline views for context and documentation
+        'performed_by',      // User ID who performed the action, used for audit trail and accountability tracking
+        'priest_id',         // Optional priest ID when action involves priest assignment, used for priest-specific action tracking
     ];
 
     // Action type constants

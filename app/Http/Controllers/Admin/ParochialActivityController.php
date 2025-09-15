@@ -73,7 +73,7 @@ class ParochialActivityController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // Handle recurring pattern
+        // Handle recurring pattern (supports weekly, monthly, yearly)
         if ($request->boolean('is_recurring')) {
             $validated['recurring_pattern'] = [
                 'type' => $request->input('recurring_pattern.type'),

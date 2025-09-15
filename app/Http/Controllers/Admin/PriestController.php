@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Models\Booking;
 
 class PriestController extends Controller
 {
@@ -103,6 +104,40 @@ class PriestController extends Controller
         $isStaff = auth()->user()->role === 'staff';
         
         return view('admin.priests.show', compact('priest', 'isStaff'));
+    }
+
+    public function bookings(Priest $priest, Request $request)
+    {
+        // Check if user is staff
+        $isStaff = auth()->user()->role === 'staff';
+
+        $bookingsQuery = Booking::with(['user', 'service'])
+            ->where('priest_id', $priest->id);
+
+        // Optional status filter via query string ?status=pending|acknowledged|approved|completed|cancelled|rejected
+        $status = $request->query('status');
+        if ($status) {
+            $bookingsQuery->where('status', $status);
+        }
+
+        $bookings = $bookingsQuery
+            ->orderBy('service_date', 'desc')
+            ->orderBy('service_time', 'desc')
+            ->paginate(15)
+            ->appends($request->only('status'));
+
+        // Simple stats
+        $stats = [
+            'total' => Booking::where('priest_id', $priest->id)->count(),
+            'pending' => Booking::where('priest_id', $priest->id)->where('status', 'pending')->count(),
+            'acknowledged' => Booking::where('priest_id', $priest->id)->where('status', 'acknowledged')->count(),
+            'approved' => Booking::where('priest_id', $priest->id)->where('status', 'approved')->count(),
+            'completed' => Booking::where('priest_id', $priest->id)->where('status', 'completed')->count(),
+            'cancelled' => Booking::where('priest_id', $priest->id)->where('status', 'cancelled')->count(),
+            'rejected' => Booking::where('priest_id', $priest->id)->where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.priests.bookings', compact('priest', 'bookings', 'stats', 'isStaff', 'status'));
     }
 
     public function edit(Priest $priest)

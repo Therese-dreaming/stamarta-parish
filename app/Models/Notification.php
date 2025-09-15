@@ -10,14 +10,14 @@ class Notification extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'type',
-        'action',
-        'message',
-        'data',
-        'booking_id',
-        'is_read',
-        'read_at',
+        'user_id',              // Links notification to specific user, used for user-specific notification delivery
+        'type',                 // Notification type (user, admin, staff, priest), used for role-based filtering and display
+        'action',               // Specific action that triggered the notification, used for categorization and UI handling
+        'message',              // Human-readable notification text, displayed in notification lists and UI components
+        'data',                 // JSON object containing additional context data, used for enhanced display and functionality
+        'booking_id',           // Optional link to related booking, used for navigation and context in booking-related notifications
+        'is_read',              // Boolean flag for read status, used for unread notification counts and filtering
+        'read_at',              // Timestamp when notification was read, used for read status tracking and analytics
     ];
 
     protected $casts = [

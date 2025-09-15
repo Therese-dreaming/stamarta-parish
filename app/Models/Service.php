@@ -11,19 +11,20 @@ class Service extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'description',
-        'duration_minutes',
-        'max_slots',
-        'is_active',
-        'requirements',
-        'fees',
-        'schedules',
-        'notes',
-        'booking_restrictions',
-        'custom_fields',
-        'service_type',
-        'ministry_id',
+        'name',                 // Service name displayed in lists and forms, used for identification and user selection
+        'description',          // Detailed description of the service, used for information display and user understanding
+        'duration_minutes',     // Service duration in minutes, used for scheduling and time slot calculations
+        'max_slots',            // Maximum number of booking slots per day, used for capacity management and availability
+        'is_active',            // Boolean flag for service availability, used for filtering active/inactive services
+        'requirements',         // JSON array of required documents/information, used for booking validation and user guidance
+        'fees',                 // JSON array of fee structures with conditions, used for dynamic pricing and payment calculations
+        'schedules',            // JSON object of weekly schedules by day, used for availability checking and time slot management
+        'notes',                // Additional notes about the service, used for internal documentation and special instructions
+        'booking_restrictions', // JSON object of booking rules (min/max days), used for booking validation and user messaging
+        'custom_fields',        // JSON array of dynamic form fields, used for service-specific data collection
+        'service_type',         // Type of service (sacrament, ceremony, etc.), used for categorization and filtering
+        'ministry_id',          // Links service to specific ministry, used for organizational tracking and fund management
+        'deleted_at',           // Timestamp when service was soft deleted, used for soft delete functionality and data recovery
     ];
 
     protected $casts = [

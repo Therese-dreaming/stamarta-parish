@@ -13,15 +13,15 @@ class MinistryBudgetRequest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ministry_id',
-        'activity_id',
-        'purpose',
-        'details',
-        'status',
-        'requested_by_user_id',
-        'approved_by_user_id',
-        'approved_at',
-        'rejection_notes',
+        'ministry_id',          // Links budget request to specific ministry, used for organization and access control
+        'activity_id',          // Optional link to ministry activity, used for activity-based budget requests
+        'purpose',              // Brief description of budget purpose, displayed in lists and approval views
+        'details',              // Detailed explanation of budget request, used for comprehensive documentation
+        'status',               // Request workflow status (pending, approved, rejected), determines UI display and permissions
+        'requested_by_user_id', // User who submitted the request, used for audit trail and accountability
+        'approved_by_user_id',  // Admin who approved/rejected the request, used for approval workflow tracking
+        'approved_at',          // Timestamp when request was processed, used for audit trail and reporting
+        'rejection_notes',      // Optional notes explaining rejection reason, used for feedback and documentation
     ];
 
     protected $casts = [

@@ -170,6 +170,10 @@
                                                class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 transition-colors" title="View">
                                                 <i class="fas fa-eye text-sm"></i>
                                             </a>
+                                            <a href="{{ isset($isStaff) && $isStaff ? route('staff.priests.bookings', $priest) : route('admin.priests.bookings', $priest) }}"
+                                               class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center text-indigo-600 transition-colors" title="View Bookings">
+                                                <i class="fas fa-calendar-check text-sm"></i>
+                                            </a>
                                             @if(!isset($isStaff) || !$isStaff)
                                             <a href="{{ route('admin.priests.edit', $priest) }}" 
                                                class="w-8 h-8 rounded-lg bg-green-50 hover:bg-green-100 flex items-center justify-center text-green-600 transition-colors" title="Edit">
@@ -265,6 +269,10 @@
                                         <a href="{{ isset($isStaff) && $isStaff ? route('staff.priests.show', $priest) : route('admin.priests.show', $priest) }}" 
                                            class="w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 transition-colors" title="View">
                                             <i class="fas fa-eye text-sm"></i>
+                                        </a>
+                                        <a href="{{ isset($isStaff) && $isStaff ? route('staff.priests.bookings', $priest) : route('admin.priests.bookings', $priest) }}" 
+                                           class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center text-indigo-600 transition-colors" title="View Bookings">
+                                            <i class="fas fa-calendar-check text-sm"></i>
                                         </a>
                                         @if(!isset($isStaff) || !$isStaff)
                                         <a href="{{ route('admin.priests.edit', $priest) }}" 

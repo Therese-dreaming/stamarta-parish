@@ -11,16 +11,16 @@ class MinistryFundTransaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ministry_id',
-        'type',
-        'amount',
-        'description',
-        'reference_no',
-        'source_type',
-        'source_id',
-        'reversal_of_transaction_id',
-        'entered_by_user_id',
-        'approved_by_user_id',
+        'ministry_id',                  // Links transaction to specific ministry, used for fund tracking and balance calculations
+        'type',                         // Transaction type (credit/debit), used for financial calculations and balance determination
+        'amount',                       // Transaction amount in decimal format, used for balance calculations and reporting
+        'description',                  // Human-readable description of the transaction, displayed in transaction lists and reports
+        'reference_no',                 // Unique reference number for transaction tracking, used for audit trails and reconciliation
+        'source_type',                  // Polymorphic source model class name, used for linking to originating records (budget requests, cash inflows)
+        'source_id',                    // ID of the source record, used with source_type for polymorphic relationships
+        'reversal_of_transaction_id',   // ID of transaction being reversed, used for transaction reversals and audit trails
+        'entered_by_user_id',           // User who created the transaction, used for audit trail and accountability
+        'approved_by_user_id',          // Admin who approved the transaction, used for approval workflow and authorization tracking
     ];
 
     protected $casts = [

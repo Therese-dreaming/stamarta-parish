@@ -11,15 +11,15 @@ class Media extends Model
     use HasFactory;
 
     protected $fillable = [
-        'original_name',
-        'file_name',
-        'file_path',
-        'file_size',
-        'mime_type',
-        'alt_text',
-        'description',
-        'folder',
-        'uploaded_by',
+        'original_name',    // Original filename when uploaded, used for display and search functionality
+        'file_name',        // Generated unique filename for storage, prevents conflicts and ensures security
+        'file_path',        // Storage path to the file, used for file retrieval and URL generation
+        'file_size',        // File size in bytes, used for storage management and display formatting
+        'mime_type',        // File MIME type (image/jpeg, application/pdf, etc.), used for type filtering and validation
+        'alt_text',         // Alternative text for images, used for accessibility and search functionality
+        'description',      // Optional description of the media file, used for documentation and search
+        'folder',           // Organizational folder name, used for file categorization and filtering
+        'uploaded_by',      // User ID who uploaded the file, used for audit trail and permissions
     ];
 
     protected $appends = [

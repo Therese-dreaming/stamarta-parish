@@ -399,8 +399,8 @@ class BookingController extends Controller
             return false;
         }
 
-        // Check for parochial activities that block this time slot
-        $blockingActivities = \App\Models\ParochialActivity::active()->onDate($date)->get();
+        // Check for parochial activities that block this time slot (include recurring)
+        $blockingActivities = \App\Models\ParochialActivity::active()->affectingDate($date)->get();
         // Check for ministry activities that block this time slot
         $ministryActivities = \App\Models\MinistryActivity::query()
             ->where('is_public', true) // Only public ministry activities block bookings
@@ -473,8 +473,8 @@ class BookingController extends Controller
             return [];
         }
 
-        // Check for parochial activities that block bookings on this date
-        $blockingActivities = \App\Models\ParochialActivity::active()->onDate($date)->get();
+        // Check for parochial activities that block bookings on this date (include recurring)
+        $blockingActivities = \App\Models\ParochialActivity::active()->affectingDate($date)->get();
         
         // Check for ministry activities that block bookings on this date
         $ministryActivities = \App\Models\MinistryActivity::query()
@@ -632,7 +632,7 @@ class BookingController extends Controller
             $timeSlots = $this->getAvailableTimeSlots($service, $date);
 
             // Compose blocking activities summary for banner
-            $parochial = \App\Models\ParochialActivity::active()->onDate($date)->get();
+            $parochial = \App\Models\ParochialActivity::active()->affectingDate($date)->get();
             $ministry = \App\Models\MinistryActivity::query()
                 ->where('is_public', true) // Only public ministry activities block bookings
                 ->whereHas('approvedBudgetRequest') // Only block if budget request is approved

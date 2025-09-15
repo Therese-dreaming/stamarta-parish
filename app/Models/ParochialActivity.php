@@ -12,24 +12,25 @@ class ParochialActivity extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'title',
-        'description',
-        'event_date',
-        'start_time',
-        'end_time',
-        'block_type',
-        'location',
-        'organizer',
-        'contact_person',
-        'contact_phone',
-        'contact_email',
-        'status',
-        'is_recurring',
-        'recurring_pattern',
-        'recurring_end_date',
-        'notes',
-        'created_by',
-        'updated_by',
+        'title',                // Activity title displayed in lists and calendars, used for identification and display
+        'description',          // Detailed description of the activity, used for documentation and information display
+        'event_date',           // Date when the activity occurs, used for scheduling and conflict detection
+        'start_time',           // Activity start time, used for time slot blocking and conflict detection
+        'end_time',             // Activity end time, used for duration calculation and time slot blocking
+        'block_type',           // Type of blocking (time_slot or full_day), used for booking conflict determination
+        'location',             // Activity location, used for display and organization purposes
+        'organizer',            // Person or organization organizing the activity, used for identification
+        'contact_person',       // Contact person for the activity, used for communication and coordination
+        'contact_phone',        // Phone number for activity contact, used for communication purposes
+        'contact_email',        // Email address for activity contact, used for communication and notifications
+        'status',               // Activity status (active, cancelled, completed), used for blocking logic and display
+        'is_recurring',         // Boolean flag for recurring activities, used for weekly pattern conflict detection
+        'recurring_pattern',    // JSON object storing recurrence type and interval, used for generating recurring dates
+        'recurring_end_date',   // End date for recurring activities, used for limiting recurrence scope
+        'notes',                // Additional notes about the activity, used for internal documentation
+        'created_by',           // User ID who created the activity, used for audit trail and ownership
+        'updated_by',           // User ID who last updated the activity, used for audit trail and change tracking
+        'deleted_at',           // Timestamp when activity was soft deleted, used for soft delete functionality and data recovery
     ];
 
     protected $casts = [
@@ -108,10 +109,31 @@ class ParochialActivity extends Model
         $bookingDateObj = Carbon::parse($bookingDate);
         $activityDateObj = Carbon::parse($this->event_date);
 
-        // For recurring activities, check if the booking date matches the day of the week
+        // For recurring activities, check if the booking date matches the recurrence pattern
         if ($this->is_recurring) {
-            if ($bookingDateObj->format('l') !== $activityDateObj->format('l')) {
-                return false; // Different day of the week
+            // Respect recurring_end_date if set
+            if ($this->recurring_end_date && $bookingDateObj->gt(Carbon::parse($this->recurring_end_date))) {
+                return false;
+            }
+
+            $pattern = $this->recurring_pattern ?? [];
+            $type = $pattern['type'] ?? 'weekly';
+
+            if ($type === 'weekly') {
+                if ($bookingDateObj->format('l') !== $activityDateObj->format('l')) {
+                    return false; // Different day of the week
+                }
+            } elseif ($type === 'monthly') {
+                if ((int)$bookingDateObj->format('j') !== (int)$activityDateObj->format('j')) {
+                    return false; // Different day of the month
+                }
+            } elseif ($type === 'yearly') {
+                if ($bookingDateObj->format('m-d') !== $activityDateObj->format('m-d')) {
+                    return false; // Different month-day
+                }
+            } else {
+                // Unknown pattern, default to no block
+                return false;
             }
         } else {
             // For non-recurring activities, check exact date match
@@ -154,14 +176,43 @@ class ParochialActivity extends Model
         $startDate = Carbon::now()->startOfDay();
         $endDate = Carbon::parse($this->recurring_end_date ?? Carbon::now()->addYear());
 
-        $currentDate = $startDate->copy();
-        
-        while ($currentDate->lte($endDate)) {
-            // Check if this date matches the day of the week for the activity
-            if ($currentDate->format('l') === $this->event_date->format('l')) {
-                $dates[] = $currentDate->copy();
+        $pattern = $this->recurring_pattern ?? [];
+        $type = $pattern["type"] ?? 'weekly';
+
+        if ($type === 'weekly') {
+            // Add every matching weekday between start and end
+            $currentDate = $startDate->copy();
+            while ($currentDate->lte($endDate)) {
+                if ($currentDate->format('l') === $this->event_date->format('l')) {
+                    $dates[] = $currentDate->copy();
+                }
+                $currentDate->addDay();
             }
-            $currentDate->addDay();
+        } elseif ($type === 'monthly') {
+            // Add same day-of-month each month
+            $day = (int) Carbon::parse($this->event_date)->format('j');
+            $cursor = $startDate->copy()->day(1);
+            while ($cursor->lte($endDate)) {
+                $candidate = $cursor->copy()->day(min($day, $cursor->daysInMonth));
+                if ($candidate->betweenIncluded($startDate, $endDate)) {
+                    $dates[] = $candidate->copy();
+                }
+                $cursor->addMonth();
+            }
+        } elseif ($type === 'yearly') {
+            // Add same month-day each year
+            $month = (int) Carbon::parse($this->event_date)->format('n');
+            $day = (int) Carbon::parse($this->event_date)->format('j');
+            $cursor = $startDate->copy()->startOfYear();
+            while ($cursor->lte($endDate)) {
+                $candidate = $cursor->copy()->month($month);
+                // Adjust for shorter months (e.g., Feb 29 -> Feb 28 if non-leap)
+                $candidate->day(min($day, $candidate->daysInMonth));
+                if ($candidate->betweenIncluded($startDate, $endDate)) {
+                    $dates[] = $candidate->copy();
+                }
+                $cursor->addYear();
+            }
         }
 
         return $dates;
@@ -180,7 +231,27 @@ class ParochialActivity extends Model
      */
     public function scopeOnDate($query, $date)
     {
-        return $query->where('event_date', $date);
+        return $query->whereDate('event_date', $date);
+    }
+
+    /**
+     * Scope for activities that affect a specific date (includes recurring)
+     */
+    public function scopeAffectingDate($query, $date)
+    {
+        $dateStr = Carbon::parse($date)->format('Y-m-d');
+        return $query->where(function ($q) use ($dateStr) {
+            // Non-recurring activities on the exact date
+            $q->where('is_recurring', false)
+              ->whereDate('event_date', $dateStr);
+        })->orWhere(function ($q) use ($dateStr) {
+            // Recurring activities that could include this date
+            $q->where('is_recurring', true)
+              ->where(function ($qq) use ($dateStr) {
+                  $qq->whereNull('recurring_end_date')
+                     ->orWhereDate('recurring_end_date', '>=', $dateStr);
+              });
+        });
     }
 
     /**

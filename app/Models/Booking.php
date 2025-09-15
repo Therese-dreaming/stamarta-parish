@@ -10,20 +10,20 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'service_id',
-        'ministry_id',
-        'service_date',
-        'service_time',
-        'contact_phone',
-        'contact_address',
-        'additional_notes',
-        'requirements_submitted',
-        'additional_requirements',
-        'custom_data',
-        'status',
-        'priest_id',
-        'certificate_path',
+        'user_id',                    // Links booking to the user who made the request, used for authentication and user-specific booking views
+        'service_id',                 // References the specific church service (baptism, wedding, etc.) being booked
+        'ministry_id',                // Associates booking with a ministry for organizational tracking and fund management
+        'service_date',               // Scheduled date for the church service, used for calendar views and scheduling conflicts
+        'service_time',               // Specific time slot for the service, displayed in user-friendly format (e.g., "2:00 PM")
+        'contact_phone',              // User's phone number for communication and contact verification
+        'contact_address',            // User's address for service delivery and location verification
+        'additional_notes',           // General notes from the user about special requests or requirements
+        'requirements_submitted',     // JSON array storing file paths of uploaded documents (birth certificates, etc.)
+        'additional_requirements',    // Extra requirements or notes from admin/staff during booking processing
+        'custom_data',                // JSON object storing dynamic form fields specific to each service type
+        'status',                     // Booking workflow status (pending, acknowledged, approved, completed, etc.)
+        'priest_id',                  // Assigned priest for the service, used for priest-specific booking management
+        'certificate_path',           // File path to generated certificate PDF after service completion
     ];
 
     protected $casts = [

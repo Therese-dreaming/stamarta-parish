@@ -10,16 +10,16 @@ class MinistryMember extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ministry_id',
-        'user_id',
-        'name',
-        'email',
-        'phone',
-        'position',
-        'role',
-        'is_active',
-        'joined_at',
-        'notes',
+        'ministry_id',          // Links member to specific ministry, used for organization and access control
+        'user_id',              // Optional link to user account, used for authentication and system integration
+        'name',                 // Member's full name, used for display and identification in member lists
+        'email',                // Member's email address, used for communication and contact information
+        'phone',                // Member's phone number, used for contact and communication purposes
+        'position',             // Member's specific role/title within the ministry, used for organizational hierarchy
+        'role',                 // Member's permission level (member, officer, assistant_ministry_head), used for authorization
+        'is_active',            // Boolean flag for member status, used for filtering active/inactive members
+        'joined_at',            // Date when member joined the ministry, used for membership duration tracking
+        'notes',                // Additional notes about the member, used for internal documentation and comments
     ];
 
     protected $casts = [

@@ -10,18 +10,18 @@ class PriestLeave extends Model
     use HasFactory;
 
     protected $fillable = [
-        'priest_id',
-        'leave_type',
-        'start_date',
-        'end_date',
-        'reason',
-        'contact_info',
-        'emergency_contact',
-        'status',
-        'submitted_at',
-        'approved_at',
-        'approved_by',
-        'notes',
+        'priest_id',            // Links leave request to specific priest, used for priest-specific leave tracking
+        'leave_type',           // Type of leave (vacation, sick, pilgrimage, etc.), used for categorization and reporting
+        'start_date',           // Leave start date, used for scheduling conflicts and availability checking
+        'end_date',             // Leave end date, used for duration calculation and availability checking
+        'reason',               // Reason for leave request, used for documentation and approval process
+        'contact_info',         // Contact information during leave, used for emergency communication
+        'emergency_contact',    // Emergency contact details, used for urgent communication during leave
+        'status',               // Leave request status (pending, approved, rejected, completed), used for workflow management
+        'submitted_at',         // Timestamp when leave was submitted, used for audit trail and processing time tracking
+        'approved_at',          // Timestamp when leave was approved, used for audit trail and approval tracking
+        'approved_by',          // User ID who approved the leave, used for accountability and authorization tracking
+        'notes',                // Additional notes about the leave, used for internal documentation and comments
     ];
 
     protected $casts = [

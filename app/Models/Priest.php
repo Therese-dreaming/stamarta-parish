@@ -11,19 +11,20 @@ class Priest extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'address',
-        'birth_date',
-        'ordination_date',
-        'years_of_service',
-        'is_active',
-        'leave_status',
-        'specializations',
-        'bio',
-        'photo_path',
-        'user_id',
+        'name',                 // Priest's full name, used for display and identification in lists and forms
+        'email',                // Priest's email address, used for communication and system notifications
+        'phone',                // Priest's phone number, used for contact and communication purposes
+        'address',              // Priest's residential address, used for contact information and records
+        'birth_date',           // Priest's date of birth, used for age calculation and personal records
+        'ordination_date',      // Date when priest was ordained, used for years of service calculation and records
+        'years_of_service',     // Manual override for years of service, used when automatic calculation is not desired
+        'is_active',            // Boolean flag for priest availability, used for filtering active/inactive priests
+        'leave_status',         // Current leave status (active, on_leave, pilgrimage, etc.), used for availability checking
+        'specializations',      // JSON array of priest specializations, used for service assignment and filtering
+        'bio',                  // Priest's biographical information, used for profile display and documentation
+        'photo_path',           // File path to priest's photo, used for profile images and display
+        'user_id',              // Optional link to user account, used for authentication and system integration
+        'deleted_at',           // Timestamp when priest was soft deleted, used for soft delete functionality and data recovery
     ];
 
     protected $casts = [

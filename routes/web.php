@@ -173,6 +173,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	// Priest Management
 	Route::resource('priests', PriestController::class);
 	Route::post('priests/{priest}/toggle-status', [PriestController::class, 'toggleStatus'])->name('priests.toggle-status');
+	Route::get('priests/{priest}/bookings', [PriestController::class, 'bookings'])->name('priests.bookings');
 	
 	// Priest Leaves Management (Admin)
 	Route::post('leaves/{leave}/approve', [\App\Http\Controllers\Admin\PriestLeaveController::class, 'approve'])->name('leaves.approve');
@@ -310,6 +311,7 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
 	// View Only Routes (using admin controllers)
 	Route::get('priests', [PriestController::class, 'index'])->name('priests.index');
 	Route::get('priests/{priest}', [PriestController::class, 'show'])->name('priests.show');
+	Route::get('priests/{priest}/bookings', [PriestController::class, 'bookings'])->name('priests.bookings');
 	
 	Route::get('services', [ServiceController::class, 'index'])->name('services.index');
 	Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
