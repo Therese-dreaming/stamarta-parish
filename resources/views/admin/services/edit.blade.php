@@ -4,6 +4,23 @@
 
 @section('content')
 @include('components.toast')
+
+@if ($errors->any())
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 mr-3"></i>
+            <div class="flex-1">
+                <h3 class="text-sm font-semibold text-red-800 mb-2">Please fix the following errors:</h3>
+                <ul class="text-sm text-red-700 space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>• {{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
+@endif
+
 <div class="space-y-4">
     <!-- Header with colored background -->
     <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 rounded-lg shadow-md overflow-hidden">
@@ -24,7 +41,7 @@
     </div>
 
     <!-- Form -->
-    <form action="{{ route('admin.services.update', $service) }}" method="POST" class="space-y-4">
+    <form action="{{ route('admin.services.update', $service) }}" method="POST" class="space-y-4" id="serviceForm">
         @csrf
         @method('PUT')
         
@@ -174,63 +191,48 @@
                 </h3>
             </div>
             <div class="p-4">
-                <div id="fees-container" class="space-y-3">
-                    @if($service->fees)
-                        @foreach($service->fees as $feeType => $feeData)
-                        <div class="border border-gray-200 rounded-md p-3 bg-gray-50">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div class="group">
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Fee Type</label>
-                                    <input type="text" name="fee_types[]" value="{{ $feeType }}"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                                           placeholder="e.g., regular">
-                                </div>
-                                <div class="group">
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Amount (₱)</label>
-                                    <input type="number" name="fee_amounts[]" 
-                                           value="{{ is_array($feeData) ? $feeData['amount'] : $feeData }}" 
-                                           step="0.01" min="0"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                                           placeholder="0.00">
-                                </div>
-                                <div class="group">
-                                    <label class="block text-xs font-medium text-gray-500 mb-1">Description</label>
-                                    <input type="text" name="fee_descriptions[]" 
-                                           value="{{ is_array($feeData) ? ($feeData['description'] ?? '') : '' }}"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                                           placeholder="e.g., Regular (10+ days advance)">
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="group">
-                                        <label class="block text-xs font-medium text-gray-500 mb-1">Min Days</label>
-                                        <input type="number" name="fee_min_days[]" 
-                                               value="{{ is_array($feeData) && isset($feeData['condition']['min_days']) ? $feeData['condition']['min_days'] : '' }}"
-                                               min="0" max="365"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                                               placeholder="0">
-                                    </div>
-                                    <div class="group">
-                                        <label class="block text-xs font-medium text-gray-500 mb-1">Max Days</label>
-                                        <input type="number" name="fee_max_days[]" 
-                                               value="{{ is_array($feeData) && isset($feeData['condition']['max_days']) ? $feeData['condition']['max_days'] : '' }}"
-                                               min="0" max="365"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                                               placeholder="365">
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" onclick="removeFee(this)" 
-                                    class="mt-3 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-800 rounded-md transition-all duration-200 text-xs">
-                                <i class="fas fa-trash mr-1.5 text-xs"></i>Remove Fee
-                            </button>
+                <div class="border border-gray-200 rounded-md p-4 bg-gray-50">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="group">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Fee Type</label>
+                            <input type="text" value="Regular Fee" readonly
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 text-sm cursor-not-allowed">
+                            <input type="hidden" name="fee_types[]" value="regular">
                         </div>
-                        @endforeach
-                    @endif
+                        <div class="group">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Amount (₱) *</label>
+                            <input type="number" name="fee_amounts[]" 
+                                   value="{{ old('fee_amounts.0', is_array($service->fees) && isset($service->fees['regular']) ? (is_array($service->fees['regular']) ? $service->fees['regular']['amount'] : $service->fees['regular']) : 0) }}" 
+                                   step="0.01" min="0" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
+                                   placeholder="0.00">
+                            @error('fee_amounts.0')
+                                <p class="text-red-600 text-xs mt-1 flex items-center">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Description</label>
+                        <input type="text" name="fee_descriptions[]" 
+                               value="{{ old('fee_descriptions.0', 'Standard service fee') }}" readonly
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 text-sm cursor-not-allowed">
+                    </div>
+                    <!-- Hidden fields for compatibility -->
+                    <input type="hidden" name="fee_min_days[]" value="">
+                    <input type="hidden" name="fee_max_days[]" value="">
                 </div>
-                <button type="button" onclick="addFee()" 
-                        class="mt-3 px-3 py-1.5 bg-[#0d5c2f]/10 text-[#0d5c2f] rounded-md hover:bg-[#0d5c2f]/20 transition-all duration-200 text-xs">
-                    <i class="fas fa-plus mr-1.5 text-xs"></i>Add Fee Structure
-                </button>
+                
+                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-2 text-sm"></i>
+                        <div>
+                            <p class="text-xs text-blue-800 font-medium mb-1">Fee Structure Information:</p>
+                            <p class="text-xs text-blue-700">This service uses a simplified fee structure with only a regular fee. The amount can be adjusted as needed.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -270,13 +272,9 @@
                             @if($service->schedules && isset($service->schedules[$day]))
                                 @foreach($service->schedules[$day] as $time)
                                 <div class="flex items-center space-x-2">
-                                    <input type="time" name="schedules[{{ $day }}][]" value="{{ date('H:i', strtotime($time)) }}"
+                                    <input type="time" name="schedules[{{ $day }}][]" 
+                                           value="{{ \Carbon\Carbon::parse($time)->format('H:i') }}"
                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
-                                    <select name="schedule_ampm[{{ $day }}][]" 
-                                            class="px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
-                                        <option value="AM" {{ strpos($time, 'AM') !== false ? 'selected' : '' }}>AM</option>
-                                        <option value="PM" {{ strpos($time, 'PM') !== false ? 'selected' : '' }}>PM</option>
-                                    </select>
                                     <button type="button" onclick="removeTimeSlot(this)" 
                                             class="w-7 h-7 rounded-md bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-all duration-200 hover:scale-110">
                                         <i class="fas fa-times text-xs"></i>
@@ -317,6 +315,19 @@
             </div>
         </div>
 
+        <!-- Debug Information (remove in production) -->
+        @if(config('app.debug'))
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 class="text-sm font-semibold text-yellow-800 mb-2">Debug Information:</h4>
+            <div class="text-xs text-yellow-700 space-y-1">
+                <div><strong>Form Action:</strong> {{ route('admin.services.update', $service) }}</div>
+                <div><strong>Service ID:</strong> {{ $service->id }}</div>
+                <div><strong>CSRF Token:</strong> {{ csrf_token() }}</div>
+                <div><strong>Method:</strong> PUT (via method spoofing)</div>
+            </div>
+        </div>
+        @endif
+        
         <!-- Submit Buttons -->
         <div class="flex justify-end space-x-3 pt-4">
             <a href="{{ route('admin.services.index') }}" 
@@ -369,56 +380,7 @@ function removeRequirement(button) {
     button.parentElement.remove();
 }
 
-function addFee() {
-    const container = document.getElementById('fees-container');
-    const div = document.createElement('div');
-    div.className = 'border border-gray-200 rounded-md p-3 bg-gray-50';
-    div.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="group">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Fee Type</label>
-                <input type="text" name="fee_types[]" 
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                       placeholder="e.g., regular">
-            </div>
-            <div class="group">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Amount (₱)</label>
-                <input type="number" name="fee_amounts[]" step="0.01" min="0"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                       placeholder="0.00">
-            </div>
-            <div class="group">
-                <label class="block text-xs font-medium text-gray-500 mb-1">Description</label>
-                <input type="text" name="fee_descriptions[]" 
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                       placeholder="e.g., Regular (10+ days advance)">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div class="group">
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Min Days</label>
-                    <input type="number" name="fee_min_days[]" min="0" max="365"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                           placeholder="0">
-                </div>
-                <div class="group">
-                    <label class="block text-xs font-medium text-gray-500 mb-1">Max Days</label>
-                    <input type="number" name="fee_max_days[]" min="0" max="365"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm transition-all duration-200 group-hover:border-[#0d5c2f]/50"
-                           placeholder="365">
-                </div>
-            </div>
-        </div>
-        <button type="button" onclick="removeFee(this)" 
-                class="mt-3 px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-800 rounded-md transition-all duration-200 text-xs">
-            <i class="fas fa-trash mr-1.5 text-xs"></i>Remove Fee
-        </button>
-    `;
-    container.appendChild(div);
-}
-
-function removeFee(button) {
-    button.parentElement.remove();
-}
+// Fee structure functions removed - now using simplified single fee structure
 
 function addTimeSlot(day) {
     const container = document.getElementById(`schedule-${day}`);
@@ -427,11 +389,6 @@ function addTimeSlot(day) {
     div.innerHTML = `
         <input type="time" name="schedules[${day}][]" 
                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
-        <select name="schedule_ampm[${day}][]" 
-                class="px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-        </select>
         <button type="button" onclick="removeTimeSlot(this)" 
                 class="w-7 h-7 rounded-md bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-all duration-200 hover:scale-110">
             <i class="fas fa-times text-xs"></i>
@@ -457,6 +414,72 @@ document.addEventListener('DOMContentLoaded', function() {
             this.parentElement.classList.remove('ring-2', 'ring-[#0d5c2f]/20', 'ring-offset-1');
         });
     });
+    
+    // Add form submission handler
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submission started');
+            
+            // Basic client-side validation
+            const name = form.querySelector('#name').value.trim();
+            const duration = form.querySelector('#duration_minutes').value;
+            const maxSlots = form.querySelector('#max_slots').value;
+            const minDays = form.querySelector('#minimum_days').value;
+            const maxDays = form.querySelector('#maximum_days').value;
+            
+            if (!name) {
+                alert('Service name is required');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (!duration || duration < 15 || duration > 480) {
+                alert('Duration must be between 15 and 480 minutes');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (!maxSlots || maxSlots < 1 || maxSlots > 100) {
+                alert('Max slots must be between 1 and 100');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (!minDays || minDays < 1 || minDays > 365) {
+                alert('Minimum days must be between 1 and 365');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (!maxDays || maxDays < 1 || maxDays > 365) {
+                alert('Maximum days must be between 1 and 365');
+                e.preventDefault();
+                return false;
+            }
+            
+            if (parseInt(minDays) > parseInt(maxDays)) {
+                alert('Minimum days cannot be greater than maximum days');
+                e.preventDefault();
+                return false;
+            }
+            
+            // Disable submit button to prevent double submission
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5 text-sm"></i>Updating...';
+            }
+            
+            // Re-enable after 10 seconds in case of issues
+            setTimeout(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save mr-1.5 text-sm group-hover:scale-110 transition-transform duration-200"></i>Update Service';
+                }
+            }, 10000);
+        });
+    }
 });
 </script>
 @endsection 

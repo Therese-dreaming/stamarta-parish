@@ -42,6 +42,20 @@
                     <i class="fas fa-user-search mr-1 text-gray-500"></i>
                     Find Existing User <span class="text-red-500">*</span>
                 </label>
+                
+                <!-- Priest Exclusion Warning -->
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center mr-2">
+                            <i class="fas fa-exclamation-triangle text-amber-600 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-amber-800">Important Notice</p>
+                            <p class="text-xs text-amber-700">Priests are excluded from ministry membership and will not appear in search results.</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <input type="hidden" name="user_id" id="user_id" />
                 <div class="relative">
                     <input id="member_search" type="text" 
@@ -50,6 +64,10 @@
                     <div id="member_results" class="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-md hidden max-h-64 overflow-auto"></div>
                 </div>
                 <p id="user_error" class="hidden text-red-600 text-sm mt-2 flex items-center"><i class="fas fa-exclamation-circle mr-1"></i>Please select an existing user.</p>
+                <p class="text-xs text-amber-600 mt-1 flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    Note: Priests cannot be added as ministry members.
+                </p>
             </div>
             
             <!-- Name and Email Row (auto-filled, read-only) -->
@@ -227,8 +245,32 @@
     function hideResults(){ resultsBox.classList.add('hidden'); resultsBox.innerHTML=''; }
 
     function renderResults(users){
-        if(!users || users.length === 0){ hideResults(); return; }
-        resultsBox.innerHTML = users.map(u => (
+        if(!users || users.length === 0){ 
+            resultsBox.innerHTML = `
+                <div class="px-4 py-3 text-center text-gray-500">
+                    <i class="fas fa-search mr-2"></i>
+                    No eligible users found. Remember that priests cannot be added as ministry members.
+                </div>
+            `;
+            resultsBox.classList.remove('hidden');
+            return; 
+        }
+        
+        // Filter out priests as safety measure (backend should already filter)
+        const filteredUsers = users.filter(u => u.role !== 'priest');
+        
+        if(filteredUsers.length === 0){
+            resultsBox.innerHTML = `
+                <div class="px-4 py-3 text-center text-gray-500">
+                    <i class="fas fa-search mr-2"></i>
+                    No eligible users found. Remember that priests cannot be added as ministry members.
+                </div>
+            `;
+            resultsBox.classList.remove('hidden');
+            return;
+        }
+        
+        resultsBox.innerHTML = filteredUsers.map(u => (
             `<button type="button" class="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center" data-id="${u.id}" data-name="${u.name}" data-email="${u.email}">
                 <i class="fas fa-user mr-2 text-gray-500"></i>
                 <span class="font-medium text-gray-900">${u.name}</span>
@@ -253,10 +295,19 @@
 
     function doSearch(q){
         if(!q || q.trim().length < 2){ hideResults(); return; }
-        fetch(`{{ route('admin.users.search') }}?q=${encodeURIComponent(q)}`)
+        fetch(`{{ route('admin.users.search') }}?q=${encodeURIComponent(q)}&exclude_priests=1`)
             .then(r => r.json())
             .then(data => renderResults(data.users || data))
-            .catch(() => hideResults());
+            .catch(error => {
+                console.error('Search error:', error);
+                resultsBox.innerHTML = `
+                    <div class="px-4 py-3 text-center text-red-600">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Error searching users. Please try again.
+                    </div>
+                `;
+                resultsBox.classList.remove('hidden');
+            });
     }
 
     searchInput.addEventListener('input', function(){

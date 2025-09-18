@@ -50,6 +50,19 @@
                             </div>
                         </div>
                         
+                        <!-- Priest Exclusion Warning -->
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center mr-2">
+                                    <i class="fas fa-exclamation-triangle text-amber-600 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-amber-800">Important Notice</p>
+                                    <p class="text-xs text-amber-700">Priests are excluded from ministry membership and will not appear in search results.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="relative">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-user mr-2 text-gray-400"></i>Search User <span class="text-red-600">*</span>
@@ -76,6 +89,10 @@
                             <p class="text-xs text-gray-500 mt-1 flex items-center">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 You must link an existing user as a member. Start typing to search.
+                            </p>
+                            <p class="text-xs text-amber-600 mt-1 flex items-center">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                Note: Priests cannot be added as ministry members.
                             </p>
                         </div>
                     </div>
@@ -321,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         debounce = setTimeout(() => {
-            fetch(`{{ route('ministry.members.search-users') }}?q=${encodeURIComponent(q)}`)
+            fetch(`{{ route('ministry.members.search-users') }}?q=${encodeURIComponent(q)}&exclude_priests=1`)
                 .then(r => r.json())
                 .then(list => {
                     if (!Array.isArray(list) || list.length === 0) {
@@ -336,14 +353,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             const id = u?.id ?? u?.user_id ?? null;
                             const name = u?.name ?? u?.full_name ?? u?.username ?? '';
                             const email = u?.email ?? u?.user_email ?? '';
+                            const role = u?.role ?? '';
                             if (!id || !name) return null;
-                            return { id, name, email };
+                            // Double-check: skip priests (backend should already filter, but safety check)
+                            if (role === 'priest') return null;
+                            return { id, name, email, role };
                         })
                         .filter(Boolean);
 
                     if (safeItems.length === 0) {
-                        results.classList.add('hidden');
-                        results.innerHTML = '';
+                        results.innerHTML = `
+                            <div class="px-4 py-3 text-center text-gray-500">
+                                <i class="fas fa-search mr-2"></i>
+                                No eligible users found. Remember that priests cannot be added as ministry members.
+                            </div>
+                        `;
+                        results.classList.remove('hidden');
                         return;
                     }
 
@@ -371,6 +396,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(error => {
                     console.error('Search error:', error);
                     results.classList.add('hidden');
+                    // Show error message if needed
+                    results.innerHTML = `
+                        <div class="px-4 py-3 text-center text-red-600">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Error searching users. Please try again.
+                        </div>
+                    `;
+                    results.classList.remove('hidden');
                 });
         }, 250);
     });

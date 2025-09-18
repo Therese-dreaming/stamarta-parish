@@ -35,6 +35,13 @@ class ServiceController extends Controller
 
     public function update(Request $request, Service $service)
     {
+        // Debug logging
+        \Log::info('Service update request received', [
+            'service_id' => $service->id,
+            'request_data' => $request->all(),
+            'method' => $request->method()
+        ]);
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -46,14 +53,13 @@ class ServiceController extends Controller
             'fee_types.*' => 'string|max:255',
             'fee_descriptions' => 'nullable|array',
             'fee_descriptions.*' => 'string|max:255',
-            'fee_amounts' => 'nullable|array',
-            'fee_amounts.*' => 'numeric|min:0',
+            'fee_amounts' => 'required|array',
+            'fee_amounts.*' => 'required|numeric|min:0',
             'fee_min_days' => 'nullable|array',
-            'fee_min_days.*' => 'integer|min:0|max:365',
+            'fee_min_days.*' => 'nullable|string',
             'fee_max_days' => 'nullable|array',
-            'fee_max_days.*' => 'integer|min:0|max:365',
+            'fee_max_days.*' => 'nullable|string',
             'schedules' => 'nullable|array',
-            'schedule_ampm' => 'nullable|array',
             'booking_restrictions' => 'nullable|array',
             'booking_restrictions.minimum_days' => 'required|integer|min:1|max:365',
             'booking_restrictions.maximum_days' => 'required|integer|min:1|max:365',
@@ -66,49 +72,30 @@ class ServiceController extends Controller
             return !empty(trim($req));
         });
 
-        // Process fees with new structure
+        // Process simplified fee structure
         $fees = [];
-        $feeTypes = $request->input('fee_types', []);
-        $feeDescriptions = $request->input('fee_descriptions', []);
         $feeAmounts = $request->input('fee_amounts', []);
-        $feeMinDays = $request->input('fee_min_days', []);
-        $feeMaxDays = $request->input('fee_max_days', []);
         
-        for ($i = 0; $i < count($feeTypes); $i++) {
-            if (!empty(trim($feeTypes[$i])) && isset($feeAmounts[$i])) {
-                $feeData = [
-                    'amount' => (float) $feeAmounts[$i],
-                    'description' => trim($feeDescriptions[$i] ?? $feeTypes[$i])
-                ];
-
-                // Add condition if min/max days are set
-                if (!empty($feeMinDays[$i]) || !empty($feeMaxDays[$i])) {
-                    $condition = [];
-                    if (!empty($feeMinDays[$i])) {
-                        $condition['min_days'] = (int) $feeMinDays[$i];
-                    }
-                    if (!empty($feeMaxDays[$i])) {
-                        $condition['max_days'] = (int) $feeMaxDays[$i];
-                    }
-                    $feeData['condition'] = $condition;
-                }
-
-                $fees[trim($feeTypes[$i])] = $feeData;
-            }
+        // Always set regular fee with the provided amount
+        if (isset($feeAmounts[0]) && is_numeric($feeAmounts[0])) {
+            $fees['regular'] = [
+                'amount' => (float) $feeAmounts[0],
+                'description' => 'Standard service fee'
+            ];
         }
 
         // Process schedules
         $schedules = [];
         $scheduleData = $request->input('schedules', []);
-        $scheduleAmpm = $request->input('schedule_ampm', []);
         
         foreach ($scheduleData as $day => $times) {
             if (!empty($times)) {
                 $daySchedules = [];
-                foreach ($times as $index => $time) {
+                foreach ($times as $time) {
                     if (!empty(trim($time))) {
-                        $ampm = $scheduleAmpm[$day][$index] ?? 'AM';
-                        $daySchedules[] = trim($time) . ' ' . $ampm;
+                        // Convert 24-hour format to 12-hour format with AM/PM
+                        $carbonTime = \Carbon\Carbon::createFromFormat('H:i', trim($time));
+                        $daySchedules[] = $carbonTime->format('g:i A');
                     }
                 }
                 if (!empty($daySchedules)) {
@@ -129,10 +116,24 @@ class ServiceController extends Controller
             'notes' => $validated['notes'],
         ];
 
-        $service->update($data);
-
-        return redirect()->route('admin.services.index')
-            ->with('success', 'Service updated successfully.');
+        try {
+            $service->update($data);
+            
+            \Log::info('Service updated successfully', ['service_id' => $service->id]);
+            
+            return redirect()->route('admin.services.index')
+                ->with('success', 'Service updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Service update failed', [
+                'service_id' => $service->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update service: ' . $e->getMessage()]);
+        }
     }
 
     public function toggleStatus(Service $service)

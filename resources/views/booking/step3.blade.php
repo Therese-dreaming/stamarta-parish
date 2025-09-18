@@ -201,18 +201,7 @@
                             $requirements = [
                                 'valid_id' => 'Valid ID'
                             ];
-                            $conditionalQuestions = [
-                                'proof_of_ownership' => [
-                                    'question' => 'Do you need to prove ownership?',
-                                    'field' => 'proof_of_ownership',
-                                    'label' => 'Proof of Ownership'
-                                ],
-                                'special_requests' => [
-                                    'question' => 'Do you have special requests?',
-                                    'field' => 'special_requests',
-                                    'label' => 'Special Requests'
-                                ]
-                            ];
+                            $conditionalQuestions = [];
                             break;
                         default:
                             $requirements = [
@@ -392,7 +381,7 @@ function toggleDocumentUpload(fieldName, value) {
 // Initialize on page load to handle any pre-selected values
 document.addEventListener('DOMContentLoaded', function() {
     // Initially disable all conditional file inputs
-    const conditionalFileInputs = document.querySelectorAll('input[type="file"][id*="marriage_contract"], input[type="file"][id*="civil_marriage_contract"], input[type="file"][id*="proof_of_ownership"], input[type="file"][id*="special_requests"]');
+    const conditionalFileInputs = document.querySelectorAll('input[type="file"][id*="marriage_contract"], input[type="file"][id*="civil_marriage_contract"]');
     conditionalFileInputs.forEach(input => {
         input.setAttribute('disabled', 'disabled');
         input.required = false;

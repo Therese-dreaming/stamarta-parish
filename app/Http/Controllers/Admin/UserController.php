@@ -89,14 +89,22 @@ class UserController extends Controller
         ]);
 
         $q = $request->input('q');
-        $users = User::query()
+        $excludePriests = $request->query('exclude_priests', false);
+        
+        $query = User::query()
             ->where(function ($builder) use ($q) {
                 $builder->where('name', 'like', "%{$q}%")
                         ->orWhere('email', 'like', "%{$q}%");
-            })
-            ->orderBy('name')
+            });
+            
+        // Exclude priests if requested
+        if ($excludePriests) {
+            $query->where('role', '!=', 'priest');
+        }
+        
+        $users = $query->orderBy('name')
             ->limit(10)
-            ->get(['id', 'name', 'email']);
+            ->get(['id', 'name', 'email', 'role']);
 
         return response()->json($users);
     }

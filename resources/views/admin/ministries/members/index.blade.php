@@ -36,7 +36,89 @@
         </div>
     </div>
 
-
+    <!-- Ministry Heads Section -->
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-orange-50 to-orange-100 px-6 py-4 border-b border-orange-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-sm mr-3">
+                        <i class="fas fa-users-cog text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Ministry Heads</h2>
+                        <p class="text-sm text-gray-600">Leaders and administrators of this ministry</p>
+                    </div>
+                </div>
+                <span class="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                    {{ isset($ministryHeads) ? $ministryHeads->count() : 0 }} Head{{ (isset($ministryHeads) ? $ministryHeads->count() : 0) !== 1 ? 's' : '' }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            @if(isset($ministryHeads) && $ministryHeads->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach($ministryHeads as $head)
+                    <div class="bg-gradient-to-br from-orange-50 to-white border border-orange-200 rounded-lg p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                        <div class="flex items-center mb-3">
+                            <div class="h-12 w-12 rounded-full bg-orange-500 flex items-center justify-center shadow-sm">
+                                <i class="fas fa-user-crown text-white text-lg"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-base font-semibold text-gray-900">{{ $head->name }}</h3>
+                                <p class="text-sm text-orange-600 font-medium">Ministry Head</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-envelope w-4 h-4 mr-2 text-gray-400"></i>
+                                <span class="truncate">{{ $head->email }}</span>
+                            </div>
+                            @if($head->phone)
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-phone w-4 h-4 mr-2 text-gray-400"></i>
+                                <span>{{ $head->phone }}</span>
+                            </div>
+                            @endif
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-calendar w-4 h-4 mr-2 text-gray-400"></i>
+                                <span>Joined {{ $head->created_at->format('M j, Y') }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 pt-3 border-t border-orange-100">
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                    <i class="fas fa-crown mr-1"></i>Leader
+                                </span>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('admin.users.show', $head) }}" class="w-7 h-7 rounded-lg bg-orange-100 hover:bg-orange-200 flex items-center justify-center text-orange-600 hover:text-orange-800 transition-all duration-200 hover:scale-110" title="View Profile">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+                                    <a href="mailto:{{ $head->email }}" class="w-7 h-7 rounded-lg bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110" title="Send Email">
+                                        <i class="fas fa-envelope text-xs"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-8">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-users-cog text-orange-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Ministry Heads Assigned</h3>
+                    <p class="text-gray-600 text-sm mb-4">This ministry doesn't have any heads assigned yet.</p>
+                    <a href="{{ route('admin.users.index') }}" class="inline-flex items-center px-4 py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Promote a User to Ministry Head
+                    </a>
+                </div>
+            @endif
+        </div>
+    </div>
 
     <!-- View Toggle (Full width tab style) -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">

@@ -163,11 +163,6 @@
                             <i class="fas fa-calendar-alt mr-2"></i>
                             Calendar
                         </a>
-                        <a href="{{ route('admin.bookings.index') }}?status=payment_hold" class="block px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-                            <i class="fas fa-credit-card mr-2"></i>
-                            Payment Verification
-                            <span id="payment-verification-count" class="ml-auto bg-red-500 text-white text-[8px] rounded-full px-1 py-0.5 hidden" data-count="0">0</span>
-                        </a>
                     </div>
                 </div>
 

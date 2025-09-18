@@ -231,7 +231,7 @@ class AdminCalendar {
         if (!isCurrentMonth) {
             dayDiv.className += ' text-gray-300 cursor-not-allowed';
         } else {
-            dayDiv.className += ' text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-[#0d5c2f]';
+            dayDiv.className += ' text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 hover:border-[#0d5c2f] hover:shadow-md transform hover:scale-105 transition-all duration-200';
             
             // Check for events on this date
             const dayEvents = this.getEventsForDate(dateString);
@@ -250,10 +250,8 @@ class AdminCalendar {
                 dayDiv.style.borderStyle = 'solid';
             }
             
-            // Only add click handler if there are events to show
-            if (dayEvents.length > 0) {
-                dayDiv.addEventListener('click', () => this.showDayEvents(dateString, dayEvents));
-            }
+            // Add click handler for all dates in current month
+            dayDiv.addEventListener('click', () => this.showDayEvents(dateString, dayEvents));
         }
 
         dayDiv.textContent = dayNumber;
@@ -344,6 +342,15 @@ class AdminCalendar {
                 month: 'long', 
                 day: 'numeric' 
             })}`;
+        }
+        
+        // Check if there are any events at all for this date
+        const hasAnyEvents = events.length > 0;
+        
+        // If no events at all, show a special empty state
+        if (!hasAnyEvents) {
+            this.showEmptyDateDesign(dateString);
+            return;
         }
         
         // Separate bookings, activities, and ministry activities
@@ -555,6 +562,66 @@ class AdminCalendar {
             });
             ministryActivitiesList.innerHTML = ministryActivitiesHTML;
         }
+        
+        // Show the events section
+        eventsSection.classList.remove('hidden');
+        
+        // Scroll to events section
+        eventsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    showEmptyDateDesign(dateString) {
+        const eventsSection = document.getElementById('eventsSection');
+        const selectedDateTitle = document.getElementById('selectedDateTitle');
+        const bookingsList = document.getElementById('bookingsList');
+        const activitiesList = document.getElementById('activitiesList');
+        const ministryActivitiesList = document.getElementById('ministryActivitiesList');
+        
+        // Fix timezone issue by creating date properly
+        const displayDate = new Date(dateString + 'T00:00:00');
+        
+        // Update title
+        if (isNaN(displayDate.getTime())) {
+            selectedDateTitle.textContent = `Events for ${dateString}`;
+        } else {
+            selectedDateTitle.textContent = `Events for ${displayDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            })}`;
+        }
+        
+        // Show empty state for all sections
+        bookingsList.innerHTML = `
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fas fa-calendar-plus text-gray-400 text-3xl"></i>
+                </div>
+                <h4 class="text-lg font-semibold text-gray-900 mb-3">No Bookings Scheduled</h4>
+                <p class="text-sm text-gray-500">This date is available for new bookings</p>
+            </div>
+        `;
+        
+        activitiesList.innerHTML = `
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fas fa-church text-yellow-400 text-3xl"></i>
+                </div>
+                <h4 class="text-lg font-semibold text-gray-900 mb-3">No Parochial Activities</h4>
+                <p class="text-sm text-gray-500">No church activities planned for this date</p>
+            </div>
+        `;
+        
+        ministryActivitiesList.innerHTML = `
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fas fa-users text-blue-400 text-3xl"></i>
+                </div>
+                <h4 class="text-lg font-semibold text-gray-900 mb-3">No Ministry Activities</h4>
+                <p class="text-sm text-gray-500">No ministry events scheduled for this date</p>
+            </div>
+        `;
         
         // Show the events section
         eventsSection.classList.remove('hidden');

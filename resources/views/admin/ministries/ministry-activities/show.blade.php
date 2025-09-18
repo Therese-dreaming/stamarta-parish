@@ -27,9 +27,10 @@
                                 $statusConfig = [
                                     'pending' => ['bg' => 'bg-yellow-500', 'icon' => 'fa-clock'],
                                     'approved' => ['bg' => 'bg-green-500', 'icon' => 'fa-check'],
-                                    'rejected' => ['bg' => 'bg-red-500', 'icon' => 'fa-times']
+                                    'rejected' => ['bg' => 'bg-red-500', 'icon' => 'fa-times'],
+                                    'complete' => ['bg' => 'bg-blue-500', 'icon' => 'fa-check-circle']
                                 ];
-                                $config = $statusConfig[$requestModel->status];
+                                $config = $statusConfig[$requestModel->status] ?? $statusConfig['pending'];
                             @endphp
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20 backdrop-blur-sm text-white">
                                 <i class="fas {{ $config['icon'] }} mr-2"></i>
@@ -124,7 +125,35 @@
                                 </div>
                                 <div class="flex-1">
                                     <label class="block text-xs font-medium text-gray-500">Details</label>
-                                    <p class="text-sm text-gray-900 mt-1">{{ $requestModel->details ?: 'No additional details provided.' }}</p>
+                                    <div class="text-sm text-gray-900 mt-1">
+                                        @php
+                                            $details = $requestModel->details;
+                                            if (is_string($details)) {
+                                                $decodedDetails = json_decode($details, true);
+                                                if (json_last_error() === JSON_ERROR_NONE && is_array($decodedDetails)) {
+                                                    $details = $decodedDetails;
+                                                }
+                                            }
+                                        @endphp
+                                        
+                                        @if(is_array($details) && count($details) > 0)
+                                            <div class="space-y-2">
+                                                @foreach($details as $item => $amount)
+                                                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                                        <span class="flex items-center">
+                                                            <i class="fas fa-circle text-[#0d5c2f] text-xs mr-2"></i>
+                                                            {{ $item }}
+                                                        </span>
+                                                        <span class="font-medium text-[#0d5c2f]">₱{{ number_format($amount, 2) }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @elseif(is_string($details) && !empty($details))
+                                            <p>{{ $details }}</p>
+                                        @else
+                                            <p class="text-gray-500 italic">No additional details provided.</p>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -403,10 +432,10 @@
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
                                 <div class="relative">
-                                    <div class="w-10 h-10 bg-gradient-to-r {{ $requestModel->status === 'approved' ? 'from-green-500 to-green-600' : 'from-red-500 to-red-600' }} rounded-full flex items-center justify-center shadow-lg">
-                                        <i class="fas {{ $requestModel->status === 'approved' ? 'fa-check' : 'fa-times' }} text-white text-sm"></i>
+                                    <div class="w-10 h-10 bg-gradient-to-r {{ $requestModel->status === 'approved' ? 'from-green-500 to-green-600' : ($requestModel->status === 'complete' ? 'from-blue-500 to-blue-600' : 'from-red-500 to-red-600') }} rounded-full flex items-center justify-center shadow-lg">
+                                        <i class="fas {{ $requestModel->status === 'approved' ? 'fa-check' : ($requestModel->status === 'complete' ? 'fa-check-circle' : 'fa-times') }} text-white text-sm"></i>
                                     </div>
-                                    @if($requestModel->status === 'approved')
+                                    @if($requestModel->status === 'approved' || $requestModel->status === 'complete')
                                     <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
                                         <i class="fas fa-check text-white text-xs"></i>
                                     </div>
@@ -414,22 +443,24 @@
                                 </div>
                             </div>
                             <div class="ml-4 flex-1">
-                                <div class="bg-{{ $requestModel->status === 'approved' ? 'green' : 'red' }}-50 rounded-lg p-4 border border-{{ $requestModel->status === 'approved' ? 'green' : 'red' }}-200">
+                                <div class="bg-{{ $requestModel->status === 'approved' ? 'green' : ($requestModel->status === 'complete' ? 'blue' : 'red') }}-50 rounded-lg p-4 border border-{{ $requestModel->status === 'approved' ? 'green' : ($requestModel->status === 'complete' ? 'blue' : 'red') }}-200">
                                     <div class="flex items-center justify-between mb-2">
-                                        <h4 class="text-sm font-semibold text-{{ $requestModel->status === 'approved' ? 'green' : 'red' }}-900">
+                                        <h4 class="text-sm font-semibold text-{{ $requestModel->status === 'approved' ? 'green' : ($requestModel->status === 'complete' ? 'blue' : 'red') }}-900">
                                             Request {{ ucfirst($requestModel->status) }}
                                         </h4>
-                                        <span class="text-xs text-{{ $requestModel->status === 'approved' ? 'green' : 'red' }}-600 bg-{{ $requestModel->status === 'approved' ? 'green' : 'red' }}-100 px-2 py-1 rounded-full">Completed</span>
+                                        <span class="text-xs text-{{ $requestModel->status === 'approved' ? 'green' : ($requestModel->status === 'complete' ? 'blue' : 'red') }}-600 bg-{{ $requestModel->status === 'approved' ? 'green' : ($requestModel->status === 'complete' ? 'blue' : 'red') }}-100 px-2 py-1 rounded-full">Completed</span>
                                     </div>
-                                    <p class="text-xs text-{{ $requestModel->status === 'approved' ? 'green' : 'red' }}-700 mb-2">
+                                    <p class="text-xs text-{{ $requestModel->status === 'approved' ? 'green' : ($requestModel->status === 'complete' ? 'blue' : 'red') }}-700 mb-2">
                                         {{ $requestModel->approved_at->format('M d, Y \a\t g:i A') }}
                                         @if($requestModel->approvedBy)
                                             by {{ $requestModel->approvedBy->name }}
                                         @endif
                                     </p>
-                                    <p class="text-xs text-{{ $requestModel->status === 'approved' ? 'green' : 'red' }}-600">
+                                    <p class="text-xs text-{{ $requestModel->status === 'approved' ? 'green' : ($requestModel->status === 'complete' ? 'blue' : 'red') }}-600">
                                         @if($requestModel->status === 'approved')
                                             Ministry activity has been approved and funds allocated
+                                        @elseif($requestModel->status === 'complete')
+                                            Ministry activity has been completed successfully
                                         @else
                                             Ministry activity has been rejected
                                             @if($requestModel->rejection_notes)
@@ -488,7 +519,7 @@
                         @if($requestModel->approvedBy)
                         <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                             <span class="text-xs text-gray-600 flex items-center">
-                                <i class="fas fa-user-check mr-2 text-[#0d5c2f]"></i>{{ $requestModel->status === 'approved' ? 'Approved' : 'Rejected' }} By
+                                <i class="fas fa-user-check mr-2 text-[#0d5c2f]"></i>{{ $requestModel->status === 'approved' ? 'Approved' : ($requestModel->status === 'complete' ? 'Completed' : 'Rejected') }} By
                             </span>
                             <span class="text-xs font-medium text-gray-900">{{ $requestModel->approvedBy->name }}</span>
                         </div>

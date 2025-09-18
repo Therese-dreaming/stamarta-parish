@@ -67,14 +67,26 @@
                                         $roleColors = [
                                             'admin' => 'bg-red-100 text-red-800',
                                             'priest' => 'bg-purple-100 text-purple-800',
+                                            'ministry_head' => 'bg-orange-100 text-orange-800',
                                             'staff' => 'bg-blue-100 text-blue-800',
                                             'user' => 'bg-green-100 text-green-800'
                                         ];
                                         $roleColor = $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800';
+                                        
+                                        $roleIcons = [
+                                            'admin' => 'crown',
+                                            'priest' => 'cross',
+                                            'ministry_head' => 'users-cog',
+                                            'staff' => 'user-tie',
+                                            'user' => 'user'
+                                        ];
+                                        $roleIcon = $roleIcons[$user->role] ?? 'user';
+                                        
+                                        $roleDisplayName = $user->role === 'ministry_head' ? 'Ministry Head' : ucfirst($user->role);
                                     @endphp
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $roleColor }} transition-all duration-200 hover:scale-105">
-                                        <i class="fas fa-{{ $user->role === 'admin' ? 'crown' : ($user->role === 'priest' ? 'cross' : ($user->role === 'staff' ? 'user-tie' : 'user')) }} mr-1"></i>
-                                        {{ ucfirst($user->role) }}
+                                        <i class="fas fa-{{ $roleIcon }} mr-1"></i>
+                                        {{ $roleDisplayName }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
@@ -99,6 +111,11 @@
                                         <a href="{{ route('admin.users.edit', $user) }}" class="w-7 h-7 rounded-lg bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 hover:text-indigo-800 transition-all duration-200 hover:scale-110" title="Edit">
                                             <i class="fas fa-edit text-xs"></i>
                                         </a>
+                                        @if($user->id !== auth()->id() && $user->role === 'user' && !$user->isMinistryHead())
+                                            <button type="button" onclick="openModal('promote-modal-{{ $user->id }}')" class="w-7 h-7 rounded-lg bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-all duration-200 hover:scale-110" title="Promote to Ministry Head">
+                                                <i class="fas fa-arrow-up text-xs"></i>
+                                            </button>
+                                        @endif
                                         @if($user->id !== auth()->id())
                                             <button type="button" onclick="openModal('delete-modal-{{ $user->id }}')" class="w-7 h-7 rounded-lg bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-all duration-200 hover:scale-110" title="Delete">
                                                 <i class="fas fa-trash text-xs"></i>
@@ -138,14 +155,26 @@
                                         $roleColors = [
                                             'admin' => 'bg-red-100 text-red-800',
                                             'priest' => 'bg-purple-100 text-purple-800',
+                                            'ministry_head' => 'bg-orange-100 text-orange-800',
                                             'staff' => 'bg-blue-100 text-blue-800',
                                             'user' => 'bg-green-100 text-green-800'
                                         ];
                                         $roleColor = $roleColors[$user->role] ?? 'bg-gray-100 text-gray-800';
+                                        
+                                        $roleIcons = [
+                                            'admin' => 'crown',
+                                            'priest' => 'cross',
+                                            'ministry_head' => 'users-cog',
+                                            'staff' => 'user-tie',
+                                            'user' => 'user'
+                                        ];
+                                        $roleIcon = $roleIcons[$user->role] ?? 'user';
+                                        
+                                        $roleDisplayName = $user->role === 'ministry_head' ? 'Ministry Head' : ucfirst($user->role);
                                     @endphp
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $roleColor }} transition-all duration-200 hover:scale-105">
-                                        <i class="fas fa-{{ $user->role === 'admin' ? 'crown' : ($user->role === 'priest' ? 'cross' : ($user->role === 'staff' ? 'user-tie' : 'user')) }} mr-1"></i>
-                                        {{ ucfirst($user->role) }}
+                                        <i class="fas fa-{{ $roleIcon }} mr-1"></i>
+                                        {{ $roleDisplayName }}
                                     </span>
                                 </div>
                                 
@@ -176,6 +205,11 @@
                             <a href="{{ route('admin.users.edit', $user) }}" class="w-7 h-7 rounded-lg bg-indigo-100 hover:bg-indigo-200 flex items-center justify-center text-indigo-600 hover:text-indigo-800 transition-all duration-200 hover:scale-110" title="Edit">
                                 <i class="fas fa-edit text-xs"></i>
                             </a>
+                            @if($user->id !== auth()->id() && $user->role === 'user' && !$user->isMinistryHead())
+                                <button type="button" onclick="openModal('promote-modal-{{ $user->id }}')" class="w-7 h-7 rounded-lg bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-all duration-200 hover:scale-110" title="Promote to Ministry Head">
+                                    <i class="fas fa-arrow-up text-xs"></i>
+                                </button>
+                            @endif
                             @if($user->id !== auth()->id())
                                 <button type="button" onclick="openModal('delete-modal-{{ $user->id }}')" class="w-7 h-7 rounded-lg bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-all duration-200 hover:scale-110" title="Delete">
                                     <i class="fas fa-trash text-xs"></i>
@@ -222,10 +256,132 @@
                 @method('DELETE')
             </form>
         </x-modal>
+        
+        @if($user->role === 'user' && !$user->isMinistryHead())
+            <!-- Promote to Ministry Head Modal -->
+            <div id="promote-modal-{{ $user->id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+                <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                    <div class="mt-3">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                                    <i class="fas fa-arrow-up text-green-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Promote to Ministry Head</h3>
+                                    <p class="text-sm text-gray-500">{{ $user->name }}</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="closeModal('promote-modal-{{ $user->id }}')" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <form action="{{ route('admin.users.promote-ministry-head', $user) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            
+                            <div class="mb-4">
+                                <label for="ministry-{{ $user->id }}" class="block text-sm font-medium text-gray-700 mb-2">Select Ministry</label>
+                                <select id="ministry-{{ $user->id }}" name="ministry_id" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm">
+                                    <option value="">Choose a ministry...</option>
+                                    @if(isset($ministries))
+                                        @foreach($ministries as $ministry)
+                                            <option value="{{ $ministry->id }}">{{ $ministry->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="notes-{{ $user->id }}" class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                                <textarea id="notes-{{ $user->id }}" name="notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#0d5c2f] focus:border-[#0d5c2f] text-sm" placeholder="Add any notes about this promotion..."></textarea>
+                            </div>
+                            
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                                <div class="flex">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5 mr-2"></i>
+                                    <div class="text-sm text-yellow-800">
+                                        <p class="font-medium mb-1">This action will:</p>
+                                        <ul class="list-disc list-inside space-y-1 text-xs">
+                                            <li>Change {{ $user->name }}'s role to Ministry Head</li>
+                                            <li>Assign them to the selected ministry</li>
+                                            <li>Grant ministry management permissions</li>
+                                            <li>Send a notification email to the user</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" onclick="closeModal('promote-modal-{{ $user->id }}')" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+                                    <i class="fas fa-arrow-up mr-2"></i>Promote User
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
     @endif
 @endforeach
 
 <script>
+    // Modal functions
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.95)';
+            
+            requestAnimationFrame(() => {
+                modal.style.transition = 'all 0.3s ease-out';
+                modal.style.opacity = '1';
+                modal.style.transform = 'scale(1)';
+            });
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+    }
+    
+    // Close modal when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('bg-gray-600') && e.target.classList.contains('bg-opacity-50')) {
+            const modalId = e.target.id;
+            if (modalId) {
+                closeModal(modalId);
+            }
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const openModals = document.querySelectorAll('[id*="modal"]:not(.hidden)');
+            openModals.forEach(modal => {
+                closeModal(modal.id);
+            });
+        }
+    });
+    
     document.addEventListener('DOMContentLoaded', function() {
         const tableViewBtn = document.getElementById('table-view-btn');
         const cardViewBtn = document.getElementById('card-view-btn');

@@ -377,6 +377,10 @@ Route::prefix('ministry')->name('ministry.')->middleware(['auth', 'ministry_head
 
     Route::post('activities/check-conflicts', [\App\Http\Controllers\Ministry\ActivityController::class, 'checkConflicts'])->name('activities.check-conflicts');
     Route::get('activities/test-conflicts', [\App\Http\Controllers\Ministry\ActivityController::class, 'testConflicts'])->name('activities.test-conflicts');
+    
+    // Liquidation Report and Completion
+    Route::post('activities/{activity}/upload-liquidation', [\App\Http\Controllers\Ministry\ActivityController::class, 'uploadLiquidation'])->name('activities.upload-liquidation');
+    Route::patch('activities/{activity}/mark-complete', [\App\Http\Controllers\Ministry\ActivityController::class, 'markComplete'])->name('activities.mark-complete');
 
     // Budget Management
     Route::get('budget-management', [\App\Http\Controllers\Ministry\BudgetManagementController::class, 'index'])->name('budget-management.index');
@@ -386,6 +390,10 @@ Route::prefix('ministry')->name('ministry.')->middleware(['auth', 'ministry_head
     Route::resource('manual-cash-inflows', \App\Http\Controllers\Ministry\ManualCashInflowController::class)
         ->parameters(['manual-cash-inflows' => 'manual_cash_inflow']);
 });
+
+// Calendar Routes
+Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
+Route::get('/api/calendar-events', [\App\Http\Controllers\Api\CalendarController::class, 'getEvents'])->name('api.calendar.events');
 
 // Fallback route for admin pages
 Route::fallback(function () {

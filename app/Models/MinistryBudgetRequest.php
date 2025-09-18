@@ -17,15 +17,18 @@ class MinistryBudgetRequest extends Model
         'activity_id',          // Optional link to ministry activity, used for activity-based budget requests
         'purpose',              // Brief description of budget purpose, displayed in lists and approval views
         'details',              // Detailed explanation of budget request, used for comprehensive documentation
-        'status',               // Request workflow status (pending, approved, rejected), determines UI display and permissions
+        'status',               // Request workflow status (pending, approved, rejected, complete), determines UI display and permissions
         'requested_by_user_id', // User who submitted the request, used for audit trail and accountability
         'approved_by_user_id',  // Admin who approved/rejected the request, used for approval workflow tracking
         'approved_at',          // Timestamp when request was processed, used for audit trail and reporting
         'rejection_notes',      // Optional notes explaining rejection reason, used for feedback and documentation
+        'completed_at',         // Timestamp when activity was marked as complete, used for completion tracking
+        'completion_notes',     // Optional notes about activity completion, used for final documentation
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function ministry()
@@ -70,6 +73,7 @@ class MinistryBudgetRequest extends Model
     {
         return match($this->status) {
             'approved' => 'green',
+            'complete' => 'blue',
             'pending' => 'yellow',
             'rejected' => 'red',
             default => 'gray',

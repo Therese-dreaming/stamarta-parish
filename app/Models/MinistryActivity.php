@@ -25,6 +25,9 @@ class MinistryActivity extends Model
         'estimated_budget',     // Total estimated cost in decimal format, used for budget planning and reporting
         'budget_breakdown',     // JSON array of budget items and amounts, used for detailed budget tracking
         'has_budget_request',   // Boolean flag indicating if budget request was submitted, used for workflow tracking
+        'liquidation_report_path',  // File path for uploaded liquidation report, used for financial accountability
+        'liquidation_submitted_at', // Timestamp when liquidation report was submitted, used for tracking
+        'liquidation_notes',        // Optional notes about the liquidation report, used for additional context
     ];
 
     protected $casts = [
@@ -34,6 +37,7 @@ class MinistryActivity extends Model
         'is_public' => 'boolean',
         'estimated_budget' => 'decimal:2',
         'budget_breakdown' => 'array',
+        'liquidation_submitted_at' => 'datetime',
     ];
 
     public function ministry(): BelongsTo
@@ -54,6 +58,16 @@ class MinistryActivity extends Model
     public function approvedBudgetRequest()
     {
         return $this->hasOne(MinistryBudgetRequest::class, 'activity_id')->where('status', 'approved');
+    }
+    
+    public function completedBudgetRequest()
+    {
+        return $this->hasOne(MinistryBudgetRequest::class, 'activity_id')->where('status', 'complete');
+    }
+    
+    public function currentBudgetRequest()
+    {
+        return $this->hasOne(MinistryBudgetRequest::class, 'activity_id')->whereIn('status', ['approved', 'complete'])->latest();
     }
 
     // Accessors for backward compatibility

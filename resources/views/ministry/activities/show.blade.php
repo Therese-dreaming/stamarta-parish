@@ -241,6 +241,216 @@
             </div>
             @endif
 
+            <!-- Liquidation Report Section -->
+            {{-- Debug: Budget Request Status = {{ $activity->pendingBudgetRequest->status ?? 'null' }} --}}
+            @php
+                $showLiquidationSection = false;
+                // Check multiple possible conditions for showing liquidation section
+                if (isset($activity->pendingBudgetRequest) && $activity->pendingBudgetRequest->status === 'approved') {
+                    $showLiquidationSection = true;
+                } elseif (isset($activity->budgetRequest) && $activity->budgetRequest->status === 'approved') {
+                    $showLiquidationSection = true;
+                } elseif (method_exists($activity, 'isApproved') && $activity->isApproved()) {
+                    $showLiquidationSection = true;
+                }
+                // For testing, always show the section
+                $showLiquidationSection = true;
+            @endphp
+            @if($showLiquidationSection)
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1">
+                <!-- Enhanced Header with Gradient -->
+                <div class="bg-gradient-to-r from-[#0d5c2f] via-[#0f6b35] to-[#0d5c2f] p-6 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-black/5"></div>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full transform translate-x-8 -translate-y-8"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-tr-full transform -translate-x-6 translate-y-6"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                                    <i class="fas fa-file-invoice-dollar text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white mb-1">Liquidation Report</h3>
+                                    <p class="text-white/80 text-sm">Financial accountability documentation</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                @if($activity->liquidation_report_path)
+                                    <div class="inline-flex items-center px-3 py-1.5 bg-green-500/20 backdrop-blur-sm border border-green-400/30 rounded-full">
+                                        <i class="fas fa-check-circle text-green-300 mr-2"></i>
+                                        <span class="text-green-100 text-sm font-medium">Submitted</span>
+                                    </div>
+                                @else
+                                    <div class="inline-flex items-center px-3 py-1.5 bg-amber-500/20 backdrop-blur-sm border border-amber-400/30 rounded-full">
+                                        <i class="fas fa-clock text-amber-300 mr-2"></i>
+                                        <span class="text-amber-100 text-sm font-medium">Pending</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-8">
+                    {{-- Debug: Liquidation Report Path = {{ $activity->liquidation_report_path ?? 'null' }} --}}
+                    @if($activity->liquidation_report_path)
+                        <!-- Existing Liquidation Report - Enhanced Design -->
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200/60 rounded-2xl p-6 mb-6 shadow-sm">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-start">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg">
+                                        <i class="fas fa-file-check text-white text-2xl"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center mb-2">
+                                            <h4 class="text-lg font-bold text-green-900 mr-3">Report Successfully Submitted</h4>
+                                            <div class="inline-flex items-center px-2 py-1 bg-green-100 border border-green-300 rounded-full">
+                                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                                                <span class="text-green-700 text-xs font-medium">Verified</span>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center text-sm text-green-700">
+                                                <i class="fas fa-calendar-alt mr-2 text-green-600"></i>
+                                                <span class="font-medium">Submitted:</span>
+                                                <span class="ml-2">{{ $activity->liquidation_submitted_at ? $activity->liquidation_submitted_at->format('F d, Y \\a\\t g:i A') : 'Unknown date' }}</span>
+                                            </div>
+                                            @if($activity->liquidation_notes)
+                                            <div class="flex items-start text-sm text-green-700 mt-3">
+                                                <i class="fas fa-sticky-note mr-2 text-green-600 mt-0.5"></i>
+                                                <div>
+                                                    <span class="font-medium">Notes:</span>
+                                                    <p class="mt-1 text-green-600 italic">"{{ $activity->liquidation_notes }}"</p>
+                                                </div>
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-green-200/60">
+                                <a href="{{ Storage::url($activity->liquidation_report_path) }}" target="_blank" 
+                                   class="inline-flex items-center px-4 py-2.5 bg-white border-2 border-green-300 text-green-700 font-medium rounded-xl hover:bg-green-50 hover:border-green-400 transition-all duration-200 shadow-sm hover:shadow-md">
+                                    <i class="fas fa-eye mr-2"></i>
+                                    View Report
+                                </a>
+                                <a href="{{ Storage::url($activity->liquidation_report_path) }}" download 
+                                   class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Download Report
+                                </a>
+                            </div>
+                        </div>
+                    @else
+                        <!-- Upload Liquidation Report Form - Enhanced Design -->
+                        <div class="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200/60 rounded-2xl p-6 mb-6 shadow-sm">
+                            <div class="flex items-start">
+                                <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mr-4 shadow-lg">
+                                    <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <h4 class="text-lg font-bold text-amber-900 mr-3">Liquidation Report Required</h4>
+                                        <div class="inline-flex items-center px-2 py-1 bg-amber-100 border border-amber-300 rounded-full">
+                                            <div class="w-2 h-2 bg-amber-500 rounded-full mr-2 animate-pulse"></div>
+                                            <span class="text-amber-700 text-xs font-medium">Action Needed</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-amber-700 text-sm leading-relaxed">
+                                        Please submit the liquidation report for this approved activity to complete the financial accountability process.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Enhanced Upload Form -->
+                        <form action="{{ route('ministry.activities.upload-liquidation', $activity) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                            @csrf
+                            
+                            <!-- File Upload Section -->
+                            <div class="bg-gray-50 rounded-2xl p-6 border-2 border-dashed border-gray-300 hover:border-[#0d5c2f] transition-colors duration-300">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-[#0d5c2f]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <i class="fas fa-cloud-upload-alt text-[#0d5c2f] text-2xl"></i>
+                                    </div>
+                                    <label for="liquidation_report" class="block text-lg font-semibold text-gray-900 mb-2 cursor-pointer">
+                                        Upload Liquidation Report
+                                        <span class="text-red-500 ml-1">*</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mb-4">Drag and drop your file here, or click to browse</p>
+                                </div>
+                                
+                                <input type="file" 
+                                       id="liquidation_report" 
+                                       name="liquidation_report" 
+                                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx,.xls"
+                                       class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0d5c2f] focus:border-[#0d5c2f] transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-[#0d5c2f] file:to-[#0f6b35] file:text-white hover:file:from-[#0a4a26] hover:file:to-[#0d5c2f] file:shadow-md hover:file:shadow-lg file:transition-all file:duration-200"
+                                       required>
+                                
+                                <!-- File Info -->
+                                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                    <div class="bg-white rounded-xl p-3 border border-gray-200">
+                                        <div class="flex items-center text-gray-600">
+                                            <i class="fas fa-file-alt mr-2 text-[#0d5c2f]"></i>
+                                            <span class="font-medium">Accepted formats:</span>
+                                        </div>
+                                        <p class="text-gray-500 mt-1">PDF, JPG, PNG, DOC, DOCX, XLS, XLSX</p>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-3 border border-gray-200">
+                                        <div class="flex items-center text-gray-600">
+                                            <i class="fas fa-weight-hanging mr-2 text-[#0d5c2f]"></i>
+                                            <span class="font-medium">Maximum size:</span>
+                                        </div>
+                                        <p class="text-gray-500 mt-1">10MB per file</p>
+                                    </div>
+                                </div>
+                                
+                                @error('liquidation_report')
+                                    <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                                        <p class="text-red-600 text-sm flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-2"></i>{{ $message }}
+                                        </p>
+                                    </div>
+                                @enderror
+                            </div>
+                            
+                            <!-- Notes Section -->
+                            <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                                <label for="liquidation_notes" class="block text-lg font-semibold text-gray-900 mb-3">
+                                    <i class="fas fa-sticky-note mr-2 text-[#0d5c2f]"></i>
+                                    Additional Notes
+                                    <span class="text-sm font-normal text-gray-500 ml-2">(Optional)</span>
+                                </label>
+                                <textarea id="liquidation_notes" 
+                                          name="liquidation_notes" 
+                                          rows="4"
+                                          class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0d5c2f] focus:border-[#0d5c2f] transition-all duration-200 resize-none"
+                                          placeholder="Add any additional notes, explanations, or comments about the liquidation report..."></textarea>
+                                @error('liquidation_notes')
+                                    <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                                        <p class="text-red-600 text-sm flex items-center">
+                                            <i class="fas fa-exclamation-circle mr-2"></i>{{ $message }}
+                                        </p>
+                                    </div>
+                                @enderror
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex items-center justify-end pt-6 border-t-2 border-gray-100">
+                                <button type="submit" 
+                                        class="px-8 py-3 bg-gradient-to-r from-[#0d5c2f] to-[#0f6b35] text-white font-semibold rounded-xl hover:from-[#0a4a26] hover:to-[#0d5c2f] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    <i class="fas fa-upload mr-2"></i>
+                                    Submit Report
+                                </button>
+                            </div>
+                        </form>
+                    @endif
+                </div>
+            </div>
+            @endif
+
             <!-- Ministry Information -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300">
                 <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
@@ -346,25 +556,90 @@
                         </div>
                         @endif
 
-                        <!-- Activity Status -->
+                        <!-- Liquidation Report Step -->
+                        @if($activity->liquidation_report_path)
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
-                                <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                                    <i class="fas fa-calendar-check text-white text-sm"></i>
+                                <div class="relative">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                                        <i class="fas fa-file-invoice text-white text-sm"></i>
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-sm font-semibold text-purple-900">Liquidation Report Submitted</h4>
+                                        <span class="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full">Completed</span>
+                                    </div>
+                                    <p class="text-xs text-purple-700 mb-2">{{ $activity->liquidation_submitted_at ? $activity->liquidation_submitted_at->format('M d, Y \\a\\t g:i A') : 'Submission date unknown' }}</p>
+                                    <p class="text-xs text-purple-600">
+                                        Financial accountability documentation has been submitted
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Activity Status -->
+                        @if($activity->currentBudgetRequest && $activity->currentBudgetRequest->status === 'complete')
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="relative">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                                        <i class="fas fa-flag-checkered text-white text-sm"></i>
+                                    </div>
+                                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
                                 </div>
                             </div>
                             <div class="ml-4 flex-1">
                                 <div class="bg-green-50 rounded-lg p-4 border border-green-200">
                                     <div class="flex items-center justify-between mb-2">
-                                        <h4 class="text-sm font-semibold text-green-900">Activity Status</h4>
-                                        <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Active</span>
+                                        <h4 class="text-sm font-semibold text-green-900">Activity Completed</h4>
+                                        <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Completed</span>
                                     </div>
+                                    <p class="text-xs text-green-700 mb-2">{{ $activity->currentBudgetRequest->completed_at ? $activity->currentBudgetRequest->completed_at->format('M d, Y \\a\\t g:i A') : 'Completion date unknown' }}</p>
                                     <p class="text-xs text-green-600">
-                                        Activity is scheduled and ready for execution
+                                        Activity has been successfully completed with liquidation report submitted
                                     </p>
                                 </div>
                             </div>
                         </div>
+                        @else
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <i class="fas fa-calendar-check text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-sm font-semibold text-blue-900">Activity Status</h4>
+                                        <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                                            @if($activity->liquidation_report_path)
+                                                Ready to Complete
+                                            @else
+                                                In Progress
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-blue-600">
+                                        @if($activity->liquidation_report_path)
+                                            Liquidation report submitted, ready for completion
+                                        @else
+                                            Activity is scheduled and ready for execution
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -421,16 +696,45 @@
                 </div>
                 <div class="p-6">
                     <div class="space-y-4">
+                        @php
+                            $canMarkComplete = $activity->liquidation_report_path && 
+                                             isset($activity->currentBudgetRequest) && 
+                                             $activity->currentBudgetRequest->status === 'approved';
+                            $isAlreadyComplete = isset($activity->currentBudgetRequest) && 
+                                               $activity->currentBudgetRequest->status === 'complete';
+                            $isApproved = isset($activity->currentBudgetRequest) && 
+                                        $activity->currentBudgetRequest->status === 'approved';
+                        @endphp
+                        
+                        {{-- Mark as Complete Button: Only show when liquidation report is submitted and budget is approved --}}
+                        @if($canMarkComplete && !$isAlreadyComplete)
+                        <button type="button" 
+                                onclick="openCompleteModal({{ $activity->id }}, '{{ addslashes($activity->title) }}')"
+                                class="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                            <i class="fas fa-flag-checkered mr-2"></i>Mark as Complete
+                        </button>
+                        @elseif($isAlreadyComplete)
+                        <div class="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg shadow-md">
+                            <i class="fas fa-check-circle mr-2"></i>Activity Completed
+                        </div>
+                        @endif
+                        
+                        {{-- Edit Activity Button: Hide when budget is approved --}}
+                        @if(!$isApproved && !$isAlreadyComplete)
                         <a href="{{ route('ministry.activities.edit', $activity) }}" 
                            class="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow">
                             <i class="fas fa-edit mr-2"></i>Edit Activity
                         </a>
+                        @endif
                         
+                        {{-- Delete Activity Button: Hide when activity is complete --}}
+                        @if(!$isAlreadyComplete)
                         <button type="button" 
                                 onclick="openDeleteModal({{ $activity->id }}, '{{ addslashes($activity->title) }}')"
                                 class="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm hover:shadow">
                             <i class="fas fa-trash mr-2"></i>Delete Activity
                         </button>
+                        @endif
                         
                         <a href="{{ route('ministry.activities.index') }}" 
                            class="w-full flex items-center justify-center px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-sm hover:shadow">
@@ -504,6 +808,88 @@
     </div>
 </div>
 
+<!-- Mark as Complete Confirmation Modal -->
+<div id="completeModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden transform transition-all">
+        <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-flag-checkered text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Mark Activity as Complete</h3>
+                </div>
+                <button type="button" onclick="closeCompleteModal()" class="text-white hover:text-gray-200 transition-colors p-2 rounded-lg hover:bg-white/10">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div class="mb-6">
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                        <span class="text-sm font-medium text-green-800">Ready for Completion</span>
+                    </div>
+                    <p class="text-sm text-green-700">You are about to mark this ministry activity as complete. This indicates that the activity has been successfully executed and all requirements have been fulfilled.</p>
+                </div>
+                
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                        <i class="fas fa-calendar text-gray-600 mr-2"></i>
+                        Activity Details
+                    </h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Title:</span>
+                            <span class="text-sm font-medium text-gray-900" id="completeActivityTitle"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Liquidation Report:</span>
+                            <span class="text-sm font-medium text-green-600 flex items-center">
+                                <i class="fas fa-check-circle mr-1"></i>Submitted
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Completion Notes Form -->
+                <form id="completeForm" method="POST">
+                    @csrf
+                    @method('PATCH')
+                    
+                    <div class="bg-white border border-gray-200 rounded-xl p-4">
+                        <label for="completion_notes" class="block text-sm font-semibold text-gray-900 mb-3">
+                            <i class="fas fa-sticky-note mr-2 text-green-600"></i>
+                            Completion Notes
+                            <span class="text-xs font-normal text-gray-500 ml-2">(Optional)</span>
+                        </label>
+                        <textarea id="completion_notes" 
+                                  name="completion_notes" 
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 resize-none"
+                                  placeholder="Add any final notes about the completion of this activity..."></textarea>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeCompleteModal()" 
+                        class="px-6 py-3 border-2 border-gray-300 rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </button>
+                <button type="button" onclick="submitCompleteForm()" 
+                        class="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                    <i class="fas fa-flag-checkered mr-2"></i>
+                    Mark as Complete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // Delete Modal Functions
     function openDeleteModal(activityId, activityTitle) {
@@ -544,8 +930,45 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeDeleteModal();
+                closeCompleteModal();
             }
         });
     });
+    
+    // Complete Modal Functions
+    function openCompleteModal(activityId, activityTitle) {
+        const modal = document.getElementById('completeModal');
+        const titleSpan = document.getElementById('completeActivityTitle');
+        const form = document.getElementById('completeForm');
+        
+        // Set the activity title and form action
+        titleSpan.textContent = activityTitle;
+        form.action = `/ministry/activities/${activityId}/mark-complete`;
+        
+        // Show the modal
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Add backdrop click to close
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeCompleteModal();
+            }
+        });
+    }
+    
+    function closeCompleteModal() {
+        const modal = document.getElementById('completeModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
+        // Clear the form
+        document.getElementById('completion_notes').value = '';
+    }
+    
+    function submitCompleteForm() {
+        // Submit the form directly (modal already serves as confirmation)
+        document.getElementById('completeForm').submit();
+    }
 </script>
 @endsection 

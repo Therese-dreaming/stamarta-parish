@@ -127,17 +127,27 @@ class MemberController extends Controller
     {
         $this->getHeadMinistryOrAbort();
         $q = trim($request->query('q', ''));
+        $excludePriests = $request->query('exclude_priests', false);
+        
         if ($q === '') {
             return response()->json([]);
         }
-        $users = \App\Models\User::query()
+        
+        $query = \App\Models\User::query()
             ->where(function($query) use ($q) {
                 $query->where('name', 'like', "%$q%")
                       ->orWhere('email', 'like', "%$q%");
-            })
-            ->orderBy('name')
+            });
+            
+        // Exclude priests if requested
+        if ($excludePriests) {
+            $query->where('role', '!=', 'priest');
+        }
+        
+        $users = $query->orderBy('name')
             ->limit(10)
-            ->get(['id','name','email']);
+            ->get(['id','name','email','role']);
+            
         return response()->json($users);
     }
 }

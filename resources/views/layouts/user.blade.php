@@ -58,6 +58,12 @@
                     </div>
                     <a href="{{ route('contact') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Contact</a>
                     
+                    <!-- Calendar Link -->
+                    <a href="{{ route('calendar.index') }}" class="flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        <span>Calendar</span>
+                    </a>
+                    
                     @auth
                                                 <!-- Notification Dropdown -->
                         <div class="relative" x-data="{ open: false }">
@@ -167,6 +173,9 @@
             <a href="{{ route('home') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Home</a>
             <a href="{{ route('pages.index') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Pages</a>
             <a href="{{ route('contact') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Contact</a>
+            <a href="{{ route('calendar.index') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">
+                <i class="fas fa-calendar-alt mr-2"></i>Calendar
+            </a>
             @auth
                 <!-- Mobile Notification Bell -->
                 <div class="px-3 py-2">

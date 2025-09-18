@@ -669,6 +669,89 @@ class ActivityController extends Controller
         
         return implode(', ', $summary);
     }
+
+    /**
+     * Upload liquidation report for an activity
+     */
+    public function uploadLiquidation(Request $request, MinistryActivity $activity)
+    {
+        $ministry = $this->getHeadMinistryOrAbort();
+        
+        // Ensure the activity belongs to this ministry
+        if ($activity->ministry_id !== $ministry->id) {
+            abort(403);
+        }
+        
+        // Validate the request
+        $request->validate([
+            'liquidation_report' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx,xlsx,xls|max:10240', // 10MB
+            'liquidation_notes' => 'nullable|string|max:1000'
+        ]);
+        
+        // Store the file
+        $file = $request->file('liquidation_report');
+        $filename = time() . '_liquidation_' . $file->getClientOriginalName();
+        $path = $file->storeAs('liquidation_reports', $filename, 'public');
+        
+        // Update the activity
+        $activity->update([
+            'liquidation_report_path' => $path,
+            'liquidation_submitted_at' => now(),
+            'liquidation_notes' => $request->liquidation_notes
+        ]);
+        
+        return redirect()->route('ministry.activities.show', $activity)
+            ->with('success', 'Liquidation report uploaded successfully!');
+    }
+    
+    /**
+     * Mark activity as complete
+     */
+    public function markComplete(Request $request, MinistryActivity $activity)
+    {
+        $ministry = $this->getHeadMinistryOrAbort();
+        
+        // Ensure the activity belongs to this ministry
+        if ($activity->ministry_id !== $ministry->id) {
+            abort(403);
+        }
+        
+        // Ensure liquidation report has been uploaded
+        if (!$activity->liquidation_report_path) {
+            return redirect()->route('ministry.activities.show', $activity)
+                ->with('error', 'Cannot mark activity as complete without uploading liquidation report.');
+        }
+        
+        // Validate the request
+        $request->validate([
+            'completion_notes' => 'nullable|string|max:1000'
+        ]);
+        
+        // Update the budget request status to complete
+        // Find the approved budget request (not pending)
+        $budgetRequest = $activity->budgetRequests()->where('status', 'approved')->first();
+        
+        if ($budgetRequest) {
+            $budgetRequest->update([
+                'status' => 'complete',
+                'completed_at' => now(),
+                'completion_notes' => $request->completion_notes
+            ]);
+        } else {
+            // Fallback: try to find any budget request for this activity
+            $budgetRequest = $activity->budgetRequests()->first();
+            if ($budgetRequest) {
+                $budgetRequest->update([
+                    'status' => 'complete',
+                    'completed_at' => now(),
+                    'completion_notes' => $request->completion_notes
+                ]);
+            }
+        }
+        
+        return redirect()->route('ministry.activities.show', $activity)
+            ->with('success', 'Activity marked as complete successfully!');
+    }
 }
 
 

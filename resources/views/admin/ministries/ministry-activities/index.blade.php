@@ -202,9 +202,10 @@
                             $statusConfig = [
                                 'pending' => ['bg' => 'bg-yellow-500', 'text' => 'text-yellow-800', 'icon' => 'fa-clock', 'border' => 'border-yellow-200'],
                                 'approved' => ['bg' => 'bg-green-500', 'text' => 'text-green-800', 'icon' => 'fa-check', 'border' => 'border-green-200'],
-                                'rejected' => ['bg' => 'bg-red-500', 'text' => 'text-red-800', 'icon' => 'fa-times', 'border' => 'border-red-200']
+                                'rejected' => ['bg' => 'bg-red-500', 'text' => 'text-red-800', 'icon' => 'fa-times', 'border' => 'border-red-200'],
+                                'complete' => ['bg' => 'bg-blue-500', 'text' => 'text-blue-800', 'icon' => 'fa-check-circle', 'border' => 'border-blue-200']
                             ];
-                            $config = $statusConfig[$req->status];
+                            $config = $statusConfig[$req->status] ?? $statusConfig['pending'];
                         @endphp
                         <div class="{{ $config['bg'] }} px-6 py-4 text-white">
                             <div class="flex items-center justify-between">
@@ -359,9 +360,10 @@
                                     $statusConfig = [
                                         'pending' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'icon' => 'fa-clock'],
                                         'approved' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'icon' => 'fa-check'],
-                                        'rejected' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'icon' => 'fa-times']
+                                        'rejected' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'icon' => 'fa-times'],
+                                        'complete' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'icon' => 'fa-check-circle']
                                     ];
-                                    $config = $statusConfig[$req->status];
+                                    $config = $statusConfig[$req->status] ?? $statusConfig['pending'];
                                 @endphp
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4">

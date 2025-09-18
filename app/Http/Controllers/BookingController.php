@@ -194,10 +194,7 @@ class BookingController extends Controller
                 break;
             case 'blessing':
                 $requiredDocuments = ['valid_id'];
-                $conditionalDocuments = [
-                    'proof_of_ownership' => 'proof_of_ownership',
-                    'special_requests' => 'special_requests'
-                ];
+                $conditionalDocuments = [];
                 break;
             default:
                 $requiredDocuments = ['valid_id'];

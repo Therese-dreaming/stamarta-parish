@@ -108,9 +108,7 @@ class ServiceSeeder extends Seeder
                 'is_active' => true,
                 'service_type' => 'blessing',
                 'requirements' => [
-                    'Valid ID',
-                    'Proof of Ownership (if applicable)',
-                    'Special Requests (if any)'
+                    'Valid ID'
                 ],
                 'fees' => [
                     [

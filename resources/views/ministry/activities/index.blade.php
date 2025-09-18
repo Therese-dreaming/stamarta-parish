@@ -186,22 +186,54 @@
                         <!-- Status Header -->
                         <div class="px-6 py-4 border-b border-gray-100">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 bg-[#0d5c2f] rounded-xl flex items-center justify-center shadow-sm">
-                                        <i class="fas fa-calendar text-white text-lg"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h3 class="text-lg font-semibold text-gray-900 group-hover:text-[#0d5c2f] transition-colors">{{ $activity->title }}</h3>
-                                        <p class="text-sm text-gray-500">{{ Str::limit($activity->description, 60) }}</p>
-                                    </div>
-                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900 group-hover:text-[#0d5c2f] transition-colors duration-200">{{ $activity->title }}</h3>
+                                @php
+                                    $budgetStatus = 'draft';
+                                    $statusColor = 'gray';
+                                    $statusIcon = 'fa-file';
+                                    
+                                    if ($activity->currentBudgetRequest) {
+                                        $budgetStatus = $activity->currentBudgetRequest->status;
+                                    } elseif ($activity->pendingBudgetRequest) {
+                                        $budgetStatus = $activity->pendingBudgetRequest->status;
+                                    } elseif ($activity->approvedBudgetRequest) {
+                                        $budgetStatus = $activity->approvedBudgetRequest->status;
+                                    }
+                                    
+                                    switch($budgetStatus) {
+                                        case 'pending':
+                                            $statusColor = 'yellow';
+                                            $statusIcon = 'fa-clock';
+                                            break;
+                                        case 'approved':
+                                            $statusColor = 'green';
+                                            $statusIcon = 'fa-check';
+                                            break;
+                                        case 'complete':
+                                            $statusColor = 'blue';
+                                            $statusIcon = 'fa-flag-checkered';
+                                            break;
+                                        case 'rejected':
+                                            $statusColor = 'red';
+                                            $statusIcon = 'fa-times';
+                                            break;
+                                        default:
+                                            $statusColor = 'gray';
+                                            $statusIcon = 'fa-file';
+                                    }
+                                @endphp
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800">
+                                    <i class="fas {{ $statusIcon }} mr-1"></i>{{ ucfirst($budgetStatus) }}
+                                </span>
+                            </div>
+                            <div class="mt-2">
                                 @if($activity->is_public)
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-globe mr-1"></i>Public
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">
+                                        <i class="fas fa-globe mr-1"></i>Public Event
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        <i class="fas fa-lock mr-1"></i>Internal
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+                                        <i class="fas fa-lock mr-1"></i>Internal Event
                                     </span>
                                 @endif
                             </div>
@@ -260,22 +292,31 @@
                         <!-- Action Buttons -->
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
                             <div class="flex items-center justify-end space-x-2">
+                                {{-- View Button: Always available --}}
                                 <a href="{{ route('ministry.activities.show', $activity) }}" 
                                    class="w-8 h-8 rounded-lg bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-all duration-200 hover:scale-110" 
                                    title="View">
                                     <i class="fas fa-eye text-sm"></i>
                                 </a>
+                                
+                                {{-- Edit Button: Hide when approved or complete --}}
+                                @if($budgetStatus !== 'approved' && $budgetStatus !== 'complete')
                                 <a href="{{ route('ministry.activities.edit', $activity) }}" 
                                    class="w-8 h-8 rounded-lg bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110" 
                                    title="Edit">
                                     <i class="fas fa-edit text-sm"></i>
                                 </a>
+                                @endif
+                                
+                                {{-- Delete Button: Hide when complete --}}
+                                @if($budgetStatus !== 'complete')
                                 <button type="button" 
                                         onclick="openDeleteModal({{ $activity->id }}, '{{ addslashes($activity->title) }}')"
                                         class="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-all duration-200 hover:scale-110" 
                                         title="Delete">
                                     <i class="fas fa-trash text-sm"></i>
                                 </button>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -353,34 +394,81 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($activity->is_public)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            <i class="fas fa-globe mr-1"></i>Public
+                                    @php
+                                        $budgetStatus = 'draft';
+                                        $statusColor = 'gray';
+                                        $statusIcon = 'fa-file';
+                                        
+                                        if ($activity->currentBudgetRequest) {
+                                            $budgetStatus = $activity->currentBudgetRequest->status;
+                                        } elseif ($activity->pendingBudgetRequest) {
+                                            $budgetStatus = $activity->pendingBudgetRequest->status;
+                                        } elseif ($activity->approvedBudgetRequest) {
+                                            $budgetStatus = $activity->approvedBudgetRequest->status;
+                                        }
+                                        
+                                        switch($budgetStatus) {
+                                            case 'pending':
+                                                $statusColor = 'yellow';
+                                                $statusIcon = 'fa-clock';
+                                                break;
+                                            case 'approved':
+                                                $statusColor = 'green';
+                                                $statusIcon = 'fa-check';
+                                                break;
+                                            case 'complete':
+                                                $statusColor = 'blue';
+                                                $statusIcon = 'fa-flag-checkered';
+                                                break;
+                                            case 'rejected':
+                                                $statusColor = 'red';
+                                                $statusIcon = 'fa-times';
+                                                break;
+                                            default:
+                                                $statusColor = 'gray';
+                                                $statusIcon = 'fa-file';
+                                        }
+                                    @endphp
+                                    <div class="space-y-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $statusColor }}-100 text-{{ $statusColor }}-800">
+                                            <i class="fas {{ $statusIcon }} mr-1"></i>{{ ucfirst($budgetStatus) }}
                                         </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            <i class="fas fa-lock mr-1"></i>Internal
-                                        </span>
-                                    @endif
+                                        <div class="text-xs text-gray-500">
+                                            @if($activity->is_public)
+                                                <i class="fas fa-globe mr-1"></i>Public
+                                            @else
+                                                <i class="fas fa-lock mr-1"></i>Internal
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">
+                                        {{-- View Button: Always available --}}
                                         <a href="{{ route('ministry.activities.show', $activity) }}" 
                                            class="w-8 h-8 rounded-lg bg-green-100 hover:bg-green-200 flex items-center justify-center text-green-600 hover:text-green-800 transition-all duration-200 hover:scale-110" 
                                            title="View">
                                             <i class="fas fa-eye text-sm"></i>
                                         </a>
+                                        
+                                        {{-- Edit Button: Hide when approved or complete --}}
+                                        @if($budgetStatus !== 'approved' && $budgetStatus !== 'complete')
                                         <a href="{{ route('ministry.activities.edit', $activity) }}" 
                                            class="w-8 h-8 rounded-lg bg-blue-100 hover:bg-blue-200 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-all duration-200 hover:scale-110" 
                                            title="Edit">
                                             <i class="fas fa-edit text-sm"></i>
                                         </a>
+                                        @endif
+                                        
+                                        {{-- Delete Button: Hide when complete --}}
+                                        @if($budgetStatus !== 'complete')
                                         <button type="button" 
                                                 onclick="openDeleteModal({{ $activity->id }}, '{{ addslashes($activity->title) }}')"
                                                 class="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 flex items-center justify-center text-red-600 hover:text-red-800 transition-all duration-200 hover:scale-110" 
                                                 title="Delete">
                                             <i class="fas fa-trash text-sm"></i>
                                         </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
