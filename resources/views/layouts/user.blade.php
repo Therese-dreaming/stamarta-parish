@@ -57,6 +57,7 @@
                         </div>
                     </div>
                     <a href="{{ route('contact') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Contact</a>
+                    <a href="{{ route('calendar.index') }}" class="text-gray-600 hover:text-[#0d5c2f] transition-colors">Church Calendar</a>
                     
                     @auth
                                                 <!-- Notification Dropdown -->
@@ -131,6 +132,15 @@
                                 @if(Auth::user()->isAdmin())
                                     <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Admin Panel</a>
                                 @endif
+                                @if(method_exists(Auth::user(), 'isMinistryHead') && Auth::user()->isMinistryHead())
+                                    <a href="{{ route('ministry.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Ministry Panel</a>
+                                @endif
+                                @if(method_exists(Auth::user(), 'isPriest') && Auth::user()->isPriest())
+                                    <a href="{{ route('priest.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Priest Panel</a>
+                                @endif
+                                @if(method_exists(Auth::user(), 'isStaff') && Auth::user()->isStaff())
+                                    <a href="{{ route('staff.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Staff Panel</a>
+                                @endif
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -167,6 +177,7 @@
             <a href="{{ route('home') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Home</a>
             <a href="{{ route('pages.index') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Pages</a>
             <a href="{{ route('contact') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Contact</a>
+            <a href="{{ route('calendar.index') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Church Calendar</a>
             @auth
                 <!-- Mobile Notification Bell -->
                 <div class="px-3 py-2">
@@ -181,6 +192,15 @@
                 <a href="{{ route('booking.my-bookings') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">My Bookings</a>
                 @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Admin Panel</a>
+                @endif
+                @if(method_exists(Auth::user(), 'isMinistryHead') && Auth::user()->isMinistryHead())
+                    <a href="{{ route('ministry.dashboard') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Ministry Panel</a>
+                @endif
+                @if(method_exists(Auth::user(), 'isPriest') && Auth::user()->isPriest())
+                    <a href="{{ route('priest.dashboard') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Priest Panel</a>
+                @endif
+                @if(method_exists(Auth::user(), 'isStaff') && Auth::user()->isStaff())
+                    <a href="{{ route('staff.dashboard') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Staff Panel</a>
                 @endif
                 <form method="POST" action="{{ route('logout') }}" class="block">
                     @csrf

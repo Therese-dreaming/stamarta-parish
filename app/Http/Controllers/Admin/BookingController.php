@@ -287,6 +287,19 @@ class BookingController extends Controller
             ]);
         }
 
+        // Add payment to parish total budget if booking is approved
+        if ($request->verification_status === 'approved' && $booking->payment) {
+            try {
+                \App\Services\ParishBudgetService::addToParishBudget(
+                    $booking->payment->total_fee,
+                    'Booking payment verified: ' . ($booking->service->name ?? 'service') . ' - Booking #' . $booking->id
+                );
+            } catch (\Exception $e) {
+                \Log::error('Failed to add booking payment to parish budget: ' . $e->getMessage());
+                // Don't fail the entire operation, just log the error
+            }
+        }
+
         // Create booking action
         $booking->actions()->create([
             'action_type' => $request->verification_status === 'approved' ? 'approved' : 'rejected',

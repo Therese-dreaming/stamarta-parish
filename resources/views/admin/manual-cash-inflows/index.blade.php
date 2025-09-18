@@ -7,40 +7,43 @@
 <div class="space-y-6">
 
     <!-- Enhanced Header -->
-    <div class="bg-[#0d5c2f] rounded-2xl shadow-xl overflow-hidden">
-        <div class="px-8 py-8 relative">
-            <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-bl-full"></div>
-            <div class="absolute left-0 bottom-0 w-24 h-24 bg-white/5 rounded-tr-full"></div>
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10">
-                <div class="flex items-center mb-4 md:mb-0">
+    <div class="bg-gradient-to-br from-[#0d5c2f] via-[#0f6b35] to-[#1a8045] rounded-2xl shadow-2xl overflow-hidden">
+        <div class="px-8 py-10 relative">
+            <div class="absolute right-0 top-0 w-40 h-40 bg-white/10 rounded-bl-full"></div>
+            <div class="absolute left-0 bottom-0 w-32 h-32 bg-white/5 rounded-tr-full"></div>
+            <div class="absolute top-1/2 right-1/4 w-2 h-2 bg-white/20 rounded-full"></div>
+            <div class="absolute top-1/4 right-1/3 w-1 h-1 bg-white/30 rounded-full"></div>
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center relative z-10">
+                <div class="flex items-center mb-6 lg:mb-0">
                     <div class="mr-6 hidden md:block">
-                        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center border-2 border-white/30 shadow-lg">
-                            <i class="fas fa-money-bill-wave text-white text-2xl"></i>
+                        <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border-2 border-white/30 shadow-2xl">
+                            <i class="fas fa-money-bill-wave text-white text-3xl"></i>
                         </div>
                     </div>
                     <div>
-                        <h2 class="text-3xl font-bold text-white flex items-center mb-2">
-                            <i class="fas fa-coins mr-3"></i>
+                        <h1 class="text-4xl font-bold text-white mb-3">
                             Manual Cash Inflows
-                        </h2>
-                        <p class="text-white/90 text-base">Track and manage parish financial resources</p>
-                        <div class="flex items-center mt-3 text-white/80 text-sm">
+                        </h1>
+                        <p class="text-white/90 text-lg mb-2">Track and manage parish financial resources</p>
+                        <div class="flex items-center text-white/80 text-sm">
                             <i class="fas fa-info-circle mr-2"></i>
                             <span>Manage cash inflows from diocese, donations, and other sources</span>
                         </div>
                     </div>
                 </div>
                 <div class="flex flex-col items-end text-white">
-                    <div class="text-4xl font-bold mb-1">₱{{ number_format($cashInflows->sum('amount'), 2) }}</div>
-                    <div class="text-sm opacity-90 mb-4">Total Cash Inflows</div>
-                    <div class="flex space-x-3">
+                    <div class="text-5xl font-bold mb-2 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                        ₱{{ number_format($cashInflows->sum('amount'), 2) }}
+                    </div>
+                    <div class="text-base opacity-90 mb-6">Total Cash Inflows</div>
+                    <div class="flex flex-col sm:flex-row gap-3">
                         <a href="{{ route('admin.manual-cash-inflows.create') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-all duration-200 border border-white/30 hover:border-white/50">
+                           class="inline-flex items-center px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl transition-all duration-300 border border-white/30 hover:border-white/50 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                             <i class="fas fa-plus mr-2"></i>
                             Add Cash Inflow
                         </a>
                         <a href="{{ route('admin.budget-management.index') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-all duration-200 border border-white/30 hover:border-white/50">
+                           class="inline-flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-all duration-300 border border-white/20 hover:border-white/40 backdrop-blur-sm">
                             <i class="fas fa-chart-line mr-2"></i>
                             Budget Overview
                         </a>
@@ -51,80 +54,72 @@
     </div>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Pending Cash Inflows -->
-        <div class="bg-white rounded-lg shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-600 mb-1">Pending</p>
-                    <p class="text-xl font-bold text-gray-900">{{ $cashInflows->where('status', 'pending')->count() }}</p>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-clock text-white text-lg"></i>
                 </div>
-                <div class="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center shadow-md">
-                    <i class="fas fa-clock text-white text-sm"></i>
+                <div class="text-right">
+                    <p class="text-3xl font-bold text-gray-900">{{ $cashInflows->where('status', 'pending')->count() }}</p>
+                    <p class="text-sm font-medium text-gray-600">Pending</p>
                 </div>
             </div>
-            <div class="mt-2 pt-2 border-t border-gray-100">
-                <div class="flex items-center text-xs text-gray-500">
-                    <i class="fas fa-info-circle text-yellow-500 mr-1"></i>
-                    <span>Awaiting approval</span>
-                </div>
+            <div class="flex items-center text-sm text-gray-500">
+                <i class="fas fa-info-circle text-yellow-500 mr-2"></i>
+                <span>Awaiting approval</span>
             </div>
         </div>
 
         <!-- Approved Cash Inflows -->
-        <div class="bg-white rounded-lg shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-600 mb-1">Approved</p>
-                    <p class="text-xl font-bold text-gray-900">{{ $cashInflows->where('status', 'approved')->count() }}</p>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-green-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-check-circle text-white text-lg"></i>
                 </div>
-                <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center shadow-md">
-                    <i class="fas fa-check-circle text-white text-sm"></i>
+                <div class="text-right">
+                    <p class="text-3xl font-bold text-gray-900">{{ $cashInflows->where('status', 'approved')->count() }}</p>
+                    <p class="text-sm font-medium text-gray-600">Approved</p>
                 </div>
             </div>
-            <div class="mt-2 pt-2 border-t border-gray-100">
-                <div class="flex items-center text-xs text-gray-500">
-                    <i class="fas fa-arrow-down text-green-500 mr-1"></i>
-                    <span>Added to budget</span>
-                </div>
+            <div class="flex items-center text-sm text-gray-500">
+                <i class="fas fa-arrow-down text-green-500 mr-2"></i>
+                <span>Added to budget</span>
             </div>
         </div>
 
         <!-- Rejected Cash Inflows -->
-        <div class="bg-white rounded-lg shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-600 mb-1">Rejected</p>
-                    <p class="text-xl font-bold text-gray-900">{{ $cashInflows->where('status', 'rejected')->count() }}</p>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-red-400 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-times-circle text-white text-lg"></i>
                 </div>
-                <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center shadow-md">
-                    <i class="fas fa-times-circle text-white text-sm"></i>
+                <div class="text-right">
+                    <p class="text-3xl font-bold text-gray-900">{{ $cashInflows->where('status', 'rejected')->count() }}</p>
+                    <p class="text-sm font-medium text-gray-600">Rejected</p>
                 </div>
             </div>
-            <div class="mt-2 pt-2 border-t border-gray-100">
-                <div class="flex items-center text-xs text-gray-500">
-                    <i class="fas fa-exclamation-triangle text-red-500 mr-1"></i>
-                    <span>Not approved</span>
-                </div>
+            <div class="flex items-center text-sm text-gray-500">
+                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                <span>Not approved</span>
             </div>
         </div>
 
         <!-- Total Amount -->
-        <div class="bg-white rounded-lg shadow-md border border-gray-100 p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-gray-600 mb-1">Total Amount</p>
-                    <p class="text-xl font-bold text-green-600">₱{{ number_format($cashInflows->sum('amount'), 2) }}</p>
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-peso-sign text-white text-lg"></i>
                 </div>
-                <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center shadow-md">
-                    <i class="fas fa-peso-sign text-white text-sm"></i>
+                <div class="text-right">
+                    <p class="text-2xl font-bold text-green-600">₱{{ number_format($cashInflows->sum('amount'), 2) }}</p>
+                    <p class="text-sm font-medium text-gray-600">Total Amount</p>
                 </div>
             </div>
-            <div class="mt-2 pt-2 border-t border-gray-100">
-                <div class="flex items-center text-xs text-gray-500">
-                    <i class="fas fa-chart-line text-purple-500 mr-1"></i>
-                    <span>All cash inflows</span>
-                </div>
+            <div class="flex items-center text-sm text-gray-500">
+                <i class="fas fa-chart-line text-purple-500 mr-2"></i>
+                <span>All cash inflows</span>
             </div>
         </div>
     </div>
@@ -221,13 +216,13 @@
     </div>
 
     <!-- Cash Inflows Table View -->
-    <div id="tableView" class="bg-white rounded-xl shadow-lg border border-gray-100">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                <i class="fas fa-list mr-2 text-[#0d5c2f]"></i>
+    <div id="tableView" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+            <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                <i class="fas fa-list mr-3 text-[#0d5c2f]"></i>
                 Cash Inflows List
             </h3>
-            <p class="text-sm text-gray-600 mt-1">All manual cash inflow transactions</p>
+            <p class="text-sm text-gray-600 mt-2">Streamlined view of all manual cash inflow transactions</p>
         </div>
         
         <div class="overflow-x-auto">
@@ -236,12 +231,10 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ministry</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entered By</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -261,23 +254,17 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-lg font-bold text-green-600">₱{{ number_format($cashInflow->amount, 2) }}</span>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900 max-w-xs truncate" title="{{ $cashInflow->description }}">
-                                    {{ $cashInflow->description }}
-                                </div>
-                                @if($cashInflow->source_details)
-                                    <div class="text-xs text-gray-500 mt-1">{{ $cashInflow->source_details }}</div>
-                                @endif
-                                @if($cashInflow->source_type === 'other' && $cashInflow->other_source_specify)
-                                    <div class="text-xs text-purple-600 mt-1 font-medium">
-                                        <i class="fas fa-tag mr-1"></i>{{ $cashInflow->other_source_specify }}
-                                    </div>
-                                @endif
-                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $cashInflow->getSourceTypeBadgeClass() }}">
-                                    {{ $cashInflow->getSourceTypeLabel() }}
-                                </span>
+                                <div class="flex flex-col">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $cashInflow->getSourceTypeBadgeClass() }}">
+                                        {{ $cashInflow->getSourceTypeLabel() }}
+                                    </span>
+                                    @if($cashInflow->source_type === 'other' && $cashInflow->other_source_specify)
+                                        <div class="text-xs text-purple-600 mt-1 font-medium">
+                                            {{ $cashInflow->other_source_specify }}
+                                        </div>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="text-sm text-gray-900">
@@ -292,10 +279,6 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">{{ $cashInflow->enteredBy->name }}</div>
                                 <div class="text-xs text-gray-500">{{ $cashInflow->created_at->format('M d, Y') }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $cashInflow->created_at->format('M d, Y') }}</div>
-                                <div class="text-xs text-gray-500">{{ $cashInflow->created_at->format('h:i A') }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex space-x-2">
@@ -316,7 +299,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-6 py-12 text-center">
+                            <td colspan="7" class="px-6 py-12 text-center">
                                 <div class="text-gray-500">
                                     <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <i class="fas fa-money-bill-wave text-gray-400 text-xl"></i>

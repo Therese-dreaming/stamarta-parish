@@ -71,21 +71,52 @@ class ManualCashInflowController extends Controller
         try {
             $referenceNo = $request->reference_no ?: 'MCI-' . strtoupper(uniqid());
 
-            ManualCashInflow::create([
-                'ministry_id' => $request->ministry_id,
-                'amount' => $request->amount,
-                'source_type' => $request->source_type,
-                'description' => $request->description,
-                'source_details' => $request->source_details,
-                'other_source_specify' => $request->other_source_specify,
-                'reference_no' => $referenceNo,
-                'notes' => $request->notes,
-                'entered_by_user_id' => auth()->id(),
-                'status' => ManualCashInflow::STATUS_PENDING,
-            ]);
+            DB::transaction(function () use ($request, $referenceNo) {
+                $manualCashInflow = ManualCashInflow::create([
+                    'ministry_id' => $request->ministry_id,
+                    'amount' => $request->amount,
+                    'source_type' => $request->source_type,
+                    'description' => $request->description,
+                    'source_details' => $request->source_details,
+                    'other_source_specify' => $request->other_source_specify,
+                    'reference_no' => $referenceNo,
+                    'notes' => $request->notes,
+                    'entered_by_user_id' => auth()->id(),
+                    'status' => ManualCashInflow::STATUS_APPROVED,
+                    'approved_by_user_id' => auth()->id(),
+                    'approved_at' => now(),
+                ]);
+
+                // Create ministry fund transaction
+                MinistryFundTransaction::create([
+                    'ministry_id' => $manualCashInflow->ministry_id,
+                    'type' => MinistryFundTransaction::TYPE_CREDIT,
+                    'amount' => $manualCashInflow->amount,
+                    'description' => 'Manual cash inflow approved: ' . ($manualCashInflow->description ?? ''),
+                    'reference_no' => $manualCashInflow->reference_no,
+                    'source_type' => ManualCashInflow::class,
+                    'source_id' => $manualCashInflow->id,
+                    'entered_by_user_id' => $manualCashInflow->entered_by_user_id,
+                    'approved_by_user_id' => auth()->id(),
+                ]);
+
+                // Update ministry budget if assigned to a ministry
+                if ($manualCashInflow->ministry_id) {
+                    $ministry = Ministry::find($manualCashInflow->ministry_id);
+                    if ($ministry) {
+                        $ministry->increment('budget', $manualCashInflow->amount);
+                    }
+                }
+                
+                // Always update parish total budget
+                \App\Services\ParishBudgetService::addToParishBudget(
+                    $manualCashInflow->amount,
+                    'Manual cash inflow created: ' . $manualCashInflow->description
+                );
+            });
 
             return redirect()->route('admin.manual-cash-inflows.index')
-                ->with('success', 'Cash inflow created successfully.');
+                ->with('success', 'Cash inflow created and approved successfully.');
         } catch (\Exception $e) {
             Log::error('Failed to create manual cash inflow: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Failed to submit cash inflow. Please try again.');
@@ -107,28 +138,42 @@ class ManualCashInflowController extends Controller
             // Get ministry budget information
             $totalBudget = $ministry->budget ?? 0;
             
-            // Calculate used budget from approved cash inflows and budget requests
-            $usedBudget = ManualCashInflow::where('ministry_id', $ministry->id)
+            // Calculate total inflows (approved cash inflows)
+            $totalInflows = ManualCashInflow::where('ministry_id', $ministry->id)
                 ->where('status', 'approved')
                 ->sum('amount');
             
-            // Add budget requests if they exist
+            // Calculate total outflows (approved budget requests)
+            $totalOutflows = 0;
             if (class_exists('App\Models\MinistryBudgetRequest')) {
-                $usedBudget += \App\Models\MinistryBudgetRequest::where('ministry_id', $ministry->id)
+                $approvedBudgetRequests = \App\Models\MinistryBudgetRequest::where('ministry_id', $ministry->id)
                     ->where('status', 'approved')
-                    ->sum('amount');
+                    ->with('activity')
+                    ->get();
+                
+                foreach ($approvedBudgetRequests as $request) {
+                    $totalOutflows += $request->amount; // This uses the computed attribute
+                }
             }
             
-            $remainingBudget = max(0, $totalBudget - $usedBudget);
-            $utilizationPercentage = $totalBudget > 0 ? ($usedBudget / $totalBudget) * 100 : 0;
+            // Calculate current balance and utilization
+            $currentBalance = $totalBudget + $totalInflows - $totalOutflows;
+            $utilizationPercentage = $totalBudget > 0 ? (($totalInflows + $totalBudget - $currentBalance) / ($totalBudget + $totalInflows)) * 100 : 0;
             
-            // Get approved requests count
-            $approvedRequests = ManualCashInflow::where('ministry_id', $ministry->id)
+            // Get counts
+            $approvedInflows = ManualCashInflow::where('ministry_id', $ministry->id)
                 ->where('status', 'approved')
                 ->count();
             
-            // Get recent transactions (last 5)
-            $recentTransactions = ManualCashInflow::where('ministry_id', $ministry->id)
+            $approvedOutflows = 0;
+            if (class_exists('App\Models\MinistryBudgetRequest')) {
+                $approvedOutflows = \App\Models\MinistryBudgetRequest::where('ministry_id', $ministry->id)
+                    ->where('status', 'approved')
+                    ->count();
+            }
+            
+            // Get recent transactions (last 10 - mix of inflows and outflows)
+            $recentInflows = ManualCashInflow::where('ministry_id', $ministry->id)
                 ->where('status', 'approved')
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
@@ -139,15 +184,42 @@ class ManualCashInflowController extends Controller
                         'amount' => $transaction->amount,
                         'description' => $transaction->description,
                         'created_at' => $transaction->created_at,
+                        'reference' => $transaction->reference_no,
                     ];
                 });
             
+            $recentOutflows = collect();
+            if (class_exists('App\Models\MinistryBudgetRequest')) {
+                $recentOutflows = \App\Models\MinistryBudgetRequest::where('ministry_id', $ministry->id)
+                    ->where('status', 'approved')
+                    ->with('activity')
+                    ->orderBy('approved_at', 'desc')
+                    ->limit(5)
+                    ->get()
+                    ->map(function ($request) {
+                        return (object) [
+                            'type' => 'outflow',
+                            'amount' => $request->amount,
+                            'description' => $request->purpose,
+                            'created_at' => $request->approved_at,
+                            'reference' => 'BR-' . $request->id,
+                        ];
+                    });
+            }
+            
+            $recentTransactions = $recentInflows->concat($recentOutflows)
+                ->sortByDesc('created_at')
+                ->take(8)
+                ->values();
+            
             $ministryStats = [
                 'total_budget' => $totalBudget,
-                'used_budget' => $usedBudget,
-                'remaining_budget' => $remainingBudget,
-                'utilization_percentage' => $utilizationPercentage,
-                'approved_requests' => $approvedRequests,
+                'total_inflows' => $totalInflows,
+                'total_outflows' => $totalOutflows,
+                'current_balance' => $currentBalance,
+                'utilization_percentage' => min(100, max(0, $utilizationPercentage)),
+                'approved_inflows' => $approvedInflows,
+                'approved_outflows' => $approvedOutflows,
                 'recent_transactions' => $recentTransactions,
             ];
         } else {
@@ -266,6 +338,20 @@ class ManualCashInflowController extends Controller
                     'entered_by_user_id' => $manual_cash_inflow->entered_by_user_id,
                     'approved_by_user_id' => auth()->id(),
                 ]);
+
+                // Update ministry budget and parish total budget
+                if ($manual_cash_inflow->ministry_id) {
+                    $ministry = Ministry::find($manual_cash_inflow->ministry_id);
+                    if ($ministry) {
+                        $ministry->increment('budget', $manual_cash_inflow->amount);
+                    }
+                }
+                
+                // Always update parish total budget
+                \App\Services\ParishBudgetService::addToParishBudget(
+                    $manual_cash_inflow->amount,
+                    'Manual cash inflow approved: ' . $manual_cash_inflow->description
+                );
             });
 
             return back()->with('success', 'Cash inflow approved and funds added.');

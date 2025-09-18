@@ -26,16 +26,14 @@ class BudgetManagementController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Calculate budget statistics
-        $totalBudget = MinistryFundTransaction::where('ministry_id', $ministry->id)
-            ->where('type', 'credit')
-            ->sum('amount');
+        // Calculate budget statistics using ministry budget column
+        $totalBudget = $ministry->budget ?? 0;
         
         $totalExpenses = MinistryFundTransaction::where('ministry_id', $ministry->id)
             ->where('type', 'debit')
             ->sum('amount');
         
-        $remainingBudget = $totalBudget - $totalExpenses;
+        $remainingBudget = $totalBudget;
         
         // Get budget requests statistics
         $pendingRequests = MinistryBudgetRequest::where('ministry_id', $ministry->id)

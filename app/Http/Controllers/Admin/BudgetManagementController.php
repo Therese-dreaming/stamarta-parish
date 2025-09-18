@@ -33,15 +33,19 @@ class BudgetManagementController extends Controller
             ->latest()
             ->paginate(20);
 
-        // Calculate total inflows and outflows
-        $totalInflows = MinistryFundTransaction::where('type', 'credit')->sum('amount');
+        // Get parish total budget from parish_settings (this is the main current balance)
+        $currentBalance = \App\Services\ParishBudgetService::getParishTotalBudget();
+        
+        // Calculate total inflows (all sources that add to parish budget)
+        $manualCashInflows = \App\Models\ManualCashInflow::where('status', 'approved')->sum('amount');
+        $bookingPayments = \App\Models\BookingPayment::where('payment_status', 'verified')->sum('total_fee');
+        $totalInflows = $manualCashInflows + $bookingPayments;
+        
+        // Calculate total outflows (approved ministry budget requests)
         $totalOutflows = MinistryFundTransaction::where('type', 'debit')->sum('amount');
         
-        // Add booking payments to total inflows (these are separate from ministry fund transactions)
-        $bookingPayments = \App\Models\BookingPayment::where('payment_status', 'verified')->sum('total_fee');
-        $totalInflows += $bookingPayments;
-        
-        $currentBalance = $totalInflows - $totalOutflows;
+        // Ministry budgets (separate tracking for individual ministries)
+        $totalMinistryBudgets = Ministry::sum('budget');
 
         // Get budget balance timeline
         $budgetTimeline = $this->getBudgetTimeline();
@@ -160,7 +164,9 @@ class BudgetManagementController extends Controller
         foreach ($ministries as $ministry) {
             $inflows = $ministry->transactions()->where('type', 'credit')->sum('amount');
             $outflows = $ministry->transactions()->where('type', 'debit')->sum('amount');
-            $balance = $inflows - $outflows;
+            
+            // Use the actual ministry budget column for balance
+            $balance = $ministry->budget ?? 0;
             
             $approvedRequests = $ministry->budgetRequests()->where('status', 'approved')->count();
             $pendingRequests = $ministry->budgetRequests()->where('status', 'pending')->count();

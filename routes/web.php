@@ -67,6 +67,9 @@ Route::get('/kaparian', function () {
 	return view('kaparian');
 })->name('kaparian');
 
+// Public Church Calendar
+Route::get('/calendar', [\App\Http\Controllers\CalendarController::class, 'index'])->name('calendar.index');
+
 Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile');
 Route::get('/profile/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
 Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');

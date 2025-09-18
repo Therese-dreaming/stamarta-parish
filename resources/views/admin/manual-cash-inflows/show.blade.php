@@ -174,8 +174,8 @@
                                         <p class="text-sm text-gray-600">Budget Overview</p>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-2xl font-bold text-[#0d5c2f]">₱{{ number_format($ministryStats['total_budget'], 2) }}</div>
-                                        <div class="text-sm text-gray-500">Total Allocated</div>
+                                        <div class="text-2xl font-bold text-[#0d5c2f]">₱{{ number_format($ministryStats['current_balance'], 2) }}</div>
+                                        <div class="text-sm text-gray-500">Current Balance</div>
                                     </div>
                                 </div>
                                 
@@ -192,18 +192,22 @@
                                 </div>
                                 
                                 <!-- Budget Breakdown -->
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="bg-white/50 rounded-lg p-4 text-center">
-                                        <div class="text-lg font-bold text-green-600">₱{{ number_format($ministryStats['used_budget'], 2) }}</div>
-                                        <div class="text-xs text-gray-600">Used</div>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                    <div class="bg-white/50 rounded-lg p-3 text-center">
+                                        <div class="text-lg font-bold text-blue-600">₱{{ number_format($ministryStats['total_budget'], 2) }}</div>
+                                        <div class="text-xs text-gray-600">Initial Budget</div>
                                     </div>
-                                    <div class="bg-white/50 rounded-lg p-4 text-center">
-                                        <div class="text-lg font-bold text-blue-600">₱{{ number_format($ministryStats['remaining_budget'], 2) }}</div>
-                                        <div class="text-xs text-gray-600">Remaining</div>
+                                    <div class="bg-white/50 rounded-lg p-3 text-center">
+                                        <div class="text-lg font-bold text-green-600">₱{{ number_format($ministryStats['total_inflows'], 2) }}</div>
+                                        <div class="text-xs text-gray-600">Total Inflows</div>
                                     </div>
-                                    <div class="bg-white/50 rounded-lg p-4 text-center">
-                                        <div class="text-lg font-bold text-purple-600">{{ $ministryStats['approved_requests'] }}</div>
-                                        <div class="text-xs text-gray-600">Approved Requests</div>
+                                    <div class="bg-white/50 rounded-lg p-3 text-center">
+                                        <div class="text-lg font-bold text-red-600">₱{{ number_format($ministryStats['total_outflows'], 2) }}</div>
+                                        <div class="text-xs text-gray-600">Total Outflows</div>
+                                    </div>
+                                    <div class="bg-white/50 rounded-lg p-3 text-center">
+                                        <div class="text-lg font-bold text-purple-600">{{ $ministryStats['approved_inflows'] + $ministryStats['approved_outflows'] }}</div>
+                                        <div class="text-xs text-gray-600">Total Transactions</div>
                                     </div>
                                 </div>
                             </div>
@@ -224,13 +228,20 @@
                                                 </div>
                                                 <div>
                                                     <p class="text-sm font-medium text-gray-900">{{ $transaction->description }}</p>
-                                                    <p class="text-xs text-gray-500">{{ $transaction->created_at->format('M d, Y') }}</p>
+                                                    <div class="flex items-center space-x-2 text-xs text-gray-500">
+                                                        <span>{{ $transaction->created_at->format('M d, Y') }}</span>
+                                                        @if(isset($transaction->reference))
+                                                            <span>•</span>
+                                                            <span class="font-mono">{{ $transaction->reference }}</span>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="text-right">
                                                 <div class="text-sm font-semibold {{ $transaction->type === 'inflow' ? 'text-green-600' : 'text-red-600' }}">
                                                     {{ $transaction->type === 'inflow' ? '+' : '-' }}₱{{ number_format($transaction->amount, 2) }}
                                                 </div>
+                                                <div class="text-xs text-gray-500 capitalize">{{ $transaction->type }}</div>
                                             </div>
                                         </div>
                                         @endforeach
@@ -267,25 +278,28 @@
                         <i class="fas fa-gavel mr-2 text-[#0d5c2f]"></i>
                         Approval Actions
                     </h3>
+                    <p class="text-sm text-gray-600 mt-1">Review and process this cash inflow request</p>
                 </div>
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                            <label class="block text-sm font-medium text-green-800 mb-2">Approve Cash Inflow</label>
-                            <p class="text-sm text-green-700 mb-4">This will add ₱{{ number_format($manual_cash_inflow->amount, 2) }} to the budget.</p>
-                            <button type="button" onclick="openApproveModal()" class="w-full inline-flex justify-center items-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
-                                <i class="fas fa-check mr-2"></i>
-                                Approve & Add to Budget
-                            </button>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                        <div class="flex items-center text-sm text-gray-700">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            <span>This action will add <strong>₱{{ number_format($manual_cash_inflow->amount, 2) }}</strong> to {{ $manual_cash_inflow->ministry ? $manual_cash_inflow->ministry->name . ' ministry budget' : 'the general parish fund' }}.</span>
                         </div>
-                        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
-                            <label class="block text-sm font-medium text-red-800 mb-2">Reject Cash Inflow</label>
-                            <p class="text-sm text-red-700 mb-4">Provide a reason for rejection.</p>
-                            <button type="button" onclick="openRejectModal()" class="w-full inline-flex justify-center items-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
-                                <i class="fas fa-times mr-2"></i>
-                                Reject
-                            </button>
-                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button type="button" onclick="openApproveModal()" 
+                                class="flex-1 inline-flex justify-center items-center px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-check mr-2"></i>
+                            Approve & Add to Budget
+                        </button>
+                        
+                        <button type="button" onclick="openRejectModal()" 
+                                class="flex-1 inline-flex justify-center items-center px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-times mr-2"></i>
+                            Reject Request
+                        </button>
                     </div>
                 </div>
             </div>
@@ -488,10 +502,10 @@
 </div>
 
 <!-- Approve Modal -->
-<div id="approveModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-all duration-300">
-    <div class="relative top-20 mx-auto p-6 w-full max-w-lg">
+<div id="approveModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50 transition-all duration-300">
+    <div class="mx-auto p-6 w-full max-w-lg">
         <div class="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="approveModalContent">
-            <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-5">
+            <div class="bg-green-600 px-6 py-5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -533,7 +547,7 @@
                     <button type="button" onclick="closeApproveModal()" class="px-6 py-3 text-sm font-semibold rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
                         Cancel
                     </button>
-                    <button type="submit" class="px-6 py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5">
+                    <button type="submit" class="px-6 py-3 text-sm font-semibold rounded-xl bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5">
                         <i class="fas fa-check mr-2"></i>
                         Approve Cash Inflow
                     </button>
@@ -544,10 +558,10 @@
 </div>
 
 <!-- Reject Modal -->
-<div id="rejectModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm overflow-y-auto h-full w-full hidden z-50 transition-all duration-300">
-    <div class="relative top-20 mx-auto p-6 w-full max-w-lg">
+<div id="rejectModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50 transition-all duration-300">
+    <div class="mx-auto p-6 w-full max-w-lg">
         <div class="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="rejectModalContent">
-            <div class="bg-gradient-to-r from-red-500 to-rose-600 px-6 py-5">
+            <div class="bg-red-600 px-6 py-5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -594,7 +608,7 @@
                     <button type="button" onclick="closeRejectModal()" class="px-6 py-3 text-sm font-semibold rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
                         Cancel
                     </button>
-                    <button type="submit" class="px-6 py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5">
+                    <button type="submit" class="px-6 py-3 text-sm font-semibold rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5">
                         <i class="fas fa-times mr-2"></i>
                         Reject Cash Inflow
                     </button>

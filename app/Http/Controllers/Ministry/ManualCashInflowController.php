@@ -94,7 +94,6 @@ class ManualCashInflowController extends Controller
 
             $cashInflow = ManualCashInflow::create([
                 'ministry_id' => $ministry->id,
-                'head_user_id' => $ministry->head_user_id,
                 'amount' => $request->amount,
                 'source_type' => $request->source_type,
                 'description' => $request->description,

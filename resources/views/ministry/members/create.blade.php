@@ -153,48 +153,26 @@
                         </div>
                     </div>
 
-                    <!-- Editable Fields -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Phone Field -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-phone mr-2 text-gray-400"></i>Phone Number
-                            </label>
-                            <input 
-                                name="phone" 
-                                type="tel" 
-                                value="{{ old('phone') }}" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d5c2f] focus:border-[#0d5c2f] transition-colors duration-200" 
-                                placeholder="Enter phone number (numbers only)"
-                            />
-                            <p class="text-sm text-gray-500 mt-1 flex items-center">
-                                <i class="fas fa-info-circle mr-1"></i>Numbers only (e.g., 09123456789)
+                    <!-- Phone Field -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-phone mr-2 text-gray-400"></i>Phone Number
+                        </label>
+                        <input 
+                            name="phone" 
+                            type="tel" 
+                            value="{{ old('phone') }}" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d5c2f] focus:border-[#0d5c2f] transition-colors duration-200" 
+                            placeholder="Enter phone number (numbers only)"
+                        />
+                        <p class="text-sm text-gray-500 mt-1 flex items-center">
+                            <i class="fas fa-info-circle mr-1"></i>Numbers only (e.g., 09123456789)
+                        </p>
+                        @error('phone')
+                            <p class="text-red-600 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
                             </p>
-                            @error('phone')
-                                <p class="text-red-600 text-sm mt-1 flex items-center">
-                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        <!-- Position Field -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-briefcase mr-2 text-gray-400"></i>Position/Title
-                            </label>
-                            <input 
-                                name="position" 
-                                type="text" 
-                                value="{{ old('position') }}" 
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0d5c2f] focus:border-[#0d5c2f] transition-colors duration-200" 
-                                placeholder="Enter position or title"
-                            />
-                            @error('position')
-                                <p class="text-red-600 text-sm mt-1 flex items-center">
-                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
-                                </p>
-                            @enderror
-                        </div>
+                        @enderror
                     </div>
 
                     <!-- Role Selection -->
@@ -321,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         debounce = setTimeout(() => {
-            fetch(`{{ route('ministry.members.search-users') }}?q=${encodeURIComponent(q)}`)
+            fetch(`{{ route('ministry.members.search-users') }}?q=${encodeURIComponent(q)}&ministry_id={{ $ministry->id }}`)
                 .then(r => r.json())
                 .then(list => {
                     if (!Array.isArray(list) || list.length === 0) {

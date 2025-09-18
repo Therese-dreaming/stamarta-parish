@@ -125,16 +125,25 @@ class MemberController extends Controller
 
     public function searchUsers(Request $request)
     {
-        $this->getHeadMinistryOrAbort();
+        $ministry = $this->getHeadMinistryOrAbort();
         $q = trim($request->query('q', ''));
+        $ministryId = $request->query('ministry_id');
+        
         if ($q === '') {
             return response()->json([]);
         }
+        
+        // Get existing member user IDs for this ministry
+        $existingMemberIds = MinistryMember::where('ministry_id', $ministryId ?: $ministry->id)
+            ->pluck('user_id')
+            ->toArray();
+        
         $users = \App\Models\User::query()
             ->where(function($query) use ($q) {
                 $query->where('name', 'like', "%$q%")
                       ->orWhere('email', 'like', "%$q%");
             })
+            ->whereNotIn('id', $existingMemberIds) // Exclude existing members
             ->orderBy('name')
             ->limit(10)
             ->get(['id','name','email']);

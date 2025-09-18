@@ -78,6 +78,18 @@ class MinistryBudgetRequestController extends Controller
             'approved_by_user_id' => auth()->id(),
         ]);
 
+        // Update ministry budget directly (subtract the approved amount)
+        $ministry = Ministry::find($requestModel->ministry_id);
+        if ($ministry) {
+            $ministry->decrement('budget', $requestModel->amount);
+        }
+        
+        // Also deduct from parish total budget
+        \App\Services\ParishBudgetService::subtractFromParishBudget(
+            $requestModel->amount,
+            'Ministry budget request approved: ' . $requestModel->purpose
+        );
+
         return back()->with('success', 'Ministry activity approved and funds allocated.');
     }
 
