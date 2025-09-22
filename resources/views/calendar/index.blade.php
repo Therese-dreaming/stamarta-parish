@@ -212,8 +212,128 @@ let currentYear = {{ $currentYear }};
 let events = @json($events);
 let selectedDate = null;
 
+// Helper function to normalize dates - Enhanced to handle timezone issues
+function normalizeDate(dateString) {
+    if (!dateString) return null;
+    
+    // Handle different date formats
+    let dateToProcess = dateString;
+    
+    // If it's a full datetime string, we need to be careful about timezone
+    if (dateString.includes('T')) {
+        // Extract just the date part to avoid timezone conversion
+        return dateString.split('T')[0];
+    }
+    
+    // Handle space-separated datetime
+    if (dateString.includes(' ')) {
+        return dateString.split(' ')[0];
+    }
+    
+    // For date-only strings, return as-is
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dateString;
+    }
+    
+    // Try to parse and format consistently
+    try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            // Use UTC methods to avoid timezone shifts
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    } catch (e) {
+        console.error('Error parsing date:', dateString, e);
+    }
+    
+    return dateString;
+}
+
+// Helper function to create date string in local timezone
+function createLocalDateString(date) {
+    // Use local timezone to avoid UTC conversion issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Function to generate recurring event instances
+function generateRecurringEvents(events) {
+    const expandedEvents = [];
+    const currentDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 12); // Generate events for next 12 months
+    
+    events.forEach(event => {
+        // Add the original event
+        expandedEvents.push(event);
+        
+        // Check if it's a recurring event
+        if (event.is_recurring && event.recurrence_type) {
+            const startDate = new Date(normalizeDate(event.date) + 'T00:00:00');
+            let nextDate = new Date(startDate);
+            
+            // Generate recurring instances
+            while (nextDate <= endDate) {
+                switch (event.recurrence_type) {
+                    case 'weekly':
+                        nextDate.setDate(nextDate.getDate() + 7);
+                        break;
+                    case 'monthly':
+                        nextDate.setMonth(nextDate.getMonth() + 1);
+                        break;
+                    case 'yearly':
+                        nextDate.setFullYear(nextDate.getFullYear() + 1);
+                        break;
+                    default:
+                        // Unknown recurrence type, break the loop
+                        nextDate = new Date(endDate.getTime() + 1);
+                        break;
+                }
+                
+                if (nextDate <= endDate) {
+                    // Create a new event instance
+                    const recurringEvent = {
+                        ...event,
+                        date: createLocalDateString(nextDate),
+                        id: `${event.id}_recurring_${nextDate.getTime()}`, // Unique ID for recurring instance
+                        title: `${event.title} (Recurring)`
+                    };
+                    expandedEvents.push(recurringEvent);
+                }
+            }
+        }
+    });
+    
+    return expandedEvents;
+}
+
 // Initialize calendar
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug: Log events to verify backend fixes
+    console.log('=== CALENDAR DEBUG INFO ===');
+    console.log('Calendar Events from backend:', events);
+    console.log('Total events count:', events.length);
+    
+    // Focus on parochial events to verify date and recurring fixes
+    const parochialEvents = events.filter(e => e.type === 'parochial');
+    console.log('=== PAROCHIAL EVENTS ANALYSIS ===');
+    console.log('Parochial events count:', parochialEvents.length);
+    
+    parochialEvents.forEach((event, index) => {
+        console.log(`Parochial Event ${index + 1}:`, {
+            title: event.title,
+            date: event.date,
+            isRecurring: event.is_recurring,
+            recurrenceType: event.recurrence_type
+        });
+    });
+    
+    // No need to generate recurring events on frontend anymore - backend handles it
     generateCalendar();
 });
 
@@ -252,7 +372,17 @@ function loadEventsForMonth() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Backend now handles recurring events, so just use the events directly
                 events = data.events || [];
+                console.log(`Events loaded for ${currentMonth}/${currentYear}:`, events);
+                
+                // Debug parochial events for this month
+                const parochialEvents = events.filter(e => e.type === 'parochial');
+                console.log(`Parochial events for ${currentMonth}/${currentYear}:`, parochialEvents.map(e => ({
+                    title: e.title,
+                    date: e.date,
+                    isRecurring: e.is_recurring
+                })));
             } else {
                 console.error('Error loading events:', data.message);
                 events = [];
@@ -284,12 +414,28 @@ function generateCalendar() {
         
         const isCurrentMonth = date.getMonth() === currentMonth - 1;
         const isToday = date.getTime() === today.getTime();
-        const dateStr = date.getFullYear() + '-' + 
-                       String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                       String(date.getDate()).padStart(2, '0');
+        const dateStr = createLocalDateString(date);
         
-        // Get events for this date
-        const dayEvents = events.filter(event => event.date === dateStr);
+        // Get events for this date - fix date comparison to handle timezone issues
+        const dayEvents = events.filter(event => {
+            const normalizedEventDate = normalizeDate(event.date);
+            const match = normalizedEventDate === dateStr;
+            
+            // Debug logging for parochial activities - show both matches and near misses
+            if (event.type === 'parochial') {
+                const eventDateObj = new Date(event.date);
+                const calendarDateObj = new Date(dateStr + 'T00:00:00');
+                const dayDifference = Math.abs(eventDateObj.getTime() - calendarDateObj.getTime()) / (1000 * 60 * 60 * 24);
+                
+                if (match) {
+                    console.log(`✅ Parochial MATCH: ${event.title} - Event: ${event.date} -> Normalized: ${normalizedEventDate} | Calendar: ${dateStr}`);
+                } else if (dayDifference <= 1) {
+                    console.log(`❌ Parochial NEAR MISS: ${event.title} - Event: ${event.date} -> Normalized: ${normalizedEventDate} | Calendar: ${dateStr} | Diff: ${dayDifference} days`);
+                }
+            }
+            
+            return match;
+        });
         
         // Determine background color based on event types
         let backgroundColor = '';
@@ -416,7 +562,10 @@ function selectDate(dateStr, dateObj) {
 }
 
 function showEventsForDate(dateStr) {
-    const dayEvents = events.filter(event => event.date === dateStr);
+    const dayEvents = events.filter(event => {
+        const normalizedEventDate = normalizeDate(event.date);
+        return normalizedEventDate === dateStr;
+    });
     const eventsList = document.getElementById('events-list');
     const noEvents = document.getElementById('no-events');
     
