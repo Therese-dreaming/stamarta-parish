@@ -12,7 +12,23 @@ class MinistryController extends Controller
 {
     public function index()
     {
-        $ministries = Ministry::with('head')->orderBy('name')->paginate(15);
+        $ministries = Ministry::with(['head', 'members'])->orderBy('name')->paginate(15);
+        
+        // Debug: Check route name
+        $routeName = request()->route()->getName();
+        
+        // Temporary debugging - remove after testing
+        if (auth()->user() && auth()->user()->role === 'priest') {
+            \Log::info('Priest accessing ministries - Route name: ' . $routeName);
+            \Log::info('Route prefix: ' . request()->route()->getPrefix());
+            \Log::info('URL: ' . request()->url());
+        }
+        
+        // Check if this is being accessed from priest routes or if user is a priest
+        if (str_starts_with($routeName, 'priest.') || (auth()->user() && auth()->user()->role === 'priest')) {
+            return view('priest.ministries.index', compact('ministries'));
+        }
+        
         return view('admin.ministries.index', compact('ministries'));
     }
 
@@ -44,6 +60,15 @@ class MinistryController extends Controller
         }
 
         return redirect()->route('admin.ministries.index')->with('success', 'Ministry created.');
+    }
+
+    public function show(Ministry $ministry)
+    {
+        $ministry->load(['head', 'members.user', 'activities' => function($query) {
+            $query->orderBy('start_at', 'desc')->limit(5);
+        }]);
+        
+        return view('priest.ministries.show', compact('ministry'));
     }
 
     public function edit(Ministry $ministry)

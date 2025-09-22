@@ -11,6 +11,13 @@ class MinistryMemberController extends Controller
 {
     public function index(Ministry $ministry)
     {
+        $ministry->load(['head', 'members.user']);
+        
+        // Check if this is being accessed from priest routes or if user is a priest
+        if (str_starts_with(request()->route()->getName(), 'priest.') || (auth()->user() && auth()->user()->role === 'priest')) {
+            return view('priest.ministries.members.index', compact('ministry'));
+        }
+        
         $members = $ministry->members()->orderBy('name')->paginate(20);
         return view('admin.ministries.members.index', compact('ministry', 'members'));
     }

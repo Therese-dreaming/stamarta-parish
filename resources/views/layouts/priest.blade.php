@@ -60,6 +60,23 @@
                         Calendar View
                     </a>
 
+                    <!-- Ministry Management (View Only) -->
+                    <div class="pt-4">
+                        <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Ministry Management</h3>
+                    </div>
+                    
+                    <a href="{{ route('priest.ministries.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.ministries.index') || request()->routeIs('priest.ministries.show') || request()->routeIs('priest.ministries.members.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-users w-5 h-5 mr-3"></i>
+                        View Ministries
+                        <span class="ml-auto text-xs text-gray-400">View Only</span>
+                    </a>
+                    
+                    <a href="{{ route('priest.ministries.ministry-activities.index') }}" class="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('priest.ministries.ministry-activities.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-calendar-star w-5 h-5 mr-3"></i>
+                        Ministry Activities
+                        <span class="ml-auto text-xs text-gray-400">View Only</span>
+                    </a>
+
                     <!-- Profile & Leave Management -->
                     <div class="pt-4">
                         <h3 class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</h3>

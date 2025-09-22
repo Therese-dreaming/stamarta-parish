@@ -353,6 +353,13 @@ Route::prefix('priest')->name('priest.')->middleware(['auth', 'priest'])->group(
 	Route::post('notifications/mark-all-as-read', [App\Http\Controllers\PriestNotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
 	Route::get('notifications/unread-count', [App\Http\Controllers\PriestNotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
 	Route::post('notifications/delete', [App\Http\Controllers\PriestNotificationController::class, 'delete'])->name('notifications.delete');
+	
+	// Ministry Management (View Only for Priests)
+	Route::get('view-ministries', [AdminMinistryController::class, 'index'])->name('ministries.index');
+	Route::get('view-ministries/{ministry}', [AdminMinistryController::class, 'show'])->name('ministries.show');
+	Route::get('view-ministries/{ministry}/members', [MinistryMemberController::class, 'index'])->name('ministries.members.index');
+	Route::get('view-ministry-activities', [MinistryBudgetRequestController::class, 'index'])->name('ministries.ministry-activities.index');
+	Route::get('view-ministry-activities/{requestModel}', [MinistryBudgetRequestController::class, 'show'])->name('ministries.ministry-activities.show');
 });
 
 // Ministry Head Routes
@@ -389,6 +396,10 @@ Route::prefix('ministry')->name('ministry.')->middleware(['auth', 'ministry_head
     // Manual Cash Inflows
     Route::resource('manual-cash-inflows', \App\Http\Controllers\Ministry\ManualCashInflowController::class)
         ->parameters(['manual-cash-inflows' => 'manual_cash_inflow']);
+
+    // Calendar
+    Route::get('calendar', [\App\Http\Controllers\Ministry\CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('calendar/events', [\App\Http\Controllers\Ministry\CalendarController::class, 'getEvents'])->name('calendar.events');
 });
 
 // Calendar Routes

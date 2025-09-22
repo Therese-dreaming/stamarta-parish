@@ -56,6 +56,11 @@
                         Activities
                     </a>
                     
+                    <a href="{{ route('ministry.calendar.index') }}" class="flex items-center px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors {{ request()->routeIs('ministry.calendar.*') ? 'bg-[#0d5c2f] text-white' : '' }}">
+                        <i class="fas fa-calendar w-4 h-4 mr-2"></i>
+                        Calendar
+                    </a>
+                    
                     <div class="pt-4">
                         <h3 class="px-4 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Financial Management</h3>
                     </div>

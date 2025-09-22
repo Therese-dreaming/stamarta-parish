@@ -14,9 +14,22 @@ class MinistryBudgetRequestController extends Controller
     {
         $query = MinistryBudgetRequest::with(['ministry', 'requestedBy', 'approvedBy', 'activity']);
 
+        // Filter by ministry
+        if ($request->filled('ministry_id')) {
+            $query->where('ministry_id', $request->ministry_id);
+        }
+
         // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
         }
 
         $requests = $query->latest()->paginate(20);
@@ -27,9 +40,18 @@ class MinistryBudgetRequestController extends Controller
             'pending' => $allRequests->where('status', 'pending')->count(),
             'approved' => $allRequests->where('status', 'approved')->count(),
             'rejected' => $allRequests->where('status', 'rejected')->count(),
+            'completed' => $allRequests->where('status', 'completed')->count(),
         ];
 
-        return view('admin.ministries.ministry-activities.index', compact('requests', 'statusCounts'));
+        // Get ministries for filter dropdown
+        $ministries = Ministry::orderBy('name')->get();
+
+        // Check if this is being accessed from priest routes or if user is a priest
+        if (str_starts_with(request()->route()->getName(), 'priest.') || (auth()->user() && auth()->user()->role === 'priest')) {
+            return view('priest.ministries.ministry-activities.index', compact('requests', 'statusCounts', 'ministries'));
+        }
+
+        return view('admin.ministries.ministry-activities.index', compact('requests', 'statusCounts', 'ministries'));
     }
 
     public function create(Ministry $ministry)
@@ -141,6 +163,11 @@ class MinistryBudgetRequestController extends Controller
         
         // Calculate budget percentage for display
         $ministry->budget_percentage = $totalBudget > 0 ? min(100, ($budgetUsed / $totalBudget) * 100) : 0;
+        
+        // Check if this is being accessed from priest routes or if user is a priest
+        if (str_starts_with(request()->route()->getName(), 'priest.') || (auth()->user() && auth()->user()->role === 'priest')) {
+            return view('priest.ministries.ministry-activities.show', compact('requestModel'));
+        }
         
         return view('admin.ministries.ministry-activities.show', compact('requestModel'));
     }

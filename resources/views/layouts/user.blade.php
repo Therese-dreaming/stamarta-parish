@@ -137,6 +137,14 @@
                                 @if(Auth::user()->isAdmin())
                                     <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Admin Panel</a>
                                 @endif
+                                @php
+                                    $userMinistry = \App\Models\Ministry::where('head_user_id', Auth::id())->first();
+                                @endphp
+                                @if($userMinistry)
+                                    <a href="{{ route('ministry.dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-users mr-2"></i>Ministry Panel
+                                    </a>
+                                @endif
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -190,6 +198,14 @@
                 <a href="{{ route('booking.my-bookings') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">My Bookings</a>
                 @if(Auth::user()->isAdmin())
                     <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">Admin Panel</a>
+                @endif
+                @php
+                    $userMinistry = \App\Models\Ministry::where('head_user_id', Auth::id())->first();
+                @endphp
+                @if($userMinistry)
+                    <a href="{{ route('ministry.dashboard') }}" class="block px-3 py-2 text-gray-600 hover:text-[#0d5c2f]">
+                        <i class="fas fa-users mr-2"></i>Ministry Panel
+                    </a>
                 @endif
                 <form method="POST" action="{{ route('logout') }}" class="block">
                     @csrf
