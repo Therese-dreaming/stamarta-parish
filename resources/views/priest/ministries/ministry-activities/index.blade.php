@@ -97,66 +97,6 @@
         </div>
     </div>
 
-    <!-- Enhanced Filter and Search Section -->
-    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-bold text-gray-900 flex items-center">
-                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3">
-                    <i class="fas fa-filter text-white text-sm"></i>
-                </div>
-                Filter & Search Activities
-            </h2>
-        </div>
-        
-        <div class="p-6">
-            <form method="GET" action="{{ route('priest.ministries.ministry-activities.index') }}" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div>
-                        <label for="ministry_id" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                            <i class="fas fa-users text-blue-600 mr-2"></i>Ministry
-                        </label>
-                        <select name="ministry_id" id="ministry_id" class="w-full rounded-xl border-gray-300 focus:border-[#0d5c2f] focus:ring-[#0d5c2f] shadow-sm">
-                            <option value="">All Ministries</option>
-                            @foreach($ministries as $ministry)
-                                <option value="{{ $ministry->id }}" {{ request('ministry_id') == $ministry->id ? 'selected' : '' }}>
-                                    {{ $ministry->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="status" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                            <i class="fas fa-flag text-green-600 mr-2"></i>Status
-                        </label>
-                        <select name="status" id="status" class="w-full rounded-xl border-gray-300 focus:border-[#0d5c2f] focus:ring-[#0d5c2f] shadow-sm">
-                            <option value="">All Statuses</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>⏳ Pending</option>
-                            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>✅ Approved</option>
-                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>❌ Rejected</option>
-                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>🏁 Completed</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="search" class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                            <i class="fas fa-search text-purple-600 mr-2"></i>Search
-                        </label>
-                        <input type="text" name="search" id="search" value="{{ request('search') }}" 
-                               placeholder="Search activities..." 
-                               class="w-full rounded-xl border-gray-300 focus:border-[#0d5c2f] focus:ring-[#0d5c2f] shadow-sm">
-                    </div>
-
-                    <div class="flex items-end">
-                        <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 text-white rounded-xl hover:from-[#0d5c2f]/90 hover:to-[#0d5c2f] transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl font-semibold">
-                            <i class="fas fa-search mr-2"></i>Apply Filters
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Enhanced Activities List -->
     <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
@@ -260,7 +200,7 @@
 
             <!-- Pagination -->
             <div class="px-6 py-4 border-t border-gray-200">
-                {{ $requests->appends(request()->query())->links() }}
+                {{ $requests->links() }}
             </div>
         @else
             <div class="text-center py-16">
@@ -269,20 +209,8 @@
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900 mb-3">No Activities Found</h3>
                 <p class="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
-                    @if(request()->hasAny(['ministry_id', 'status', 'search']))
-                        No activities match your current filters. Try adjusting your search criteria or clear filters to see all activities.
-                    @else
-                        There are currently no ministry activities to display. Activities will appear here once ministries submit their requests.
-                    @endif
+                    There are currently no ministry activities to display. Activities will appear here once ministries submit their requests.
                 </p>
-                @if(request()->hasAny(['ministry_id', 'status', 'search']))
-                    <div class="mt-8">
-                        <a href="{{ route('priest.ministries.ministry-activities.index') }}" 
-                           class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#0d5c2f] to-[#0d5c2f]/90 text-white font-semibold rounded-xl hover:from-[#0d5c2f]/90 hover:to-[#0d5c2f] transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl">
-                            <i class="fas fa-times mr-2"></i>Clear All Filters
-                        </a>
-                    </div>
-                @endif
             </div>
         @endif
     </div>

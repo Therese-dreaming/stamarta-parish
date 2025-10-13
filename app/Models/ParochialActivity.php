@@ -239,18 +239,49 @@ class ParochialActivity extends Model
      */
     public function scopeAffectingDate($query, $date)
     {
-        $dateStr = Carbon::parse($date)->format('Y-m-d');
-        return $query->where(function ($q) use ($dateStr) {
+        $targetDate = Carbon::parse($date);
+        $dateStr = $targetDate->format('Y-m-d');
+        $dayOfWeek = $targetDate->dayOfWeek; // 0 (Sunday) to 6 (Saturday)
+        $dayName = $targetDate->format('l'); // Full day name (Monday, Tuesday, etc.)
+        $dayOfMonth = $targetDate->day;
+        $monthDay = $targetDate->format('m-d');
+        
+        return $query->where(function ($q) use ($dateStr, $dayOfWeek, $dayName, $dayOfMonth, $monthDay, $targetDate) {
             // Non-recurring activities on the exact date
-            $q->where('is_recurring', false)
-              ->whereDate('event_date', $dateStr);
-        })->orWhere(function ($q) use ($dateStr) {
-            // Recurring activities that could include this date
-            $q->where('is_recurring', true)
-              ->where(function ($qq) use ($dateStr) {
-                  $qq->whereNull('recurring_end_date')
-                     ->orWhereDate('recurring_end_date', '>=', $dateStr);
-              });
+            $q->where(function($subQ) use ($dateStr) {
+                $subQ->where('is_recurring', false)
+                     ->whereDate('event_date', $dateStr);
+            })
+            // Recurring weekly activities that match the day of week
+            ->orWhere(function($subQ) use ($dateStr, $dayName) {
+                $subQ->where('is_recurring', true)
+                     ->whereRaw("JSON_EXTRACT(recurring_pattern, '$.type') = 'weekly'")
+                     ->whereRaw("DAYNAME(event_date) = ?", [$dayName])
+                     ->where(function ($qq) use ($dateStr) {
+                         $qq->whereNull('recurring_end_date')
+                            ->orWhereDate('recurring_end_date', '>=', $dateStr);
+                     });
+            })
+            // Recurring monthly activities that match the day of month
+            ->orWhere(function($subQ) use ($dateStr, $dayOfMonth) {
+                $subQ->where('is_recurring', true)
+                     ->whereRaw("JSON_EXTRACT(recurring_pattern, '$.type') = 'monthly'")
+                     ->whereRaw("DAY(event_date) = ?", [$dayOfMonth])
+                     ->where(function ($qq) use ($dateStr) {
+                         $qq->whereNull('recurring_end_date')
+                            ->orWhereDate('recurring_end_date', '>=', $dateStr);
+                     });
+            })
+            // Recurring yearly activities that match the month and day
+            ->orWhere(function($subQ) use ($dateStr, $monthDay) {
+                $subQ->where('is_recurring', true)
+                     ->whereRaw("JSON_EXTRACT(recurring_pattern, '$.type') = 'yearly'")
+                     ->whereRaw("DATE_FORMAT(event_date, '%m-%d') = ?", [$monthDay])
+                     ->where(function ($qq) use ($dateStr) {
+                         $qq->whereNull('recurring_end_date')
+                            ->orWhereDate('recurring_end_date', '>=', $dateStr);
+                     });
+            });
         });
     }
 

@@ -196,6 +196,10 @@ class BookingController extends Controller
                 $requiredDocuments = ['valid_id'];
                 $conditionalDocuments = [];
                 break;
+            case 'mass_intention':
+                $requiredDocuments = [];
+                $conditionalDocuments = [];
+                break;
             default:
                 $requiredDocuments = ['valid_id'];
                 $conditionalDocuments = [];
@@ -350,25 +354,37 @@ class BookingController extends Controller
                 $rules[] = 'in:' . implode(',', array_keys($fieldConfig['options']));
                 $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
             } elseif ($fieldConfig['type'] === 'textarea') {
-                $rules[] = 'required';
+                if (isset($fieldConfig['required']) && $fieldConfig['required']) {
+                    $rules[] = 'required';
+                } else {
+                    $rules[] = 'nullable';
+                }
                 $rules[] = 'string';
                 $rules[] = 'max:1000';
                 $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
             } elseif ($fieldConfig['type'] === 'array') {
                 // Array fields like godparents
                 $arrayRules = [];
-                if (!empty($fieldConfig['required'])) {
+                if (isset($fieldConfig['required']) && $fieldConfig['required']) {
                     $arrayRules[] = 'required';
+                    $arrayRules[] = 'array';
+                    $arrayRules[] = 'min:1';
+                    $baseRules["custom_fields.{$fieldKey}"] = implode('|', $arrayRules);
+                    // Each item must be a non-empty string
+                    $baseRules["custom_fields.{$fieldKey}.*"] = 'required|string|max:255';
                 } else {
                     $arrayRules[] = 'nullable';
+                    $arrayRules[] = 'array';
+                    $baseRules["custom_fields.{$fieldKey}"] = implode('|', $arrayRules);
+                    // Each item should be a string if provided
+                    $baseRules["custom_fields.{$fieldKey}.*"] = 'nullable|string|max:255';
                 }
-                $arrayRules[] = 'array';
-                $arrayRules[] = 'min:1';
-                $baseRules["custom_fields.{$fieldKey}"] = implode('|', $arrayRules);
-                // Each item must be a non-empty string
-                $baseRules["custom_fields.{$fieldKey}.*"] = 'required|string|max:255';
             } else {
-                $rules[] = 'required';
+                if (isset($fieldConfig['required']) && $fieldConfig['required']) {
+                    $rules[] = 'required';
+                } else {
+                    $rules[] = 'nullable';
+                }
                 $rules[] = 'string';
                 $rules[] = 'max:255';
                 $baseRules["custom_fields.{$fieldKey}"] = implode('|', $rules);
@@ -474,17 +490,25 @@ class BookingController extends Controller
         $blockingActivities = \App\Models\ParochialActivity::active()->affectingDate($date)->get();
         
         // Check for ministry activities that block bookings on this date
+        // Using Carbon to ensure proper date comparison
+        $selectedDate = Carbon::parse($date)->startOfDay();
+        
         $ministryActivities = \App\Models\MinistryActivity::query()
             ->where('is_public', true) // Only public ministry activities block bookings
             ->whereHas('approvedBudgetRequest') // Only block if budget request is approved
-            ->where(function($q) use ($date) {
-                $q->whereDate('start_at', '<=', $date)
-                  ->where(function($subQ) use ($date) {
-                      $subQ->whereDate('end_at', '>=', $date)
-                           ->orWhereNull('end_at');
-                  });
-            })
-            ->get();
+            ->get()
+            ->filter(function($activity) use ($selectedDate) {
+                $activityStart = Carbon::parse($activity->start_at)->startOfDay();
+                
+                if ($activity->end_at) {
+                    $activityEnd = Carbon::parse($activity->end_at)->startOfDay();
+                    // Check if selected date falls within the activity range
+                    return $selectedDate->between($activityStart, $activityEnd);
+                } else {
+                    // For activities without end_at, check if dates match
+                    return $selectedDate->equalTo($activityStart);
+                }
+            });
 
         // Get all existing bookings for this date (across all services) to check for time conflicts
         $existingBookings = Booking::where('service_date', $date)
@@ -517,10 +541,11 @@ class BookingController extends Controller
                 }
             }
 
-            // Check if this time slot conflicts with existing bookings based on duration
+            // Check if this time slot conflicts with existing bookings from OTHER services based on duration
             if (!$hasConflict) {
                 foreach ($existingBookings as $booking) {
-                    if ($this->existingBookingConflictsWithTimeSlot($booking, $date, $timeSlot)) {
+                    // Only check for conflicts with OTHER services (different service_id)
+                    if ($booking->service_id !== $service->id && $this->existingBookingConflictsWithTimeSlot($booking, $date, $timeSlot)) {
                         $hasConflict = true;
                         $conflictReason = 'Conflicts with existing booking';
                         break;
@@ -549,14 +574,15 @@ class BookingController extends Controller
 
             $availableCount = $service->max_slots - $bookedCount;
             
-            if ($availableCount > 0) {
-                $availableSlots[] = [
-                    'time' => $timeSlot,
-                    'available_slots' => $availableCount,
-                    'total_slots' => $service->max_slots,
-                    'booked_slots' => $bookedCount
-                ];
-            }
+            // Show the time slot with availability info (even if fully booked, so users can see it's full)
+            $availableSlots[] = [
+                'time' => $timeSlot,
+                'available_slots' => $availableCount,
+                'total_slots' => $service->max_slots,
+                'booked_slots' => $bookedCount,
+                'blocked' => $availableCount <= 0,
+                'reason' => $availableCount <= 0 ? 'All slots booked' : null
+            ];
         }
 
         return $availableSlots;
@@ -630,17 +656,27 @@ class BookingController extends Controller
 
             // Compose blocking activities summary for banner
             $parochial = \App\Models\ParochialActivity::active()->affectingDate($date)->get();
+            
+            // Get ministry activities that actually occur on the selected date
+            // Using Carbon to ensure proper date comparison
+            $selectedDate = \Carbon\Carbon::parse($date)->startOfDay();
+            
             $ministry = \App\Models\MinistryActivity::query()
                 ->where('is_public', true) // Only public ministry activities block bookings
                 ->whereHas('approvedBudgetRequest') // Only block if budget request is approved
-                ->where(function($q) use ($date) {
-                    $q->whereDate('start_at', '<=', $date)
-                      ->where(function($subQ) use ($date) {
-                          $subQ->whereDate('end_at', '>=', $date)
-                               ->orWhereNull('end_at');
-                      });
-                })
-                ->get();
+                ->get()
+                ->filter(function($activity) use ($selectedDate) {
+                    $activityStart = \Carbon\Carbon::parse($activity->start_at)->startOfDay();
+                    
+                    if ($activity->end_at) {
+                        $activityEnd = \Carbon\Carbon::parse($activity->end_at)->startOfDay();
+                        // Check if selected date falls within the activity range
+                        return $selectedDate->between($activityStart, $activityEnd);
+                    } else {
+                        // For activities without end_at, check if dates match
+                        return $selectedDate->equalTo($activityStart);
+                    }
+                });
 
             // Get existing bookings for this date to show in the banner
             $existingBookings = Booking::where('service_date', $date)

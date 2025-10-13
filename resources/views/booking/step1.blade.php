@@ -200,6 +200,7 @@
                                             'wedding_sponsors' => ['wedding_sponsors'],
                                             'witnesses' => ['witnesses'],
                                             'person' => ['person_last_name', 'person_first_name', 'person_middle_initial', 'blessing_type', 'blessing_details'],
+                                            'mass_intention' => ['intention_type', 'intention_for', 'requested_by', 'special_notes'],
                                             'other' => []
                                         ];
                                         
@@ -241,6 +242,8 @@
                                                             <i class="fas fa-user-friends text-[#0d5c2f] mr-2"></i>Witnesses
                                                         @elseif($groupKey === 'person')
                                                             <i class="fas fa-user text-[#0d5c2f] mr-2"></i>Person Information
+                                                        @elseif($groupKey === 'mass_intention')
+                                                            <i class="fas fa-church text-[#0d5c2f] mr-2"></i>Mass Intention Details
                                                         @else
                                                             <i class="fas fa-info-circle text-[#0d5c2f] mr-2"></i>Additional Information
                                                         @endif
@@ -468,6 +471,31 @@
                                     const fieldKey = select.id.replace('custom_fields_', '');
                                     toggleOtherReligion(fieldKey, select.value);
                                 });
+
+                                // Handle mass intention type selection
+                                const intentionTypeSelect = document.getElementById('custom_fields_intention_type');
+                                if (intentionTypeSelect) {
+                                    const soulNamesContainer = document.querySelector('[id*="array-soul_names"]')?.closest('div.space-y-4')?.parentElement;
+                                    
+                                    function toggleSoulNames() {
+                                        if (soulNamesContainer) {
+                                            if (intentionTypeSelect.value === 'repose_soul') {
+                                                soulNamesContainer.style.display = 'block';
+                                                // Make soul_names required when repose_soul is selected
+                                                const soulInputs = soulNamesContainer.querySelectorAll('input[name*="soul_names"]');
+                                                soulInputs.forEach(input => input.required = true);
+                                            } else {
+                                                soulNamesContainer.style.display = 'none';
+                                                // Remove required when not repose_soul
+                                                const soulInputs = soulNamesContainer.querySelectorAll('input[name*="soul_names"]');
+                                                soulInputs.forEach(input => input.required = false);
+                                            }
+                                        }
+                                    }
+                                    
+                                    intentionTypeSelect.addEventListener('change', toggleSoulNames);
+                                    toggleSoulNames(); // Initialize on page load
+                                }
                             });
                         </script>
                     </form>

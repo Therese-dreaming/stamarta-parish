@@ -212,6 +212,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	Route::resource('parochial-activities', App\Http\Controllers\Admin\ParochialActivityController::class);
 	Route::get('parochial-activities-calendar', [App\Http\Controllers\Admin\ParochialActivityController::class, 'calendar'])->name('parochial-activities.calendar');
 	Route::get('blocking-activities', [App\Http\Controllers\Admin\ParochialActivityController::class, 'getBlockingActivities'])->name('parochial-activities.blocking');
+	Route::post('parochial-activities/check-conflicts', [App\Http\Controllers\Admin\ParochialActivityController::class, 'checkConflicts'])->name('parochial-activities.check-conflicts');
 	
 	// Admin Notification Routes
 	Route::get('notifications', [App\Http\Controllers\AdminNotificationController::class, 'index'])->name('admin.notifications.index');
@@ -281,6 +282,7 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
 	Route::resource('parochial-activities', App\Http\Controllers\Admin\ParochialActivityController::class);
 	Route::get('parochial-activities-calendar', [App\Http\Controllers\Admin\ParochialActivityController::class, 'calendar'])->name('parochial-activities.calendar');
 	Route::get('blocking-activities', [App\Http\Controllers\Admin\ParochialActivityController::class, 'getBlockingActivities'])->name('parochial-activities.blocking');
+	Route::post('parochial-activities/check-conflicts', [App\Http\Controllers\Admin\ParochialActivityController::class, 'checkConflicts'])->name('parochial-activities.check-conflicts');
 	
 	// CMS Routes (using admin controllers)
 	Route::prefix('cms')->name('cms.')->group(function () {

@@ -119,13 +119,61 @@ class BookingController extends Controller
             ];
         })->toArray();
 
-        // Get parochial activities that might conflict
-        $activities = ParochialActivity::where('status', 'active')
+        // Get parochial activities
+        $parochialActivities = ParochialActivity::where('status', 'active')
             ->where('event_date', '>=', Carbon::now()->subDays(30))
             ->where('event_date', '<=', Carbon::now()->addDays(90))
-            ->get();
+            ->get()
+            ->map(function($activity) {
+                $eventDate = $activity->event_date instanceof \Carbon\Carbon 
+                    ? $activity->event_date->format('Y-m-d') 
+                    : $activity->event_date;
+                    
+                return [
+                    'id' => $activity->id,
+                    'title' => $activity->title,
+                    'description' => $activity->description,
+                    'start_date' => $eventDate,
+                    'end_date' => $eventDate, // Single day event
+                    'location' => $activity->location,
+                    'organizer' => $activity->organizer,
+                ];
+            })
+            ->toArray();
 
-        return view('priest.bookings.calendar', compact('bookingsData', 'activities'));
+        // Get ministry activities with approved budgets
+        $ministryActivities = \App\Models\MinistryActivity::where('is_public', true)
+            ->whereHas('budgetRequests', function($query) {
+                $query->where('status', 'approved');
+            })
+            ->where('start_at', '>=', Carbon::now()->subDays(30))
+            ->where('start_at', '<=', Carbon::now()->addDays(90))
+            ->with('ministry')
+            ->get()
+            ->map(function($activity) {
+                $startDate = $activity->start_at instanceof \Carbon\Carbon 
+                    ? $activity->start_at->format('Y-m-d') 
+                    : (is_string($activity->start_at) ? date('Y-m-d', strtotime($activity->start_at)) : $activity->start_at);
+                    
+                $endDate = $activity->end_at 
+                    ? ($activity->end_at instanceof \Carbon\Carbon 
+                        ? $activity->end_at->format('Y-m-d') 
+                        : (is_string($activity->end_at) ? date('Y-m-d', strtotime($activity->end_at)) : $activity->end_at))
+                    : $startDate;
+                    
+                return [
+                    'id' => $activity->id,
+                    'title' => $activity->title,
+                    'description' => $activity->description,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'location' => $activity->location ?? null,
+                    'organizer' => optional($activity->ministry)->name,
+                ];
+            })
+            ->toArray();
+
+        return view('priest.bookings.calendar', compact('bookingsData', 'parochialActivities', 'ministryActivities'));
     }
 
     public function acknowledge(Booking $booking)

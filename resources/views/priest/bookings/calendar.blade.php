@@ -504,15 +504,11 @@ class PriestCalendar {
                                 </div>
                             </div>
                             
-                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                            <div class="pt-4 border-t border-gray-100">
                                 <div class="flex items-center text-xs text-gray-500">
                                     <i class="fas fa-calendar mr-1"></i>
                                     <span>Activity ID: ${activity.id}</span>
                                 </div>
-                                <a href="/priest/ministry-activities/${activity.id}" 
-                                   class="inline-flex items-center px-4 py-2 bg-purple-500 text-white text-sm font-medium rounded-xl hover:bg-purple-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
-                                    <i class="fas fa-eye mr-2"></i>View Details
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -574,15 +570,11 @@ class PriestCalendar {
                                 </div>
                             </div>
                             
-                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                            <div class="pt-4 border-t border-gray-100">
                                 <div class="flex items-center text-xs text-gray-500">
                                     <i class="fas fa-calendar mr-1"></i>
                                     <span>Activity ID: ${activity.id}</span>
                                 </div>
-                                <a href="/priest/parochial-activities/${activity.id}" 
-                                   class="inline-flex items-center px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-xl hover:bg-yellow-600 transition-all duration-200 transform hover:scale-105 shadow-sm">
-                                    <i class="fas fa-eye mr-2"></i>View Details
-                                </a>
                             </div>
                         </div>
                     </div>

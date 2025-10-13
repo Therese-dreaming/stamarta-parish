@@ -238,9 +238,10 @@ class Calendar {
         // Calculate total slots for the day
         const totalSlots = allTimeSlots.length * this.service.max_slots;
         
-        // Get booked slots for the day (count per time slot)
+        // Get booked slots for the day (only count bookings for THIS service)
         const bookedSlots = this.activeBookings.filter(booking => 
             booking.service_date === dateString && 
+            booking.service_id === this.service.id &&
             ['pending', 'acknowledged', 'payment_hold', 'approved'].includes(booking.status)
         ).length;
 
@@ -438,6 +439,12 @@ class Calendar {
         }
         
         if (!['pending', 'acknowledged', 'payment_hold', 'approved'].includes(booking.status)) {
+            return false;
+        }
+        
+        // Only check for conflicts with OTHER services (different service_id)
+        // Same service bookings are handled by checking max_slots
+        if (booking.service_id === this.service.id) {
             return false;
         }
         
@@ -776,17 +783,18 @@ class Calendar {
                 if (act.type === 'existing_booking') {
                     const startTime = act.start.split(' ')[1]; // Extract time part
                     const endTime = act.end.split(' ')[1]; // Extract time part
-                    displayText = `${act.title} (${act.user}) — ${startTime} - ${endTime} (${act.duration} min)`;
-                } else {
-                    const who = act.type === 'ministry' ? (act.ministry ? ` (${act.ministry})` : '') : '';
+                    displayText = `Existing Booking — ${startTime} - ${endTime}`;
+                } else if (act.type === 'ministry') {
                     let range = '';
-                    if (act.type === 'ministry' && act.is_all_day) {
+                    if (act.is_all_day) {
                         range = 'All Day';
                     } else {
                         range = act.end ? `${act.start} - ${act.end}` : act.start;
                     }
-                    const location = act.location ? ` @ ${act.location}` : '';
-                    displayText = `${act.title}${who} — ${range}${location}`;
+                    displayText = `Ministry Activity — ${range}`;
+                } else if (act.type === 'parochial') {
+                    let range = act.end ? `${act.start} - ${act.end}` : act.start;
+                    displayText = `Parochial Activity — ${range}`;
                 }
                 
                 bannerHTML += `<li>${displayText}</li>`;

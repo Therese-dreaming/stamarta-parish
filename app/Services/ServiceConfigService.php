@@ -282,6 +282,34 @@ class ServiceConfigService
                     'Proof of Ownership (if applicable)',
                     'Special Requests (if any)'
                 ]
+            ],
+            'mass_intention' => [
+                'name' => 'Mass Intention',
+                'custom_fields' => [
+                    'intention_type' => [
+                        'label' => 'Type of Mass Intention',
+                        'type' => 'select',
+                        'required' => true,
+                        'options' => [
+                            'thanksgiving' => 'Thanksgiving Mass',
+                            'special_intentions' => 'Special Intentions',
+                            'repose_soul' => 'Repose of the Soul'
+                        ]
+                    ],
+                    'intention_for' => [
+                        'label' => 'Name for Mass Intention',
+                        'type' => 'text',
+                        'required' => true,
+                        'placeholder' => 'Enter the name(s) for this mass intention'
+                    ],
+                    'soul_names' => [
+                        'label' => 'Names of Departed Souls (For Repose of the Soul)',
+                        'type' => 'array',
+                        'required' => false,
+                        'placeholder' => 'Enter name of departed soul'
+                    ]
+                ],
+                'requirements' => []
             ]
         ];
     }

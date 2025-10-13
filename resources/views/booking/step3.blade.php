@@ -203,6 +203,10 @@
                             ];
                             $conditionalQuestions = [];
                             break;
+                        case 'mass_intention':
+                            $requirements = [];
+                            $conditionalQuestions = [];
+                            break;
                         default:
                             $requirements = [
                                 'valid_id' => 'Valid ID'
@@ -211,34 +215,48 @@
                     }
                 @endphp
 
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Required Documents</h3>
-                    <div class="space-y-4">
-                        @foreach($requirements as $field => $label)
-                            <div class="border border-gray-200 rounded-lg p-4">
-                                <label for="{{ $field }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ $label }}
-                                    <span class="text-red-500">*</span>
-                                </label>
-                                <div class="flex items-center space-x-4">
-                                    <input type="file" 
-                                           id="{{ $field }}" 
-                                           name="documents[{{ $field }}]" 
-                                           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0d5c2f] file:text-white hover:file:bg-[#0d5c2f]/90"
-                                           required>
-                                    <div class="text-xs text-gray-500">
-                                        <p>Accepted: PDF, JPG, PNG, DOC, DOCX</p>
-                                        <p>Max: 10MB per file</p>
+                @if(!empty($requirements))
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Required Documents</h3>
+                        <div class="space-y-4">
+                            @foreach($requirements as $field => $label)
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <label for="{{ $field }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ $label }}
+                                        <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="flex items-center space-x-4">
+                                        <input type="file" 
+                                               id="{{ $field }}" 
+                                               name="documents[{{ $field }}]" 
+                                               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0d5c2f] file:text-white hover:file:bg-[#0d5c2f]/90"
+                                               required>
+                                        <div class="text-xs text-gray-500">
+                                            <p>Accepted: PDF, JPG, PNG, DOC, DOCX</p>
+                                            <p>Max: 10MB per file</p>
+                                        </div>
                                     </div>
+                                    @error("documents.{$field}")
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                @error("documents.{$field}")
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
-                </div>
+                @else
+                    <div class="mb-6">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-600 mr-3 text-xl"></i>
+                                <div>
+                                    <h4 class="text-sm font-medium text-green-800">No Documents Required</h4>
+                                    <p class="text-sm text-green-700 mt-1">This service does not require any document uploads. You can proceed directly to submit your booking.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Conditional Questions -->
                 @if(!empty($conditionalQuestions))
