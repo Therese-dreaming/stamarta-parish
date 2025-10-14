@@ -268,7 +268,7 @@
                                                                             @enderror
                                                                         @endforeach
                                                                     </div>
-                                                                    <button type="button" data-array-key="{{ $fieldKey }}" class="add-array-item mt-2 px-3 py-2 text-sm text-[#0d5c2f] border border-[#0d5c2f] rounded-lg hover:bg-[#0d5c2f]/5 flex items-center">
+                                                                    <button type="button" data-array-key="{{ $fieldKey }}" data-placeholder="{{ $fieldConfig['placeholder'] ?? 'Enter value' }}" class="add-array-item mt-2 px-3 py-2 text-sm text-[#0d5c2f] border border-[#0d5c2f] rounded-lg hover:bg-[#0d5c2f]/5 flex items-center">
                                                                         <i class="fas fa-plus mr-2"></i> Add
                                                                     </button>
                                                                 @elseif($fieldConfig['type'] === 'select')
@@ -442,12 +442,13 @@
                                 document.querySelectorAll('.add-array-item').forEach(addBtn => {
                                     addBtn.addEventListener('click', function () {
                                         const key = this.getAttribute('data-array-key');
+                                        const placeholder = this.getAttribute('data-placeholder') || 'Enter value';
                                         const list = document.getElementById(`array-${key}-list`);
                                         const idx = list.querySelectorAll('div.flex').length;
                                         const wrapper = document.createElement('div');
                                         wrapper.className = 'flex items-center gap-2';
                                         wrapper.innerHTML = `
-                                            <input type="text" name="custom_fields[${key}][${idx}]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]" placeholder="Enter value" required>
+                                            <input type="text" name="custom_fields[${key}][${idx}]" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]" placeholder="${placeholder}" required>
                                             <button type="button" class="remove-array-item w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-full" aria-label="Remove"><i class="fas fa-times"></i></button>
                                         `;
                                         list.appendChild(wrapper);
