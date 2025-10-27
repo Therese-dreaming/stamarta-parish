@@ -15,9 +15,28 @@
                     <h1 class="text-xl font-bold text-white">Bookings Management</h1>
                     <p class="text-white/80 mt-1 text-xs">Manage all service bookings and their status</p>
                 </div>
-                <div class="text-right text-white">
-                    <div class="text-lg font-bold">{{ $stats['total'] ?? 0 }}</div>
-                    <div class="text-xs opacity-80">Total Bookings</div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <a href="{{ route(isset($isStaff) && $isStaff ? 'staff.bookings.export' : 'admin.bookings.export') }}" 
+                           class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm font-medium border border-white/30">
+                            <i class="fas fa-file-excel"></i>
+                            <span>Export All</span>
+                        </a>
+                        <button onclick="openExportModal()" 
+                           class="px-4 py-2 bg-white hover:bg-white/90 text-[#0d5c2f] rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm font-medium shadow-sm">
+                            <i class="fas fa-filter"></i>
+                            <span>Export Filtered</span>
+                        </button>
+                        <button onclick="openPdfPreviewModal()" 
+                           class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm font-medium border border-white/30">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Preview PDF</span>
+                        </button>
+                    </div>
+                    <div class="text-right text-white">
+                        <div class="text-lg font-bold">{{ $stats['total'] ?? 0 }}</div>
+                        <div class="text-xs opacity-80">Total Bookings</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -750,5 +769,326 @@ document.querySelectorAll('[id$="Modal"]').forEach(modal => {
         }
     });
 });
+
+// Export Modal Functions
+function openExportModal() {
+    document.getElementById('exportModal').classList.remove('hidden');
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').classList.add('hidden');
+}
+
+// PDF Preview Modal Functions
+function openPdfPreviewModal() {
+    document.getElementById('pdfPreviewModal').classList.remove('hidden');
+}
+
+function closePdfPreviewModal() {
+    document.getElementById('pdfPreviewModal').classList.add('hidden');
+}
+
+function previewPdf() {
+    const dateFrom = document.getElementById('pdf_date_from').value;
+    const dateTo = document.getElementById('pdf_date_to').value;
+    
+    // Get selected statuses
+    const selectedStatuses = Array.from(document.querySelectorAll('.pdf-status-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    // Get selected services
+    const selectedServices = Array.from(document.querySelectorAll('.pdf-service-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    
+    // Add multiple statuses
+    selectedStatuses.forEach(status => {
+        params.append('status[]', status);
+    });
+    
+    // Add multiple services
+    selectedServices.forEach(service => {
+        params.append('service[]', service);
+    });
+    
+    // Open PDF in new tab
+    const pdfUrl = '{{ route(isset($isStaff) && $isStaff ? "staff.bookings.pdf" : "admin.bookings.pdf") }}?' + params.toString();
+    window.open(pdfUrl, '_blank');
+    
+    // Close modal
+    closePdfPreviewModal();
+}
+
+function exportBookings() {
+    const form = document.getElementById('exportForm');
+    const dateFrom = document.getElementById('date_from').value;
+    const dateTo = document.getElementById('date_to').value;
+    
+    // Get selected statuses
+    const selectedStatuses = Array.from(document.querySelectorAll('.status-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    // Get selected services
+    const selectedServices = Array.from(document.querySelectorAll('.service-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    // Build query string
+    const params = new URLSearchParams();
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
+    
+    // Add multiple statuses
+    selectedStatuses.forEach(status => {
+        params.append('status[]', status);
+    });
+    
+    // Add multiple services
+    selectedServices.forEach(service => {
+        params.append('service[]', service);
+    });
+    
+    // Redirect to export URL with filters
+    const exportUrl = '{{ route(isset($isStaff) && $isStaff ? "staff.bookings.export" : "admin.bookings.export") }}?' + params.toString();
+    window.location.href = exportUrl;
+    
+    closeExportModal();
+}
 </script>
+
+<!-- Export Modal -->
+<div id="exportModal" class="hidden fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="relative mx-auto w-full max-w-3xl">
+        <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i class="fas fa-file-excel text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Export to Excel</h3>
+                            <p class="text-white/80 text-sm">Configure filters and export bookings data</p>
+                        </div>
+                    </div>
+                    <button onclick="closeExportModal()" class="text-white/80 hover:text-white transition-colors">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6 space-y-5">
+                <!-- Date Range Section -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-calendar-alt text-blue-600"></i>
+                        <h4 class="font-semibold text-gray-800">Date Range</h4>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+                            <input type="date" id="date_from" name="date_from" 
+                                   class="w-full px-3 py-2 border-2 border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+                            <input type="date" id="date_to" name="date_to" 
+                                   class="w-full px-3 py-2 border-2 border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Filter Section -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-tasks text-green-600"></i>
+                        <h4 class="font-semibold text-gray-800">Status Filter</h4>
+                    </div>
+                    <div class="max-h-40 overflow-y-auto border-2 border-green-200 rounded-lg p-3 bg-white">
+                    <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input type="checkbox" name="status[]" value="pending" class="status-checkbox rounded text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <span class="text-sm">Pending</span>
+                    </label>
+                    <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input type="checkbox" name="status[]" value="acknowledged" class="status-checkbox rounded text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <span class="text-sm">Acknowledged</span>
+                    </label>
+                    <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input type="checkbox" name="status[]" value="payment_hold" class="status-checkbox rounded text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <span class="text-sm">Payment Hold</span>
+                    </label>
+                    <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input type="checkbox" name="status[]" value="approved" class="status-checkbox rounded text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <span class="text-sm">Approved</span>
+                    </label>
+                    <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input type="checkbox" name="status[]" value="completed" class="status-checkbox rounded text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <span class="text-sm">Completed</span>
+                    </label>
+                    <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input type="checkbox" name="status[]" value="rejected" class="status-checkbox rounded text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <span class="text-sm">Rejected</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input type="checkbox" name="status[]" value="cancelled" class="status-checkbox rounded text-[#0d5c2f] focus:ring-[#0d5c2f]">
+                        <span class="text-sm">Cancelled</span>
+                    </label>
+                </div>
+            </div>
+            
+                <!-- Service Filter Section -->
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-church text-purple-600"></i>
+                        <h4 class="font-semibold text-gray-800">Service Filter</h4>
+                    </div>
+                    <div class="max-h-40 overflow-y-auto border-2 border-purple-200 rounded-lg p-3 bg-white">
+                        @foreach(\App\Models\Service::orderBy('name')->get() as $serviceItem)
+                            <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-purple-50 p-2 rounded transition-colors">
+                                <input type="checkbox" name="service[]" value="{{ $serviceItem->id }}" class="service-checkbox rounded text-purple-600 focus:ring-purple-500">
+                                <span class="text-sm">{{ $serviceItem->name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3 pt-2 border-t border-gray-200">
+                    <button type="button" onclick="closeExportModal()" 
+                            class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-all duration-200 flex items-center space-x-2">
+                        <i class="fas fa-times"></i>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="button" onclick="exportBookings()" 
+                            class="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 transform hover:scale-105">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Export to Excel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PDF Preview Modal -->
+<div id="pdfPreviewModal" class="hidden fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="relative mx-auto w-full max-w-3xl">
+        <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-[#0d5c2f] to-[#0a4a26] px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 p-2 rounded-lg">
+                            <i class="fas fa-file-pdf text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">PDF Preview</h3>
+                            <p class="text-white/80 text-sm">Configure filters and preview bookings report</p>
+                        </div>
+                    </div>
+                    <button onclick="closePdfPreviewModal()" class="text-white/80 hover:text-white transition-colors">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6 space-y-5">
+                <!-- Date Range Section -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-calendar-alt text-blue-600"></i>
+                        <h4 class="font-semibold text-gray-800">Date Range</h4>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+                            <input type="date" id="pdf_date_from" 
+                                   class="w-full px-3 py-2 border-2 border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+                            <input type="date" id="pdf_date_to" 
+                                   class="w-full px-3 py-2 border-2 border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Filter Section -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-tasks text-green-600"></i>
+                        <h4 class="font-semibold text-gray-800">Status Filter</h4>
+                    </div>
+                    <div class="max-h-40 overflow-y-auto border-2 border-green-200 rounded-lg p-3 bg-white">
+                        <label class="flex items-center space-x-1 mb-1 cursor-pointer">
+                            <input type="checkbox" value="pending" class="pdf-status-checkbox rounded text-[#0d5c2f]">
+                            <span>Pending</span>
+                        </label>
+                        <label class="flex items-center space-x-1 mb-1 cursor-pointer">
+                            <input type="checkbox" value="acknowledged" class="pdf-status-checkbox rounded text-[#0d5c2f]">
+                            <span>Acknowledged</span>
+                        </label>
+                        <label class="flex items-center space-x-1 mb-1 cursor-pointer">
+                            <input type="checkbox" value="payment_hold" class="pdf-status-checkbox rounded text-[#0d5c2f]">
+                            <span>Payment Hold</span>
+                        </label>
+                        <label class="flex items-center space-x-1 mb-1 cursor-pointer">
+                            <input type="checkbox" value="approved" class="pdf-status-checkbox rounded text-[#0d5c2f]">
+                            <span>Approved</span>
+                        </label>
+                        <label class="flex items-center space-x-1 mb-1 cursor-pointer">
+                            <input type="checkbox" value="completed" class="pdf-status-checkbox rounded text-[#0d5c2f]">
+                            <span>Completed</span>
+                        </label>
+                        <label class="flex items-center space-x-1 mb-1 cursor-pointer">
+                            <input type="checkbox" value="rejected" class="pdf-status-checkbox rounded text-[#0d5c2f]">
+                            <span>Rejected</span>
+                        </label>
+                        <label class="flex items-center space-x-1 cursor-pointer">
+                            <input type="checkbox" value="cancelled" class="pdf-status-checkbox rounded text-[#0d5c2f]">
+                            <span>Cancelled</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Service Filter Section -->
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                    <div class="flex items-center space-x-2 mb-3">
+                        <i class="fas fa-church text-purple-600"></i>
+                        <h4 class="font-semibold text-gray-800">Service Filter</h4>
+                    </div>
+                    <div class="max-h-40 overflow-y-auto border-2 border-purple-200 rounded-lg p-3 bg-white">
+                        @foreach(\App\Models\Service::orderBy('name')->get() as $serviceItem)
+                            <label class="flex items-center space-x-2 mb-2 cursor-pointer hover:bg-purple-50 p-2 rounded transition-colors">
+                                <input type="checkbox" value="{{ $serviceItem->id }}" class="pdf-service-checkbox rounded text-purple-600 focus:ring-purple-500">
+                                <span class="text-sm">{{ $serviceItem->name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3 pt-2 border-t border-gray-200">
+                    <button type="button" onclick="closePdfPreviewModal()" 
+                            class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition-all duration-200 flex items-center space-x-2">
+                        <i class="fas fa-times"></i>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="button" onclick="previewPdf()" 
+                            class="px-6 py-2.5 bg-gradient-to-r from-[#0d5c2f] to-[#0a4a26] text-white rounded-lg hover:shadow-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 transform hover:scale-105">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>Open Preview</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection 

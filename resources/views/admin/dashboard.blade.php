@@ -13,6 +13,11 @@
                     <p class="text-white/80 mt-1">Welcome to your parish CMS - Manage bookings, finances, and users</p>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <button onclick="generatePDFPreview()" id="pdfPreviewBtn" 
+                            class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm font-medium">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Preview PDF</span>
+                    </button>
                     <div class="text-right text-white/90">
                         <p class="text-sm">Last Updated</p>
                         <p class="font-semibold">{{ now()->format('M d, Y g:i A') }}</p>
@@ -1692,5 +1697,105 @@ function initializeCharts() {
         });
     }
 }
+
+// PDF Preview Generation
+async function generatePDFPreview() {
+    const btn = document.getElementById('pdfPreviewBtn');
+    const originalHTML = btn.innerHTML;
+    
+    // Show loading state
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>Generating...</span>';
+    btn.disabled = true;
+    
+    try {
+        // Capture all chart canvases as base64 images
+        const chartImages = {};
+        const chartIds = [
+            'bookingTrendsChart',
+            'revenueTrendsChart', 
+            'paymentMethodsChart',
+            'userTrendsChart',
+            'roleDistributionChart',
+            'ratingDistributionChart'
+        ];
+        
+        for (const chartId of chartIds) {
+            const canvas = document.getElementById(chartId);
+            if (canvas) {
+                try {
+                    // Capture just the canvas element directly to avoid CSS issues
+                    const capturedCanvas = await html2canvas(canvas, {
+                        scale: 2,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        useCORS: true,
+                        allowTaint: true,
+                        foreignObjectRendering: false,
+                        // Ignore elements that might have unsupported CSS
+                        ignoreElements: (element) => {
+                            return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
+                        }
+                    });
+                    chartImages[chartId] = capturedCanvas.toDataURL('image/png');
+                } catch (error) {
+                    console.warn(`Failed to capture ${chartId}:`, error);
+                    // Try alternative method: get canvas data directly
+                    if (canvas.toDataURL) {
+                        chartImages[chartId] = canvas.toDataURL('image/png');
+                    }
+                }
+            }
+        }
+        
+        // Send chart images to backend to generate PDF
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("admin.dashboard.pdf") }}';
+        form.target = '_blank';
+        
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+        
+        // Add chart images
+        const imagesInput = document.createElement('input');
+        imagesInput.type = 'hidden';
+        imagesInput.name = 'chart_images';
+        imagesInput.value = JSON.stringify(chartImages);
+        form.appendChild(imagesInput);
+        
+        // Add current tab
+        const activeTab = document.querySelector('.tab-button.bg-\\[\\#0d5c2f\\]');
+        if (activeTab) {
+            const tabInput = document.createElement('input');
+            tabInput.type = 'hidden';
+            tabInput.name = 'active_tab';
+            tabInput.value = activeTab.id.replace('tab-', '');
+            form.appendChild(tabInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+        
+        // Reset button after a short delay
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        btn.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i><span>Error</span>';
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+
 </script>
 @endsection

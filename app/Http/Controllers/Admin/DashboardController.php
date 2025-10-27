@@ -12,6 +12,8 @@ use App\Models\Priest;
 use App\Models\Service;
 use App\Models\ServiceRating;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -200,5 +202,79 @@ class DashboardController extends Controller
             'total' => $total,
             'formatted_total' => $total > 99 ? '99+' : $total,
         ]);
+    }
+
+    public function generatePDF(Request $request)
+    {
+        // Get chart images from request
+        $chartImages = json_decode($request->input('chart_images', '{}'), true) ?? [];
+        $activeTab = $request->input('active_tab', 'bookings');
+        
+        // Get current month and year
+        $currentMonth = Carbon::now()->month;
+        $currentYear = Carbon::now()->year;
+        
+        // Booking statistics
+        $bookingStats = [
+            'total_bookings' => Booking::count(),
+            'pending_bookings' => Booking::where('status', 'pending')->count(),
+            'acknowledged_bookings' => Booking::where('status', 'acknowledged')->count(),
+            'payment_hold_bookings' => Booking::where('status', 'payment_hold')->count(),
+            'approved_bookings' => Booking::where('status', 'approved')->count(),
+            'completed_bookings' => Booking::where('status', 'completed')->count(),
+        ];
+
+        // Finance statistics
+        $financeStats = [
+            'total_revenue' => BookingPayment::where('payment_status', 'verified')->sum('total_fee'),
+            'monthly_revenue' => BookingPayment::where('payment_status', 'verified')
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->sum('total_fee'),
+            'pending_payments' => BookingPayment::where('payment_status', 'paid')->sum('total_fee'),
+            'avg_transaction' => BookingPayment::where('payment_status', 'verified')->avg('total_fee') ?? 0,
+            'gcash_payments' => BookingPayment::where('payment_method', 'gcash')->count(),
+            'metrobank_payments' => BookingPayment::where('payment_method', 'metrobank')->count(),
+        ];
+
+        // User statistics
+        $userStats = [
+            'total_users' => User::count(),
+            'new_users_month' => User::whereMonth('created_at', $currentMonth)->whereYear('created_at', $currentYear)->count(),
+            'active_users' => User::where('created_at', '>=', Carbon::now()->subDays(30))->count(),
+            'verified_users' => User::whereNotNull('email_verified_at')->count(),
+        ];
+
+        // Service rating statistics
+        $ratingStats = [
+            'total_ratings' => ServiceRating::count(),
+            'average_rating' => ServiceRating::avg('rating') ? round(ServiceRating::avg('rating'), 1) : 0,
+            'rated_services' => Service::whereHas('ratings')->count(),
+            'unrated_services' => Service::whereDoesntHave('ratings')->count(),
+        ];
+
+        // Today's statistics
+        $todayStats = [
+            'new_bookings' => Booking::whereDate('created_at', Carbon::today())->count(),
+            'new_users' => User::whereDate('created_at', Carbon::today())->count(),
+            'new_revenue' => BookingPayment::where('payment_status', 'verified')
+                ->whereDate('created_at', Carbon::today())
+                ->sum('total_fee'),
+            'new_ratings' => ServiceRating::whereDate('created_at', Carbon::today())->count(),
+        ];
+
+        $stats = array_merge($bookingStats, $financeStats, $userStats, $todayStats, $ratingStats);
+        
+        // Generate PDF with DomPDF
+        $pdf = PDF::loadView('admin.dashboard-pdf', [
+            'chartImages' => $chartImages,
+            'stats' => $stats,
+            'activeTab' => $activeTab,
+            'generatedAt' => Carbon::now()->format('M d, Y g:i A')
+        ]);
+        
+        $pdf->setPaper('a4', 'portrait');
+        
+        return $pdf->stream('dashboard-report-' . Carbon::now()->format('Y-m-d') . '.pdf');
     }
 } 

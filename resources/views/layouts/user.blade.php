@@ -65,7 +65,7 @@
                     </a>
                     
                     @auth
-                                                <!-- Notification Dropdown -->
+                        <!-- Notification Dropdown -->
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="relative flex items-center text-gray-600 hover:text-[#0d5c2f] transition-colors p-2 rounded-lg hover:bg-gray-100">
                                 <i class="fas fa-bell text-xl"></i>

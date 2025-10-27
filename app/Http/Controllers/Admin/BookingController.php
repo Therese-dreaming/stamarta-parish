@@ -10,6 +10,8 @@ use App\Services\EmailService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\BookingsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BookingController extends Controller
 {
@@ -467,5 +469,103 @@ class BookingController extends Controller
         $html = view($view, compact('booking'))->render();
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('letter', 'portrait');
         return $pdf->stream('booking-' . $booking->id . '-certificate.pdf', ['Attachment' => false]);
+    }
+
+    public function export(Request $request)
+    {
+        // Build query with filters
+        $query = Booking::with(['user', 'service', 'priest', 'payment']);
+
+        // Filter by service date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('service_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('service_date', '<=', $request->date_to);
+        }
+
+        // Filter by status (multiple)
+        if ($request->filled('status')) {
+            $query->whereIn('status', $request->status);
+        }
+
+        // Filter by service (multiple)
+        if ($request->filled('service')) {
+            $query->whereIn('service_id', $request->service);
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->get();
+
+        // Calculate stats based on filtered results
+        $statsQuery = Booking::query();
+        
+        if ($request->filled('date_from')) {
+            $statsQuery->whereDate('service_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $statsQuery->whereDate('service_date', '<=', $request->date_to);
+        }
+        if ($request->filled('service')) {
+            $statsQuery->where('service_id', $request->service);
+        }
+
+        $stats = [
+            'total' => (clone $statsQuery)->count(),
+            'pending' => (clone $statsQuery)->where('status', 'pending')->count(),
+            'acknowledged' => (clone $statsQuery)->where('status', 'acknowledged')->count(),
+            'payment_hold' => (clone $statsQuery)->where('status', 'payment_hold')->count(),
+            'approved' => (clone $statsQuery)->where('status', 'approved')->count(),
+            'completed' => (clone $statsQuery)->where('status', 'completed')->count(),
+            'rejected' => (clone $statsQuery)->where('status', 'rejected')->count(),
+            'cancelled' => (clone $statsQuery)->where('status', 'cancelled')->count(),
+        ];
+
+        return Excel::download(
+            new BookingsExport($bookings, $stats),
+            'bookings-' . now()->format('Y-m-d-His') . '.xlsx'
+        );
+    }
+
+    public function pdf(Request $request)
+    {
+        // Build query with filters (same as export)
+        $query = Booking::with(['user', 'service', 'priest', 'payment']);
+
+        // Filter by service date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('service_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('service_date', '<=', $request->date_to);
+        }
+
+        // Filter by status (multiple)
+        if ($request->filled('status')) {
+            $query->whereIn('status', $request->status);
+        }
+
+        // Filter by service (multiple)
+        if ($request->filled('service')) {
+            $query->whereIn('service_id', $request->service);
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->get();
+
+        // Generate PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.bookings.list-pdf', [
+            'bookings' => $bookings,
+            'generatedAt' => now()->format('M d, Y g:i A'),
+            'filters' => [
+                'date_from' => $request->date_from,
+                'date_to' => $request->date_to,
+                'status' => $request->status,
+                'service' => $request->service,
+            ]
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+
+        // Stream PDF (opens in browser for preview)
+        return $pdf->stream('bookings-report-' . now()->format('Y-m-d') . '.pdf');
     }
 } 

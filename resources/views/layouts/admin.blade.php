@@ -23,6 +23,9 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- html2canvas for chart capture -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="bg-gray-50 font-['Poppins'] min-h-full flex flex-col text-sm">
     <div class="min-h-screen">

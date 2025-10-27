@@ -66,6 +66,27 @@
                     </div>
 
                     <div>
+                        <label for="contact_number" class="block text-sm font-medium text-gray-700">Contact Number</label>
+                        <input id="contact_number" name="contact_number" type="text" 
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#0d5c2f] focus:border-[#0d5c2f] focus:z-10 sm:text-sm"
+                               placeholder="Enter your contact number"
+                               value="{{ old('contact_number') }}">
+                        @error('contact_number')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                        <textarea id="address" name="address" rows="2"
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#0d5c2f] focus:border-[#0d5c2f] focus:z-10 sm:text-sm"
+                               placeholder="Enter your address">{{ old('address') }}</textarea>
+                        @error('address')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
                         <input id="date_of_birth" name="date_of_birth" type="date" 
                                max="{{ date('Y-m-d', strtotime('-1 day')) }}"

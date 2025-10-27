@@ -21,6 +21,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',                         // User's full name, used for display and identification throughout the system
         'email',                        // User's email address, used for authentication, communication, and notifications
+        'contact_number',               // User's contact number, used for communication and notifications
+        'address',                      // User's physical address, used for record keeping and communication
         'password',                     // Hashed user password, used for authentication and security
         'role',                         // User's role (admin, priest, ministry_head, staff, user), used for authorization and access control
         'date_of_birth',                // User's birth date, used for age calculation and legal age verification

@@ -53,6 +53,10 @@
                             <p class="text-sm text-gray-900 group-hover:text-[#0d5c2f] transition-colors duration-200">{{ $user->email }}</p>
                         </div>
                         <div class="group">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Contact Number</label>
+                            <p class="text-sm text-gray-900 group-hover:text-[#0d5c2f] transition-colors duration-200">{{ $user->contact_number ?? 'Not provided' }}</p>
+                        </div>
+                        <div class="group">
                             <label class="block text-xs font-medium text-gray-500 mb-1">Role</label>
                             @php
                                 $roleColors = [
@@ -67,6 +71,10 @@
                                 <i class="fas fa-{{ $user->role === 'admin' ? 'crown' : ($user->role === 'priest' ? 'cross' : ($user->role === 'staff' ? 'user-tie' : 'user')) }} mr-1 text-xs"></i>
                                 {{ ucfirst($user->role) }}
                             </span>
+                        </div>
+                        <div class="group md:col-span-2">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Address</label>
+                            <p class="text-sm text-gray-900 group-hover:text-[#0d5c2f] transition-colors duration-200">{{ $user->address ?? 'Not provided' }}</p>
                         </div>
                         <div class="group">
                             <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>

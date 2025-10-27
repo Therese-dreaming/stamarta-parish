@@ -134,9 +134,17 @@
                         <div class="space-y-6">
                             <!-- Contact Information Section -->
                             <div>
-                                <h3 class="text-md font-semibold text-gray-800 mb-4 flex items-center">
-                                    <i class="fas fa-address-card text-[#0d5c2f] mr-2"></i>Contact Information
-                                </h3>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-md font-semibold text-gray-800 flex items-center">
+                                        <i class="fas fa-address-card text-[#0d5c2f] mr-2"></i>Contact Information
+                                    </h3>
+                                    @if(Auth::user()->contact_number || Auth::user()->address)
+                                        <button type="button" onclick="applyProfileInfo()" 
+                                                class="px-3 py-1.5 text-xs bg-[#0d5c2f]/10 text-[#0d5c2f] rounded-lg hover:bg-[#0d5c2f]/20 transition-colors flex items-center">
+                                            <i class="fas fa-user-check mr-1.5"></i>Use My Profile Info
+                                        </button>
+                                    @endif
+                                </div>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Contact Phone -->
@@ -149,7 +157,7 @@
                                                 <i class="fas fa-phone text-gray-400"></i>
                                             </div>
                                             <input type="tel" id="contact_phone" name="contact_phone" 
-                                                value="{{ old('contact_phone', Auth::user()->phone ?? '') }}" required
+                                                value="{{ old('contact_phone', Auth::user()->contact_number ?? '') }}" required
                                                 class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
                                                 placeholder="+63 912 345 6789">
                                         </div>
@@ -169,7 +177,7 @@
                                             </div>
                                             <textarea id="contact_address" name="contact_address" rows="2" required
                                                     class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-[#0d5c2f] focus:border-[#0d5c2f]"
-                                                    placeholder="Enter your complete address">{{ old('contact_address') }}</textarea>
+                                                    placeholder="Enter your complete address">{{ old('contact_address', Auth::user()->address ?? '') }}</textarea>
                                         </div>
                                         @error('contact_address')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -423,6 +431,33 @@
                             </div>
                         </div>
                         <script>
+                            function applyProfileInfo() {
+                                // Apply user's saved contact number and address to the form
+                                const profileContactNumber = @json(Auth::user()->contact_number ?? '');
+                                const profileAddress = @json(Auth::user()->address ?? '');
+                                
+                                if (profileContactNumber) {
+                                    document.getElementById('contact_phone').value = profileContactNumber;
+                                }
+                                
+                                if (profileAddress) {
+                                    document.getElementById('contact_address').value = profileAddress;
+                                }
+                                
+                                // Show a brief confirmation
+                                const button = event.target.closest('button');
+                                const originalHTML = button.innerHTML;
+                                button.innerHTML = '<i class="fas fa-check mr-1.5"></i>Applied!';
+                                button.classList.add('bg-green-100', 'text-green-700');
+                                button.classList.remove('bg-[#0d5c2f]/10', 'text-[#0d5c2f]');
+                                
+                                setTimeout(() => {
+                                    button.innerHTML = originalHTML;
+                                    button.classList.remove('bg-green-100', 'text-green-700');
+                                    button.classList.add('bg-[#0d5c2f]/10', 'text-[#0d5c2f]');
+                                }, 2000);
+                            }
+
                             function toggleOtherReligion(fieldKey, value) {
                                 const otherDiv = document.getElementById(`other-religion-${fieldKey}`);
                                 const otherInput = document.getElementById(`custom_fields_${fieldKey}_other`);

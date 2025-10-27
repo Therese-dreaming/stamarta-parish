@@ -154,6 +154,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	// Dashboard
 	Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 	Route::get('admin-action-counts', [DashboardController::class, 'getAdminActionCounts'])->name('admin-action-counts');
+	Route::post('dashboard/pdf', [DashboardController::class, 'generatePDF'])->name('dashboard.pdf');
 	
 	// CMS Routes
 	Route::prefix('cms')->name('cms.')->group(function () {
@@ -195,6 +196,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 	
 	// Booking Management
 	Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+	Route::get('bookings/export', [App\Http\Controllers\Admin\BookingController::class, 'export'])->name('bookings.export');
+	Route::get('bookings/pdf', [App\Http\Controllers\Admin\BookingController::class, 'pdf'])->name('bookings.pdf');
 	Route::get('bookings/calendar', [App\Http\Controllers\Admin\BookingController::class, 'calendar'])->name('bookings.calendar');
 	Route::get('bookings/{booking}', [App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
 	Route::get('bookings/{booking}/print', [App\Http\Controllers\Admin\BookingController::class, 'print'])->name('bookings.print');
@@ -265,6 +268,8 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'staff'])->group(fun
 	
 	// Booking Management (using admin controller)
 	Route::get('bookings', [App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+	Route::get('bookings/export', [App\Http\Controllers\Admin\BookingController::class, 'export'])->name('bookings.export');
+	Route::get('bookings/pdf', [App\Http\Controllers\Admin\BookingController::class, 'pdf'])->name('bookings.pdf');
 	Route::get('bookings/calendar', [App\Http\Controllers\Admin\BookingController::class, 'calendar'])->name('bookings.calendar');
 	Route::get('bookings/{booking}', [App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
 	Route::get('bookings/{booking}/print', [App\Http\Controllers\Admin\BookingController::class, 'print'])->name('bookings.print');
